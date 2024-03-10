@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: [true, "please enter a username"],
+    unique: true,
   },
   email: {
     type: String,
@@ -151,7 +152,6 @@ const userSchema = new mongoose.Schema({
     },
   },
 });
-
 //password encryption
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
