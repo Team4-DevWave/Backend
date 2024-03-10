@@ -170,6 +170,8 @@ userSchema.pre("save", function (next) {
   next();
 });
 
+
+
 //password reset token
 userSchema.methods.createPasswordResetToken = function () {
   //1)create token
@@ -189,6 +191,18 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+//checks if the password was changed after the token was issued
+userSchema.methods.changedPasswordsAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTTimestamp < changedTimestamp; //check if password was changed after token was issued
+  }
+  return false; // no change happened by default
 };
 
 
