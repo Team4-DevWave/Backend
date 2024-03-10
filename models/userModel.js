@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date, //security measure for reset token
-  dateJoined: {
+  dateJoined: { //cake day
     type: Date,
     default: Date.now(),
   },
