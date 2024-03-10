@@ -163,6 +163,12 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+//user login could be faster than updating this value , this ensures that the token is always created after changing the password
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+  this.passwordChangedAt = Date.now() - 1000; 
+  next();
+});
 
 //password reset token
 userSchema.methods.createPasswordResetToken = function () {
@@ -184,8 +190,6 @@ userSchema.methods.correctPassword = async function (
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
-
-
 
 
 
