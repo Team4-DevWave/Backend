@@ -26,15 +26,28 @@ const userProfileSettingSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  socialLinks: [{
-    socialType:{
+  socialLinks: [
+    {
+      socialType: {
         type: String,
-        enum: ["facebook", "instagram", "twitter", "linkedin", "youtube", "tiktok", "pinterest", "tumblr", "reddit", "other"],
-        },
-    socialURL:{
-        type:String
-        },
-    }]
+        enum: [
+          "facebook",
+          "instagram",
+          "twitter",
+          "linkedin",
+          "youtube",
+          "tiktok",
+          "pinterest",
+          "tumblr",
+          "reddit",
+          "other",
+        ],
+      },
+      socialURL: {
+        type: String,
+      },
+    },
+  ],
 });
 
 const userProfileSettingModel = mongoose.model(
