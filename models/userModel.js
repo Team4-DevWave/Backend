@@ -152,7 +152,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// middlewares
 //password encryption
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
@@ -166,7 +165,7 @@ userSchema.pre("save", async function (next) {
 //user login could be faster than updating this value , this ensures that the token is always created after changing the password
 userSchema.pre("save", function (next) {
   if (!this.isModified("password") || this.isNew) return next();
-  this.passwordChangedAt = Date.now() - 1000; 
+  this.passwordChangedAt = Date.now() - 1000;
   next();
 });
 
@@ -194,6 +193,8 @@ userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
+  //this.password wont work here anymore as we made password select:false (not visible)
+  //candidate pass is not hashed (original pass from user), userpassword is hashed
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
@@ -206,10 +207,8 @@ userSchema.methods.changedPasswordsAfter = function (JWTTimestamp) {
     );
     return JWTTimestamp < changedTimestamp; //check if password was changed after token was issued
   }
-  return false; // no change happened by default
+  return false;
 };
-
-
 
 const userModel = mongoose.model("users", userSchema);
 
