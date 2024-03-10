@@ -163,6 +163,20 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+
+//password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  //1)create token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  //2)encrypt token
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; //convert 10min to milliseconds
+  return resetToken; //returns token that should be sent to email
+};
+
 //compares the password entered by the user with the hashed password in the database
 userSchema.methods.correctPassword = async function (
   candidatePassword,
