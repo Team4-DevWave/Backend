@@ -170,7 +170,11 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-
+//hides deleted users in postman but not in database
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 //password reset token
 userSchema.methods.createPasswordResetToken = function () {
