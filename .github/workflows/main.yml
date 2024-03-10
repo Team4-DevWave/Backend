@@ -12,6 +12,11 @@ on:
   pull_request:
     branches: [ "main" ]
 jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: autofix
+        run: standard --fix
   run-lint:
     runs-on: ubuntu-latest
     steps:
@@ -27,3 +32,5 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: "main"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  
