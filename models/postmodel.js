@@ -6,7 +6,7 @@ const postSchema = mongoose.Schema({
   numViews: { type: Number, required: true },
   subredditID: { type: mongoose.Schema.Types.ObjectId, ref: 'Subreddit' },
   title: { type: String, required: true },
-  type: { type: String, required: true },
+  type: { type: String, enum:["poll","image/video","text"],required: true },
   spoiler: { type: Boolean, required: true },
   nsfw: { type: Boolean, required: true },
   lastEditedTime: { type: Date, required: true },
