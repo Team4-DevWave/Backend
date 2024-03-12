@@ -13,7 +13,6 @@ const postSchema = mongoose.Schema({
   votes: { type: Number, required: true },
   content: { type: String, required: true },
   locked: { type: Boolean, required: false },
-  followed: { type: Boolean, required: false },
 });
 
 const postModel = mongoose.model("Review", postSchema);

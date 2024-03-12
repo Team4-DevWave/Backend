@@ -58,12 +58,19 @@ const userSchema = new mongoose.Schema({
   },
   followedUsers: {
     type: [mongoose.Schema.ObjectId],
+    ref: "users",
   },
   blockedUsers: {
     type: [mongoose.Schema.ObjectId],
+    ref: "users",
   },
   joinedSubreddits: {
     type: [mongoose.Schema.ObjectId],
+    ref: "subreddits",
+  },
+  followedPosts:{
+    type: [mongoose.Schema.ObjectId],
+    ref: "posts",
   },
   userProfile: {
     type: mongoose.Schema.ObjectId,
