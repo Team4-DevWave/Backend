@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 const moderatorSchema = mongoose.Schema({
   userID: {
     type: mongoose.Schema.Types.ObjectId,
@@ -16,4 +16,4 @@ const moderatorSchema = mongoose.Schema({
 });
 
 const moderatorModel = mongoose.model("moderators", moderatorSchema);
-export default moderatorModel;
+module.exports = moderatorModel;

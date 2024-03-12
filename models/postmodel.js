@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose=require("mongoose");
 const postSchema = mongoose.Schema({
   commentsID: [{ type: mongoose.Schema.Types.ObjectId, ref: "comments" }],
   userID: {
@@ -19,5 +19,5 @@ const postSchema = mongoose.Schema({
   locked: { type: Boolean, required: false },
 });
 
-const postModel = mongoose.model("reviews", postSchema);
-export default postModel;
+const postModel = mongoose.model("posts", postSchema);
+module.exports = postModel;

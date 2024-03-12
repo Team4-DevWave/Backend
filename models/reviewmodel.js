@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 const reviewSchema = mongoose.Schema({
   reportID: {
     type: mongoose.Schema.Types.ObjectId,
@@ -10,4 +10,4 @@ const reviewSchema = mongoose.Schema({
 });
 
 const reviewModel = mongoose.model("reviews", reviewSchema);
-export default reviewModel;
+module.exports = reviewModel;
