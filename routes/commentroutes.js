@@ -1,9 +1,9 @@
 const express = require("express");
-const authController = require("./../controllers/authController.js");
+// const authController = require("./../controllers/authController.js");
 const commentController = require("./../controllers/commentcontroller");
 const commentRouter = express.Router({ mergeParams: true });
 
-commentRouter.use(authController.protect);
+// commentRouter.use(authController.protect);
 
 commentRouter
   .route("/")
@@ -11,6 +11,7 @@ commentRouter
   .get(commentController.getComments);
 commentRouter
   .route("/:commentid")
+  .get(commentController.getComment)
   .post(commentController.addCommentReply)
   .patch(commentController.editComment)
   .delete(commentController.deleteComment);
