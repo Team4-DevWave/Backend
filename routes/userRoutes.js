@@ -8,6 +8,7 @@ userRouter.get(
   userController.usernameAvailable
 );
 
+userRouter.use(authController.protect);
 //routes that need protection
 userRouter
   .route("/me")
@@ -18,6 +19,8 @@ userRouter
   .route("/me/settings")
   .get(userController.getMySettings)
   .patch(userController.updateMySettings);
+userRouter.patch("/me/updatePassword", authController.updatePassword);
+userRouter.patch("/me/updateEmail", userController.updateEmail);  
 userRouter
   .route("/me/friend/:username")
   .post(userController.addFriend)
