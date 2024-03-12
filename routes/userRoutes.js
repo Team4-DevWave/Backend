@@ -14,6 +14,10 @@ userRouter
   .get(userController.getMe, userController.getUser)
   .patch(userController.updateMe)
   .delete(userController.deleteMe);
+userRouter
+  .route("/me/settings")
+  .get(userController.getMySettings)
+  .patch(userController.updateMySettings);
 
 
 module.exports = userRouter;
