@@ -73,35 +73,37 @@ const userSchema = new mongoose.Schema({
     type: [mongoose.Schema.ObjectId],
     ref: "posts",
   },
-  userProfile: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userProfileSettings",
-    required: [true, "user must have a user profile"],
-  },
-  safetyAndPrivacy: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userSafetyPrivacySettings",
-    required: [true, "user must have a safety and privacy settings"],
-  },
-  feedSettings: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userFeedSettings",
-    required: [true, "user must have a feed settings"],
-  },
-  notifications: {
-    type: mongoose.Schema.ObjectId,
-    ref: "notifications",
-    required: [true, "user must have a notifications settings"],
-  },
-  emailSettings: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userEmailSettings",
-    required: [true, "user must have a email settings"],
-  },
-  chatAndMessagingSettings: {
-    type: mongoose.Schema.ObjectId,
-    ref: "chatSettings",
-    required: [true, "user must have a chat settings"],
+  settings: {
+    userProfile: {
+      type: mongoose.Schema.ObjectId,
+      ref: "userProfileSettings",
+      required: [true, "user must have a user profile"],
+    },
+    safetyAndPrivacy: {
+      type: mongoose.Schema.ObjectId,
+      ref: "userSafetyPrivacySettings",
+      required: [true, "user must have a safety and privacy settings"],
+    },
+    feedSettings: {
+      type: mongoose.Schema.ObjectId,
+      ref: "userFeedSettings",
+      required: [true, "user must have a feed settings"],
+    },
+    notifications: {
+      type: mongoose.Schema.ObjectId,
+      ref: "notifications",
+      required: [true, "user must have a notifications settings"],
+    },
+    emailSettings: {
+      type: mongoose.Schema.ObjectId,
+      ref: "userEmailSettings",
+      required: [true, "user must have a email settings"],
+    },
+    chatAndMessagingSettings: {
+      type: mongoose.Schema.ObjectId,
+      ref: "chatSettings",
+      required: [true, "user must have a chat settings"],
+    },
   },
   savedPostsAndComments: {
     type: mongoose.Schema.ObjectId,
