@@ -27,8 +27,6 @@ userRouter
   .post(userController.blockUser)
   .delete(userController.unblockUser);
 
-
-
-
+userRouter.get("/:username", userController.getUserByUsername);
 
 module.exports = userRouter;
