@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const moderatorSchema = mongoose.Schema({
-  userID: { type: mongoose.Schema.Types.ObjectId, ref:'User',required: true},
-  subredditID: { type: mongoose.Schema.Types.ObjectId, ref: 'Subreddit' },
+  userID: { type: mongoose.Schema.Types.ObjectId, ref:'users',required: true},
+  subredditID: { type: mongoose.Schema.Types.ObjectId, ref: 'subreddits' },
   permissions: { 
     manageUsers: { type: Boolean, required: true },
     manageSettings: { type: Boolean, required: true },
@@ -11,5 +11,5 @@ const moderatorSchema = mongoose.Schema({
   },
 })
 
-const moderatorModel = mongoose.model("Moderator", moderatorSchema);
+const moderatorModel = mongoose.model("moderators", moderatorSchema);
 export default moderatorModel;

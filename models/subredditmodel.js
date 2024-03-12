@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 const subredditSchema = mongoose.Schema({
   name: { type: String, required: true, unique: true },
-  moderatorsID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  moderatorsID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
   status: { type: String, required: true },
-  membersID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  postsID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
+  membersID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
+  postsID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'posts' }],
   description: { type: String, required: true },
   category: { type: String, required: true },
   srSettings:{
@@ -36,11 +36,11 @@ const subredditSchema = mongoose.Schema({
   },
   rules: [{ type: String, required: true }],
   userManagement:{
-    banList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    mutedList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    approvedList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    banList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
+    mutedList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
+    approvedList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
   },
 })
 
-const subredditModel = mongoose.model("Subreddit", subredditSchema);
+const subredditModel = mongoose.model("subreddits", subredditSchema);
 export default subredditModel;

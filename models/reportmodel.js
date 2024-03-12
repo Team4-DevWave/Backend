@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const reportSchema = mongoose.Schema({
-  userID: { type: mongoose.Schema.Types.ObjectId, ref:'User',required: true},
+  userID: { type: mongoose.Schema.Types.ObjectId, ref:'users',required: true},
   title: { type: String, required: true},
   description: { type: String, required: true },
   type: { type: String, enum:["Break rules","Harassment","Threatening violence","Hate","Minor abuse or sexualization",
@@ -8,5 +8,5 @@ const reportSchema = mongoose.Schema({
   "Impersonation","Copyright violation","Trademark violation","Self-harm or suicide","Spam"],required: true },
 })
 
-const reportModel = mongoose.model("Report", reportSchema);
+const reportModel = mongoose.model("reports", reportSchema);
 export default reportModel;
