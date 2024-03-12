@@ -22,6 +22,13 @@ userRouter
   .route("/me/friend/:username")
   .post(userController.addFriend)
   .delete(userController.removeFriend);
+userRouter
+  .route("/me/block/:username")
+  .post(userController.blockUser)
+  .delete(userController.unblockUser);
+
+
+
 
 
 module.exports = userRouter;
