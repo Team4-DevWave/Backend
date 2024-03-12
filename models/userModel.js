@@ -38,7 +38,8 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date, //security measure for reset token
-  dateJoined: { //cake day
+  dateJoined: {
+    //cake day
     type: Date,
     default: Date.now(),
   },
@@ -68,23 +69,23 @@ const userSchema = new mongoose.Schema({
     type: [mongoose.Schema.ObjectId],
     ref: "subreddits",
   },
-  followedPosts:{
+  followedPosts: {
     type: [mongoose.Schema.ObjectId],
     ref: "posts",
   },
   userProfile: {
     type: mongoose.Schema.ObjectId,
-    ref: "userProfile",
+    ref: "userProfileSettings",
     required: [true, "user must have a user profile"],
   },
   safetyAndPrivacy: {
     type: mongoose.Schema.ObjectId,
-    ref: "safetyAndPrivacy",
+    ref: "userSafetyPrivacySettings",
     required: [true, "user must have a safety and privacy settings"],
   },
   feedSettings: {
     type: mongoose.Schema.ObjectId,
-    ref: "feedSettings",
+    ref: "userFeedSettings",
     required: [true, "user must have a feed settings"],
   },
   notifications: {
@@ -94,7 +95,7 @@ const userSchema = new mongoose.Schema({
   },
   emailSettings: {
     type: mongoose.Schema.ObjectId,
-    ref: "emailSettings",
+    ref: "userEmailSettings",
     required: [true, "user must have a email settings"],
   },
   chatAndMessagingSettings: {

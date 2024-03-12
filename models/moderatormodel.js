@@ -5,7 +5,7 @@ const moderatorSchema = mongoose.Schema({
     ref: "users",
     required: true,
   },
-  subredditID: { type: mongoose.Schema.Types.ObjectId, ref: "Subreddit" },
+  subredditID: { type: mongoose.Schema.Types.ObjectId, ref: "subreddits" },
   permissions: {
     manageUsers: { type: Boolean, required: true },
     manageSettings: { type: Boolean, required: true },

@@ -63,5 +63,5 @@ const subredditSchema = mongoose.Schema({
   },
 });
 
-const subredditModel = mongoose.model("Subreddit", subredditSchema);
+const subredditModel = mongoose.model("subreddits", subredditSchema);
 export default subredditModel;

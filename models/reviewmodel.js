@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const reviewSchema = mongoose.Schema({
   reportID: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Report",
+    ref: "reports",
     required: true,
   },
   moderatorID: { type: mongoose.Schema.Types.ObjectId, ref: "moderators" },
