@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 const postSchema = mongoose.Schema({
-  commentsID: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
-  userID: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  commentsID: [{ type: mongoose.Schema.Types.ObjectId, ref: "comments" }],
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    required: true,
+  },
   postedTime: { type: Date, required: true },
   numViews: { type: Number, required: true },
   subredditID: { type: mongoose.Schema.Types.ObjectId, ref: "Subreddit" },
@@ -15,5 +19,5 @@ const postSchema = mongoose.Schema({
   locked: { type: Boolean, required: false },
 });
 
-const postModel = mongoose.model("Review", postSchema);
+const postModel = mongoose.model("reviews", postSchema);
 export default postModel;
