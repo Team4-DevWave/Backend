@@ -18,6 +18,10 @@ userRouter
   .route("/me/settings")
   .get(userController.getMySettings)
   .patch(userController.updateMySettings);
+userRouter
+  .route("/me/friend/:username")
+  .post(userController.addFriend)
+  .delete(userController.removeFriend);
 
 
 module.exports = userRouter;
