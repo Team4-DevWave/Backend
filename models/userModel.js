@@ -24,6 +24,14 @@ const userSchema = new mongoose.Schema({
     minlength: 8,
     select: false, // password should not be shown in the database
   },
+  verfied:{
+    type:Boolean,
+    default:false
+  },
+  verificationToken:{
+    type:String,
+    default:""
+  },
   passwordConfirm: {
     type: String,
     required: [true, "please confirm your password"],
@@ -73,56 +81,34 @@ const userSchema = new mongoose.Schema({
     type: [mongoose.Schema.ObjectId],
     ref: "posts",
   },
-  userProfile: {
+  settings:{
     type: mongoose.Schema.ObjectId,
-    ref: "userProfileSettings",
-    required: [true, "user must have a user profile"],
+    ref: "settings",
   },
-  safetyAndPrivacy: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userSafetyPrivacySettings",
-    required: [true, "user must have a safety and privacy settings"],
-  },
-  feedSettings: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userFeedSettings",
-    required: [true, "user must have a feed settings"],
-  },
-  notifications: {
-    type: mongoose.Schema.ObjectId,
-    ref: "notifications",
-    required: [true, "user must have a notifications settings"],
-  },
-  emailSettings: {
-    type: mongoose.Schema.ObjectId,
-    ref: "userEmailSettings",
-    required: [true, "user must have a email settings"],
-  },
-  chatAndMessagingSettings: {
-    type: mongoose.Schema.ObjectId,
-    ref: "chatSettings",
-    required: [true, "user must have a chat settings"],
-  },
-  savedPostsAndComments: {
-    type: mongoose.Schema.ObjectId,
-    ref: "savedPostsAndComments",
-  },
-  viewedPosts: {
-    type: [mongoose.Schema.ObjectId],
-    ref: "viewedPosts",
-  },
-  hiddenPosts: {
-    type: [mongoose.Schema.ObjectId],
-    ref: "hiddenPosts",
-  },
-  comments: {
-    type: [mongoose.Schema.ObjectId],
-    ref: "comments",
-  },
-  posts: {
+  
+  // notifications: { //TODO what is that
+  //   type: mongoose.Schema.ObjectId,
+  //   ref: "notifications",
+  //   required: [true, "user must have a notifications settings"], //this is not settings xD
+  // },
+  createdOrSharedPosts:{
     type: [mongoose.Schema.ObjectId],
     ref: "posts",
   },
+  savedPostsAndComments:{
+    comments:[{
+      type: mongoose.Schema.ObjectId,
+      ref: "comments",
+    }],
+    posts:[{
+      type: mongoose.Schema.ObjectId,
+      ref: "posts",
+    }],
+  },
+   viewedPosts: {
+     type: [mongoose.Schema.ObjectId],
+     ref: "posts",
+   },
   upvotes: {
     comments: [
       {
@@ -201,8 +187,6 @@ userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
-  //this.password wont work here anymore as we made password select:false (not visible)
-  //candidate pass is not hashed (original pass from user), userpassword is hashed
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
