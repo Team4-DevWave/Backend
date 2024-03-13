@@ -21,7 +21,7 @@ const sendVerificationEmail=(user)=>{
     }
     const Token = crypto.randomBytes(32).toString("hex");
     user.verificationToken=Token;
-    mailControl.sendEmail(user.email,"Welcome to Reddit","Welcome to Reddit,please click the link to verify your email: http://localhost:8000/api/v1/users/users/verify/"+user.username+'/'+Token); //TODO modify link when hosting
+    mailControl.sendEmail(user.email,"Welcome to Reddit","Welcome to Reddit,please click the link to verify your email: http://localhost:8000/api/v1/users/verify/"+user.username+'/'+Token); //TODO modify link when hosting
     return Token;
 
 };
@@ -47,12 +47,23 @@ const createSendToken = (user, statusCode, res) => {
   exports.login = catchAsync(async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
+    const username = req.body.username;
     //1) check if email and pass exist
-    if (!email || !password) {
-      return next(new appError('Please provide email and password', 400));
+    if (!password) {
+      return next(new appError('Please provide password', 400));
+    }
+    if(!email || !username){
+      return next(new appError('Please provide email/username', 400));
     }
     //2) check if user exists and password is correct
-    const user = await userModel.findOne({ email: email }).select('+password'); //select + is used to show hidden entity
+    let user;
+    if(email){
+      user = await userModel.findOne({ email: email }).select('+password'); //select + is used to show hidden entity
+    }
+    else{
+      user = await userModel.findOne({ username: username }).select('+password'); //select + is used to show hidden entity
+    }
+    
     //to compare the password with the encrypted password on DB then encrypt the req pass and compare it with the encrypted one is DB , the function created to do so is found in usermodel as it's related to the data. that function is called correctpassword
     if (!user || !(await user.correctPassword(password, user.password))) {
       return next(new appError('Incorrect email or password'), 401);
@@ -105,14 +116,18 @@ const createSendToken = (user, statusCode, res) => {
     if (user) {
       return next(new appError('email already used', 401));
     }
-    //const settings = await settingsModel.create();
-    //settings.save();
+    if(!req.body.passwordConfirm){
+      return next(new appError('password confirm is required', 401));
+    }
+    const settings = await settingsModel.create({});
+    
     const newUser = await userModel.create(req.body);
-   // newUser.settings = settings._id;
+    newUser.verified=false;
+    newUser.settings = settings._id;
     
     const token=sendVerificationEmail(newUser); //TODO move under user.save
     newUser.verficationToken=token;
-    newUser.save();
+    await newUser.save();
 
     createSendToken(newUser, 201, res);
   });
@@ -126,7 +141,7 @@ const createSendToken = (user, statusCode, res) => {
     }
     user.verified=true;
     user.verificationToken=undefined;
-    user.save();
+    await user.save();
     res.status(200).json({
       status: 'success',
       message: 'email verified',

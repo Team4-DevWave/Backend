@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     minlength: 8,
     select: false, // password should not be shown in the database
   },
-  verfied:{
+  verified:{
     type:Boolean,
     default:false
   },
@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    required: [true, "please confirm your password"],
     validate: {
       validator: function (el) {
         return el === this.password; // el is passwordconfirm , password is the current user password
@@ -187,6 +186,8 @@ userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
+  //this.password wont work here anymore as we made password select:false (not visible)
+  //candidate pass is not hashed (original pass from user), userpassword is hashed
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
