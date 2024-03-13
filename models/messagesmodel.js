@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const messegeSchema = new mongoose.Schema({
+const messageSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.ObjectId,
     ref: "users",
@@ -13,11 +13,11 @@ const messegeSchema = new mongoose.Schema({
   },
   subject: {
     type: String,
-    required: [true, "please enter a messege subject"],
+    required: [true, "please enter a message subject"],
   },
   content: {
     type: String,
-    required: [true, "please enter a messege content"],
+    required: [true, "please enter a message content"],
   },
   createdAt: {
     type: Date,
@@ -27,12 +27,12 @@ const messegeSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  parentMessege: {
+  parentmessage: {
     type: mongoose.Schema.ObjectId,
-    ref: "messeges",
+    ref: "messages",
   },
 });
 
-const messegeModel = mongoose.model("messeges", messegeSchema);
+const messageModel = mongoose.model("messages", messageSchema);
 
-module.exports = messegeModel;
+module.exports = messageModel;
