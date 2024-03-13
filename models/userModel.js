@@ -74,48 +74,26 @@ const userSchema = new mongoose.Schema({
     ref: "posts",
   },
   settings: {
-    userProfile: {
-      type: mongoose.Schema.ObjectId,
-      ref: "userProfileSettings",
-      required: [true, "user must have a user profile"],
-    },
-    safetyAndPrivacy: {
-      type: mongoose.Schema.ObjectId,
-      ref: "userSafetyPrivacySettings",
-      required: [true, "user must have a safety and privacy settings"],
-    },
-    feedSettings: {
-      type: mongoose.Schema.ObjectId,
-      ref: "userFeedSettings",
-      required: [true, "user must have a feed settings"],
-    },
-    notifications: {
-      type: mongoose.Schema.ObjectId,
-      ref: "notifications",
-      required: [true, "user must have a notifications settings"],
-    },
-    emailSettings: {
-      type: mongoose.Schema.ObjectId,
-      ref: "userEmailSettings",
-      required: [true, "user must have a email settings"],
-    },
-    chatAndMessagingSettings: {
-      type: mongoose.Schema.ObjectId,
-      ref: "chatSettings",
-      required: [true, "user must have a chat settings"],
-    },
+   type: mongoose.Schema.ObjectId,
+   ref: "settings",
   },
   savedPostsAndComments: {
-    type: mongoose.Schema.ObjectId,
-    ref: "savedPostsAndComments",
+    comments: [{
+      type: mongoose.Schema.ObjectId,
+      ref: "comments",
+    }],
+    posts: [{
+      type: mongoose.Schema.ObjectId,
+      ref: "posts",
+    }],
   },
   viewedPosts: {
     type: [mongoose.Schema.ObjectId],
-    ref: "viewedPosts",
+    ref: "posts",
   },
   hiddenPosts: {
     type: [mongoose.Schema.ObjectId],
-    ref: "hiddenPosts",
+    ref: "posts",
   },
   comments: {
     type: [mongoose.Schema.ObjectId],
