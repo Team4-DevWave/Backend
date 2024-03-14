@@ -1,12 +1,12 @@
-const userModel = require("../models/usermodel");
-const AppError = require("../utils/apperror");
-const catchAsync = require("../utils/catchasync");
-const handlerFactory = require("./handlerfactory");
+const userModel = require('../models/usermodel');
+const AppError = require('../utils/apperror');
+const catchAsync = require('../utils/catchasync');
+const handlerFactory = require('./handlerfactory');
 
 exports.usernameAvailable = catchAsync(async (req, res, next) => {
-  const users = await userModel.find({ username: req.params.username });
+  const users = await userModel.find({username: req.params.username});
   res.status(200).json({
-    status: "success",
+    status: 'success',
     data: {
       users: users,
       available: users.length === 0,
@@ -24,7 +24,7 @@ exports.getUser = handlerFactory.getOne(userModel);
 exports.getMySettings = catchAsync(async (req, res, next) => {
   const user = await userModel.findById(req.user.id);
   res.status(200).json({
-    status: "success",
+    status: 'success',
     data: {
       user: user.settings,
     },
@@ -34,7 +34,7 @@ exports.getMySettings = catchAsync(async (req, res, next) => {
 exports.updateMySettings = catchAsync(async (req, res, next) => {
   const user = await userModel.findByIdAndUpdate(req.user.id, req.body);
   res.status(200).json({
-    status: "success",
+    status: 'success',
     data: {
       user: user,
     },
@@ -42,9 +42,9 @@ exports.updateMySettings = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
-  await userModel.findByIdAndUpdate(req.user.id, { active: false });
+  await userModel.findByIdAndUpdate(req.user.id, {active: false});
   res.status(204).json({
-    status: "success",
+    status: 'success',
     data: null,
   });
 });
