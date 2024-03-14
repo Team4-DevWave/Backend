@@ -1,12 +1,12 @@
 const catchAsync = require("./../utils/catchasync");
 const APIFeatures = require("./../utils/apifeatures");
-const appError = require("./../utils/apperror");
+const AppError = require("./../utils/apperror");
 
 exports.deleteOne = (model) =>
   catchAsync(async (req, res, next) => {
     const doc = await model.findByIdAndDelete(req.params.id);
     if (!doc) {
-      return next(new appError("no document with that id", 404));
+      return next(new AppError("no document with that id", 404));
     }
     res.status(204).json({
       status: "success",
@@ -21,7 +21,7 @@ exports.updateOne = (model) =>
       runValidators: true,
     });
     if (!doc) {
-      return next(new appError("no document with that id", 404));
+      return next(new AppError("no document with that id", 404));
     }
     res.status(200).json({
       status: "success",
@@ -50,7 +50,7 @@ exports.getOne = (model, populateOptions) =>
     }
     const doc = await query;
     if (!doc) {
-      return next(new appError("no document with that id", 404));
+      return next(new AppError("no document with that id", 404));
     }
     res.status(200).json({
       status: "success",

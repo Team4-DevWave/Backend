@@ -1,7 +1,7 @@
-const commentModel = require("../models/commentsmodel");
-const appError = require("../utils/apperror");
-const catchAsync = require("../utils/catchasync");
-const handlerFactory = require("./handlerfactory");
+const commentModel = require('../models/commentsmodel');
+const AppError = require('../utils/apperror');
+const catchAsync = require('../utils/catchasync');
+const handlerFactory = require('./handlerfactory');
 
 exports.getComments = handlerFactory.getAll(commentModel);
 exports.getComment = handlerFactory.getOne(commentModel);

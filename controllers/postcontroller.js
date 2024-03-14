@@ -1,5 +1,5 @@
 const postModel = require("../models/postmodel");
-const appError = require("../utils/apperror");
+const AppError = require("../utils/apperror");
 const catchAsync = require("../utils/catchasync");
 const handlerFactory = require("./handlerfactory");
 
@@ -13,4 +13,3 @@ exports.savePost = catchAsync(async (req, res, next) => {});
 exports.hidePost = catchAsync(async (req, res, next) => {});
 exports.reportPost = catchAsync(async (req, res, next) => {});
 exports.crosspost = catchAsync(async (req, res, next) => {});
-

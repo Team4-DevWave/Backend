@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const chatroomSchema = new mongoose.Schema({
   dateCreated: {
@@ -8,26 +8,26 @@ const chatroomSchema = new mongoose.Schema({
   chatroomName: {
     type: String,
   },
-    chatroomMembers: [
+  chatroomMembers: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'users',
+    },
+  ],
+  chatroomMessages: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'chatmessages',
+    },
+  ],
+  chatroomAdmin:
         {
-            type: mongoose.Schema.ObjectId,
-            ref: "users",
-        },
-    ],
-    chatroomMessages: [
-        {
-            type: mongoose.Schema.ObjectId,
-            ref: "chatmessages",
-        },
-    ],
-    chatroomAdmin: 
-        {
-            type: mongoose.Schema.ObjectId,
-            ref: "users",
+          type: mongoose.Schema.ObjectId,
+          ref: 'users',
         },
 
 });
 
-const chatroomModel = mongoose.model("chatrooms", chatroomSchema);
+const chatroomModel = mongoose.model('chatrooms', chatroomSchema);
 
 module.exports = chatroomModel;

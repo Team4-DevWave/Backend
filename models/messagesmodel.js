@@ -1,23 +1,23 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.ObjectId,
-    ref: "users",
-    required: [true, "please enter a sender username"],
+    ref: 'users',
+    required: [true, 'please enter a sender username'],
   },
   reciever: {
     type: mongoose.Schema.ObjectId,
-    ref: "users",
-    required: [true, "please enter a reciever username"],
+    ref: 'users',
+    required: [true, 'please enter a reciever username'],
   },
   subject: {
     type: String,
-    required: [true, "please enter a message subject"],
+    required: [true, 'please enter a message subject'],
   },
   content: {
     type: String,
-    required: [true, "please enter a message content"],
+    required: [true, 'please enter a message content'],
   },
   createdAt: {
     type: Date,
@@ -29,10 +29,10 @@ const messageSchema = new mongoose.Schema({
   },
   parentmessage: {
     type: mongoose.Schema.ObjectId,
-    ref: "messages",
+    ref: 'messages',
   },
 });
 
-const messageModel = mongoose.model("messages", messageSchema);
+const messageModel = mongoose.model('messages', messageSchema);
 
 module.exports = messageModel;
