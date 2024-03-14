@@ -94,6 +94,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
   const token = req.params.token;
+  const password = req.body.password;
+  const passwordConfirm = req.body.passwordConfirm;
+  if (!password || !passwordConfirm) {
+    return next(new Apperror('Please provide password and passwordConfirm', 400));
+  }
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
   const user = await userModel.findOne({
     passwordResetToken: hashedToken,
@@ -104,6 +109,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   }
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
   await user.save();
   createSendToken(user, 200, res);
 });

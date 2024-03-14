@@ -58,6 +58,11 @@ const userSchema = new mongoose.Schema({
     enum: ['I prefer not to say', 'man', 'woman', 'non-binary', 'other'],
     default: 'I prefer not to say',
   },
+  interests: {
+    type: [String],
+    default: [],
+    required: [true, 'please enter your interests'],
+  },
   active: {
     type: Boolean,
     default: true,
