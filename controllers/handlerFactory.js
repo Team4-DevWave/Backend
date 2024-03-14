@@ -79,3 +79,33 @@ exports.getAll = (model) =>
       },
     });
   });
+
+exports.handleUserAction = (model, action, subaction) =>
+  catchAsync(async (req, res, next) => {
+    const targetUser = await model.findOne({username: req.params.username});
+    if (!targetUser) {
+      return next(new AppError('No user with that username', 404));
+    }
+    const currentUser = await model.findById(req.user.id);
+    const actionField = action + 'edUsers';
+    console.log(actionField);
+    console.log(currentUser);
+    console.log(currentUser[actionField]);
+    const userExist = currentUser[actionField].includes(targetUser._id);
+    if (userExist && subaction === 'add') {
+      return next(new AppError(`You have already ${action}ed this user`, 400));
+    } else if (!userExist && subaction === 'remove') {
+      return next(new AppError(`You haven't ${action}ed this user`, 400));
+    }
+    const updateOperation = subaction === 'add' ? '$addToSet' : '$pull';
+    const updatedUser = await model.findByIdAndUpdate(req.user.id, {
+      [updateOperation]: {[actionField]: targetUser._id},
+    }, {new: true});
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: updatedUser,
+      },
+    });
+  });
+
