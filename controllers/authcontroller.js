@@ -96,7 +96,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  const user = await userModel.findById(decoded.id);
+  const user = await userModel.findById(decoded.userID);
   if (!user) {
     return next(
         new AppError(
