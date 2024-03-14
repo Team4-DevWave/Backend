@@ -49,8 +49,46 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.addFriend = catchAsync(async (req, res, next) => {});
-exports.removeFriend = catchAsync(async (req, res, next) => {});
+exports.addFriend = catchAsync(async (req, res, next) => {
+  const friendUser = await userModel.findOne({username: req.params.username});
+  if (!friendUser) {
+    return next(new AppError('No user with that username', 404));
+  }
+  const currentUser = await userModel.findById(req.user.id);
+  if (currentUser.followedUsers.includes(friendUser._id)) {
+    return next(new AppError('You have already followed this user', 400));
+  }
+  const updatedUser = await userModel.findByIdAndUpdate(req.user.id, {
+    $addToSet: {followedUsers: friendUser._id},
+  }, {new: true});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: updatedUser,
+      friend: friendUser,
+    },
+  });
+});
+exports.removeFriend = catchAsync(async (req, res, next) => {
+  const unfriendUser = await userModel.findOne({username: req.params.username});
+  if (!unfriendUser) {
+    return next(new AppError('No user with that username', 404));
+  }
+  const currentUser = await userModel.findById(req.user.id);
+  if (!currentUser.followedUsers.includes(unfriendUser._id)) {
+    return next(new AppError('You haven\'t followed this user', 400));
+  }
+  const updatedUser = await userModel.findByIdAndUpdate(req.user.id, {
+    $pull: {followedUsers: unfriendUser._id},
+  }, {new: true});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: updatedUser,
+      friend: unfriendUser,
+    },
+  });
+});
 exports.blockUser = catchAsync(async (req, res, next) => {});
 exports.unblockUser = catchAsync(async (req, res, next) => {});
 exports.getUserByUsername = catchAsync(async (req, res, next) => {});
