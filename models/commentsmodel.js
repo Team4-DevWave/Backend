@@ -1,14 +1,14 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.ObjectId,
-    ref: "users",
-    required: [true, "please enter a username"],
+    ref: 'users',
+    required: [true, 'please enter a username'],
   },
   content: {
     type: String,
-    required: [true, "please enter a comment"],
+    required: [true, 'please enter a comment'],
   },
   createdAt: {
     type: Date,
@@ -17,11 +17,11 @@ const commentSchema = new mongoose.Schema({
   lastEdited: {
     type: Date,
   },
-  votes: { type: Number, default: 0 },
+  votes: {type: Number, default: 0},
   postID: {
     type: mongoose.Schema.ObjectId,
-    ref: "posts",
-    required: [true, "comment must belong to a post"],
+    ref: 'posts',
+    required: [true, 'comment must belong to a post'],
   },
   hidden: {
     type: Boolean,
@@ -37,14 +37,14 @@ const commentSchema = new mongoose.Schema({
   },
   parentComment: {
     type: mongoose.Schema.ObjectId,
-    ref: "comments",
+    ref: 'comments',
   },
-  mentioned: { //unsure
+  mentioned: { // unsure
     type: [mongoose.Schema.ObjectId],
-    ref: "users",
+    ref: 'users',
   },
 });
 
-const commentModel = mongoose.model("comments", commentSchema);
+const commentModel = mongoose.model('comments', commentSchema);
 
 module.exports = commentModel;

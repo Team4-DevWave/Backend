@@ -1,13 +1,13 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 const reviewSchema = mongoose.Schema({
   reportID: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "reports",
+    ref: 'reports',
     required: true,
   },
-  moderatorID: { type: mongoose.Schema.Types.ObjectId, ref: "moderators" },
-  adminID: { type: mongoose.Schema.Types.ObjectId, ref: "admins" },
+  moderatorID: {type: mongoose.Schema.Types.ObjectId, ref: 'moderators'},
+  adminID: {type: mongoose.Schema.Types.ObjectId, ref: 'admins'},
 });
 
-const reviewModel = mongoose.model("reviews", reviewSchema);
+const reviewModel = mongoose.model('reviews', reviewSchema);
 export default reviewModel;

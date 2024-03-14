@@ -1,19 +1,19 @@
-const path = require("path");
-const express = require("express");
-const userRouter = require("./routes/userroutes.js");
-const appError = require("./utils/apperror.js");
-const globalErrorHandler = require("./controllers/errorcontroller.js");
+const path = require('path');
+const express = require('express');
+const userRouter = require('./routes/userroutes.js');
+const Apperror = require('./utils/apperror.js');
+const globalErrorHandler = require('./controllers/errorcontroller.js');
 const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
-app.use("/api/v1/users", userRouter);
-//app.use("/api/v1/posts", postRouter);
-//app.use("/api/v1/comments", commentRouter);
-//app.use("/api/v1/r", subredditRouter);
-//app.use("/api/v1/messages", messegeRouter);
+app.use('/api/v1/users', userRouter);
+// app.use("/api/v1/posts", postRouter);
+// app.use("/api/v1/comments", commentRouter);
+// app.use("/api/v1/r", subredditRouter);
+// app.use("/api/v1/messages", messageRouter);
 
-app.all("*", (req, res, next) => {
-  next(new appError(`cant find ${req.originalUrl} on this server!`, 400)); //<< if u pass error its going to know that its going to stop the whole program and go to the error middleware
+app.all('*', (req, res, next) => {
+  next(new Apperror(`cant find ${req.originalUrl} on this server!`, 400)); // << if u pass error its going to know that its going to stop the whole program and go to the error middleware
 });
 
 app.use(globalErrorHandler);
