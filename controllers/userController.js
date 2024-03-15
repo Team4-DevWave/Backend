@@ -2,6 +2,7 @@ const userModel = require('../models/usermodel');
 const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
+const settingsModel = require('../models/settingsmodel');
 
 const handleUserAction = (action, subaction) =>
   catchAsync(async (req, res, next) => {
@@ -49,7 +50,7 @@ exports.getMe = (req, res, next) => {
 exports.getUser = handlerFactory.getOne(userModel);
 
 exports.getMySettings = catchAsync(async (req, res, next) => {
-  const user = await userModel.findById(req.user.id);
+  const user = await userModel.findById(req.user.id).populate('settings');
   res.status(200).json({
     status: 'success',
     data: {
@@ -59,11 +60,13 @@ exports.getMySettings = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMySettings = catchAsync(async (req, res, next) => {
-  const user = await userModel.findByIdAndUpdate(req.user.id, req.body);
+  const user=await userModel.findById(req.user.id);
+  const userSettings = await settingsModel.findByIdAndUpdate(user.settings, {$set: req.body}, {new: true});
+  console.log(userSettings);
   res.status(200).json({
     status: 'success',
     data: {
-      user: user,
+      user: userSettings,
     },
   });
 });
