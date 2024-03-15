@@ -31,64 +31,6 @@ const handleUserAction = (action, subaction) =>
     });
   });
 
-exports.usernameAvailable = catchAsync(async (req, res, next) => {
-  const users = await userModel.find({username: req.params.username});
-  res.status(200).json({
-    status: 'success',
-    data: {
-      users: users,
-      available: users.length === 0,
-    },
-  });
-});
-
-exports.getMe = (req, res, next) => {
-  req.params.id = req.user.id;
-  next();
-};
-
-exports.getUser = handlerFactory.getOne(userModel);
-
-// exports.getMySettings = catchAsync(async (req, res, next) => {
-//   const user = await userModel.findById(req.user.id).populate('settings');
-//   res.status(200).json({
-//     status: 'success',
-//     data: {
-//       user: user.settings,
-//     },
-//   });
-// });
-exports.getMySettings = handlerFactory.getOne(settingsModel);
-
-exports.updateMySettings = handlerFactory.updateOne(settingsModel);
-exports.setSettingsId = (req, res, next) => {
-  req.params.id = req.user.settings;
-  next();
-};
-
-exports.deleteMe = catchAsync(async (req, res, next) => {
-  await userModel.findByIdAndUpdate(req.user.id, {active: false});
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
-
-exports.addFriend = handleUserAction('follow', 'add');
-exports.removeFriend =handleUserAction('follow', 'remove');
-exports.blockUser = handleUserAction('block', 'add');
-exports.unblockUser = handleUserAction('block', 'remove');
-
-exports.getUserByUsername = catchAsync(async (req, res, next) => {
-  // Your logic for getting a user by username goes here
-  res.status(200).json({
-    status: 'success',
-    data: {
-      message: 'User fetched successfully',
-    },
-  });
-});
-
 exports.unfollowBlockedUser=catchAsync(async (req, res, next) => {
   const user =await userModel.findById(req.user.id);
   const blockUser= await userModel.findOne({username: req.params.username});
@@ -107,3 +49,48 @@ exports.checkBlocked=catchAsync(async (req, res, next) => {
   }
   next();
 });
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
+exports.setSettingsId = (req, res, next) => {
+  req.params.id = req.user.settings;
+  next();
+};
+
+exports.usernameAvailable = catchAsync(async (req, res, next) => {
+  const users = await userModel.find({username: req.params.username});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      users: users,
+      available: users.length === 0,
+    },
+  });
+});
+exports.getUser = handlerFactory.getOne(userModel);
+exports.getMySettings = handlerFactory.getOne(settingsModel);
+exports.updateMySettings = handlerFactory.updateOne(settingsModel);
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await userModel.findByIdAndUpdate(req.user.id, {active: false});
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+exports.addFriend = handleUserAction('follow', 'add');
+exports.removeFriend =handleUserAction('follow', 'remove');
+exports.blockUser = handleUserAction('block', 'add');
+exports.unblockUser = handleUserAction('block', 'remove');
+exports.getUserByUsername = catchAsync(async (req, res, next) => {
+  // Your logic for getting a user by username goes here
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message: 'User fetched successfully',
+    },
+  });
+});
+
