@@ -7,10 +7,13 @@ homepageRouter.use(authController.protect);
 
 
 homepageRouter
-    .route('/').get(homepageController.getCommunities);
+    .route('/submit').get(homepageController.getCommunities);
 
 
 homepageRouter
-    .route('/:userorsubreddit/:subreddtnam_or_username').post(homepageController.createPost);
+    .route('/submit/:userorsubreddit/:subreddtnam_or_username').post(homepageController.createPost);
+
+homepageRouter
+    .route('/create_community').post(homepageController.createCommunity);
 
 module.exports = homepageRouter;
