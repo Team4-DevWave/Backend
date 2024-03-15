@@ -22,11 +22,11 @@ userRouter
 // userRouter.patch("/me/updateEmail", userController.updateEmail);
 userRouter
     .route('/me/friend/:username')
-    .post(userController.addFriend)
+    .post(userController.checkBlocked, userController.addFriend)
     .delete(userController.removeFriend);
 userRouter
     .route('/me/block/:username')
-    .post(userController.blockUser)
+    .post(userController.unfollowBlockedUser, userController.blockUser)
     .delete(userController.unblockUser);
 
 userRouter.get('/:username', userController.getUserByUsername);
