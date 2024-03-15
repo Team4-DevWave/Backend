@@ -49,32 +49,22 @@ exports.getMe = (req, res, next) => {
 
 exports.getUser = handlerFactory.getOne(userModel);
 
-exports.getMySettings = catchAsync(async (req, res, next) => {
-  const user = await userModel.findById(req.user.id).populate('settings');
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user: user.settings,
-    },
-  });
-});
+// exports.getMySettings = catchAsync(async (req, res, next) => {
+//   const user = await userModel.findById(req.user.id).populate('settings');
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       user: user.settings,
+//     },
+//   });
+// });
+exports.getMySettings = handlerFactory.getOne(settingsModel);
 
 exports.updateMySettings = handlerFactory.updateOne(settingsModel);
 exports.setSettingsId = (req, res, next) => {
   req.params.id = req.user.settings;
   next();
 };
-// exports.updateMySettings = catchAsync(async (req, res, next) => {
-//   const user=await userModel.findById(req.user.id);
-//   const userSettings = await settingsModel.findByIdAndUpdate(user.settings, {$set: req.body}, {new: true});
-//   console.log(userSettings);
-//   res.status(200).json({
-//     status: 'success',
-//     data: {
-//       user: userSettings,
-//     },
-//   });
-// });
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id, {active: false});

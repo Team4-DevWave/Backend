@@ -16,7 +16,7 @@ userRouter
     .delete(userController.deleteMe);
 userRouter
     .route('/me/settings')
-    .get(userController.getMySettings)
+    .get(userController.setSettingsId, userController.getMySettings)
     .patch(userController.setSettingsId, userController.updateMySettings);
 // userRouter.patch("/me/updatePassword", authController.updatePassword);
 // userRouter.patch("/me/updateEmail", userController.updateEmail);
