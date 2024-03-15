@@ -1,9 +1,9 @@
 const express = require('express');
-// const authController = require("./../controllers/authController.js");
+const authController = require('./../controllers/authcontroller.js');
 const commentController = require('./../controllers/commentcontroller');
 const commentRouter = express.Router({mergeParams: true});
 
-// commentRouter.use(authController.protect);
+commentRouter.use(authController.protect);
 
 commentRouter
     .route('/')
