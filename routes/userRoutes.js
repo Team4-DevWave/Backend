@@ -17,7 +17,7 @@ userRouter
 userRouter
     .route('/me/settings')
     .get(userController.getMySettings)
-    .patch(userController.updateMySettings);
+    .patch(userController.setSettingsId, userController.updateMySettings);
 // userRouter.patch("/me/updatePassword", authController.updatePassword);
 // userRouter.patch("/me/updateEmail", userController.updateEmail);
 userRouter
