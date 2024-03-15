@@ -17,7 +17,6 @@ exports.getCommunities = catchasync(async (req, res, next) => {
 
 exports.createPost = catchasync(async (req, res, next) => {
   const type = req.params.userorsubreddit;
-  // const name = req.query.subredditnam_or_username;
   const currentTime = new Date();
   let post = null;
   if (type ==='u') {
