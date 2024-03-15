@@ -10,13 +10,13 @@ commentRouter
     .post(commentController.createComment)
     .get(commentController.getComments);
 commentRouter
-    .route('/:commentid')
+    .route('/:id')
     .get(commentController.getComment)
     .post(commentController.addCommentReply)
     .patch(commentController.editComment)
     .delete(commentController.deleteComment);
-commentRouter.route('/:commentid/report').post(commentController.reportComment);
-commentRouter.route('/:commentid/save').post(commentController.saveComment);
-commentRouter.route('/:commentid/vote').patch(commentController.voteComment);
+commentRouter.route('/:id/report').post(commentController.reportComment);
+commentRouter.route('/:id/save').post(commentController.saveComment);
+commentRouter.route('/:id/vote').patch(commentController.voteComment);
 
 module.exports = commentRouter;
