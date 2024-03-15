@@ -4,6 +4,7 @@ const subredditSchema =new mongoose.Schema({
   moderatorsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   status: {type: String, default: 'Active', required: true},
   membersID: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  postsToBeApproved: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
   postsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
   description: {type: String},
   category: {type: String},
@@ -26,6 +27,7 @@ const subredditSchema =new mongoose.Schema({
     allowImages: {type: Boolean, required: true, default: true},
     allowMultipleImages: {type: Boolean, required: true, default: true},
     allowPolls: {type: Boolean, required: true, default: true},
+    postReviewing: {type: Boolean, required: true, default: false},
     spamFilterStrength: {
       posts: {type: String, enum: ['low', 'high', 'all'], required: true, default: 'low'},
       comments: {type: String, enum: ['low', 'high', 'all'], required: true, default: 'low'},

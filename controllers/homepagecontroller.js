@@ -16,6 +16,19 @@ exports.getCommunities = catchasync(async (req, res, next) => {
 
 
 exports.createPost = catchasync(async (req, res, next) => {
+  if (!req.params.userorsubreddit || !req.params.subreddtnam_or_username) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Invalid Data Insertion',
+    });
+  }
+  const subreddit = await subredditModel.findOne({name: req.params.subreddtnam_or_username});
+  if (!subreddit) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Subreddit not found',
+    });
+  }
   const type = req.params.userorsubreddit;
   const currentTime = new Date();
   let post = null;
@@ -33,7 +46,6 @@ exports.createPost = catchasync(async (req, res, next) => {
     await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}});
   } else if (type === 'r') {
     const subreddit = await subredditModel.findOne({name: req.params.subreddtnam_or_username});
-    console.log(subreddit);
     const newPost = await postModel.create({
       userID: req.user.id,
       postedTime: currentTime,
@@ -44,8 +56,12 @@ exports.createPost = catchasync(async (req, res, next) => {
       content: req.body.content,
       subredditID: subreddit.id});
     post = newPost;
-    await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}});
-    await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}});
+    if (subreddit.srSettings.postReviewing) {
+      await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsToBeApproved: newPost.id}});
+    } else {
+      await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}});
+      await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}});
+    }
   }
   res.status(201).json({
     status: 'success',
