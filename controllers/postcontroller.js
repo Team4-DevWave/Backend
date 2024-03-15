@@ -1,7 +1,7 @@
-const postModel = require("../models/postmodel");
-const AppError = require("../utils/apperror");
-const catchAsync = require("../utils/catchasync");
-const handlerFactory = require("./handlerfactory");
+const postModel = require('../models/postmodel');
+const AppError = require('../utils/apperror');
+const catchAsync = require('../utils/catchasync');
+const handlerFactory = require('./handlerfactory');
 
 exports.getPosts = handlerFactory.getAll(postModel);
 exports.getPost = handlerFactory.getOne(postModel);
