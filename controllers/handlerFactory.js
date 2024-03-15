@@ -14,9 +14,9 @@ exports.deleteOne = (model) =>
     });
   });
 
-exports.updateOne = (model) =>
+exports.updateOne = (model, modifyReqBody = (req) => req.body) =>
   catchAsync(async (req, res, next) => {
-    const doc = await model.findByIdAndUpdate(req.params.id, req.body, {
+    const doc = await model.findByIdAndUpdate(req.params.id, {$set: modifyReqBody(req)}, {
       new: true,
       runValidators: true,
     });
@@ -33,7 +33,6 @@ exports.updateOne = (model) =>
 
 exports.createOne = (model, modifyReqBody = (req) => req.body) =>
   catchAsync(async (req, res, next) => {
-    console.log(modifyReqBody(req));
     const doc = await model.create(modifyReqBody(req));
     res.status(201).json({
       status: 'success',
