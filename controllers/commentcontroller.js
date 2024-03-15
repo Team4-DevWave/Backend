@@ -11,7 +11,10 @@ exports.createComment = handlerFactory.createOne(commentModel, (req) => {
   req.body.user = req.user.id;
   return req.body;
 });
-exports.editComment = handlerFactory.updateOne(commentModel);
+exports.editComment = handlerFactory.updateOne(commentModel, (req) => {
+  req.body.lastEdited = Date.now();
+  return req.body;
+});
 exports.deleteComment = handlerFactory.deleteOne(commentModel);
 exports.saveComment = catchAsync(async (req, res, next) => {
   const comment= await commentModel.findById(req.params.id);
