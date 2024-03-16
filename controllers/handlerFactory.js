@@ -61,12 +61,13 @@ exports.getOne = (model, populateOptions) =>
     });
   });
 
-exports.getAll = (model) =>
+exports.getAll = (model, filterFunc = () => ({})) =>
   catchAsync(async (req, res, next) => {
     // let filter = {};
     // if (req.params.tourId) filter = { tour: req.params.tourId }; //if  there is a param in the url then we apply that filter to get reviews for that specific tour only , else if filter is empty just get all reviews
+    const filter = filterFunc(req);
     // execute query
-    const features = new APIFeatures(model.find(), req.query); // .find returns query, .aggregate returns object
+    const features = new APIFeatures(model.find(filter), req.query); // .find returns query, .aggregate returns object
     features.filter().sort().limitFields().paginate();
     const doc = await features.query;
     // query.sort().select().skip().limit()
