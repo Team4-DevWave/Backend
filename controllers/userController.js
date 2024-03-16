@@ -114,6 +114,7 @@ exports.getDownvoted=catchAsync(async (req, res, next)=>{
       comments: req.user.downvotes.comments,
     },
   });
+});
 const handleUserAction = (action, subaction) =>
   catchAsync(async (req, res, next) => {
     const targetUser = await userModel.findOne({username: req.params.username});
@@ -169,17 +170,6 @@ exports.setSettingsId = (req, res, next) => {
   req.params.id = req.user.settings;
   next();
 };
-
-exports.usernameAvailable = catchAsync(async (req, res, next) => {
-  const users = await userModel.find({username: req.params.username});
-  res.status(200).json({
-    status: 'success',
-    data: {
-      users: users,
-      available: users.length === 0,
-    },
-  });
-});
 exports.getUser = handlerFactory.getOne(userModel);
 exports.getMySettings = handlerFactory.getOne(settingsModel);
 exports.updateMySettings = handlerFactory.updateOne(settingsModel);
@@ -195,11 +185,20 @@ exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
 exports.getUserByUsername = catchAsync(async (req, res, next) => {
-  // Your logic for getting a user by username goes here
+  const username = req.params.username;
+  if (!username) {
+    return next(new Apperror('Please provide a username', 400));
+  }
+  const user=await userModel.findOne({username: username});
+  if (!user) {
+    return next(new Apperror('No user with that username', 404));
+  } // TODO continue this
   res.status(200).json({
     status: 'success',
     data: {
-      message: 'User fetched successfully',
+      postKarma: user.karma.posts,
+      commentKarma: user.karma.comments,
+      cakeDay: user.dateJoined,
     },
   });
 });

@@ -1,5 +1,4 @@
 const postModel = require('../models/postmodel');
-const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 

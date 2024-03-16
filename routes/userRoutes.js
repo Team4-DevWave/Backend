@@ -1,6 +1,7 @@
 const express = require('express');
 const userController = require('../controllers/usercontroller');
 const authController = require('../controllers/authcontroller');
+// eslint-disable-next-line new-cap
 const userRouter = express.Router();
 userRouter.post('/signup', authController.signup);
 userRouter.post('/login', authController.login);
@@ -12,6 +13,7 @@ userRouter.get('/:username/posts', userController.getPosts);
 userRouter.get('/:username/comments', userController.getComments);
 userRouter.get('/:username/overview', userController.getOverview);
 userRouter.get('/:username/about', userController.getAbout);
+userRouter.get('/:username', userController.getUserByUsername);
 userRouter.use(authController.protect);
 userRouter.get('/:username/saved', userController.getSaved);
 userRouter.get('/:username/hidden', userController.gethiddenPosts);
@@ -37,7 +39,5 @@ userRouter
     .route('/me/block/:username')
     .post(userController.unfollowBlockedUser, userController.blockUser)
     .delete(userController.unblockUser);
-
-userRouter.get('/:username', userController.getUserByUsername);
 
 module.exports = userRouter;

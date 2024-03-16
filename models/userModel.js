@@ -150,9 +150,11 @@ const userSchema = new mongoose.Schema({
   karma: {
     comments: {
       type: Number,
+      default: 0,
     },
     posts: {
       type: Number,
+      default: 0,
     },
   },
 });
