@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-const reportSchema = mongoose.Schema({
+const mongoose = require('mongoose');
+const reportSchema =new mongoose.Schema({
   userID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
@@ -29,4 +29,4 @@ const reportSchema = mongoose.Schema({
 });
 
 const reportModel = mongoose.model('reports', reportSchema);
-export default reportModel;
+module.exports = reportModel;

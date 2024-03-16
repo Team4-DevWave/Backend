@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-const reviewSchema = mongoose.Schema({
+const mongoose = require('mongoose');
+const reviewSchema =new mongoose.Schema({
   reportID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'reports',
@@ -10,4 +10,4 @@ const reviewSchema = mongoose.Schema({
 });
 
 const reviewModel = mongoose.model('reviews', reviewSchema);
-export default reviewModel;
+module.exports = reviewModel;

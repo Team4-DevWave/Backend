@@ -1,12 +1,12 @@
-const catchAsync = require('../utils/catchasync');
-const APIFeatures = require('../utils/apifeatures');
-const Apperror = require('../utils/apperror');
+const catchAsync = require('./../utils/catchasync');
+const APIFeatures = require('./../utils/apifeatures');
+const AppError = require('./../utils/apperror');
 
 exports.deleteOne = (model) =>
   catchAsync(async (req, res, next) => {
     const doc = await model.findByIdAndDelete(req.params.id);
     if (!doc) {
-      return next(new Apperror('no document with that id', 404));
+      return next(new AppError('no document with that id', 404));
     }
     res.status(204).json({
       status: 'success',
@@ -14,14 +14,14 @@ exports.deleteOne = (model) =>
     });
   });
 
-exports.updateOne = (model) =>
+exports.updateOne = (model, modifyReqBody = (req) => req.body) =>
   catchAsync(async (req, res, next) => {
-    const doc = await model.findByIdAndUpdate(req.params.id, req.body, {
+    const doc = await model.findByIdAndUpdate(req.params.id, {$set: modifyReqBody(req)}, {
       new: true,
       runValidators: true,
     });
     if (!doc) {
-      return next(new Apperror('no document with that id', 404));
+      return next(new AppError('no document with that id', 404));
     }
     res.status(200).json({
       status: 'success',
@@ -31,9 +31,9 @@ exports.updateOne = (model) =>
     });
   });
 
-exports.createOne = (model) =>
+exports.createOne = (model, modifyReqBody = (req) => req.body) =>
   catchAsync(async (req, res, next) => {
-    const doc = await model.create(req.body);
+    const doc = await model.create(modifyReqBody(req));
     res.status(201).json({
       status: 'success',
       data: {
@@ -50,7 +50,7 @@ exports.getOne = (model, populateOptions) =>
     }
     const doc = await query;
     if (!doc) {
-      return next(new Apperror('no document with that id', 404));
+      return next(new AppError('no document with that id', 404));
     }
     res.status(200).json({
       status: 'success',
@@ -61,11 +61,12 @@ exports.getOne = (model, populateOptions) =>
     });
   });
 
-exports.getAll = (model) =>
+exports.getAll = (model, filterFunc = () => ({})) =>
   catchAsync(async (req, res, next) => {
     // let filter = {};
+    const filter = filterFunc(req);
     // execute query
-    const features = new APIFeatures(model.find(), req.query); // .find returns query, .aggregate returns object
+    const features = new APIFeatures(model.find(filter), req.query); // .find returns query, .aggregate returns object
     features.filter().sort().limitFields().paginate();
     const doc = await features.query;
     // query.sort().select().skip().limit()
@@ -78,3 +79,5 @@ exports.getAll = (model) =>
       },
     });
   });
+
+

@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
+    // required: [true, "please confirm your password"],
     validate: {
       validator: function(el) {
         return el === this.password; // el is passwordconfirm , password is the current user password
@@ -88,27 +89,33 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'settings',
   },
-
-  // notifications: { //TODO what is that
-  //   type: mongoose.Schema.ObjectId,
-  //   ref: "notifications",
-  //   required: [true, "user must have a notifications settings"], //this is not settings xD
-  // },
-  createdOrSharedPosts: {
+  savedPostsAndComments: {
+    comments: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'comments',
+      },
+    ],
+    posts: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'posts',
+      },
+    ],
+  },
+  viewedPosts: {
     type: [mongoose.Schema.ObjectId],
     ref: 'posts',
   },
-  savedPostsAndComments: {
-    comments: [{
-      type: mongoose.Schema.ObjectId,
-      ref: 'comments',
-    }],
-    posts: [{
-      type: mongoose.Schema.ObjectId,
-      ref: 'posts',
-    }],
+  hiddenPosts: {
+    type: [mongoose.Schema.ObjectId],
+    ref: 'posts',
   },
-  viewedPosts: {
+  comments: {
+    type: [mongoose.Schema.ObjectId],
+    ref: 'comments',
+  },
+  posts: {
     type: [mongoose.Schema.ObjectId],
     ref: 'posts',
   },

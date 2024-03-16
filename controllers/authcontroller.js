@@ -7,15 +7,18 @@ const catchAsync = require('./../utils/catchasync');
 const jwt = require('jsonwebtoken');
 const Apperror = require('./../utils/apperror');
 const mailControl = require('./../nodemailer-gmail/mailcontrols');
-const signToken=(id)=>{
-  return jwt.sign({
-    'userID': id,
-  }, process.env.JWT_SECRET,
-  {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+const signToken = (id) => {
+  return jwt.sign(
+      {
+        userID: id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      },
+  );
 };
-const sendVerificationEmail=(user)=>{
+const sendVerificationEmail = (user) => {
   if (user.verfied) {
     return;
   }

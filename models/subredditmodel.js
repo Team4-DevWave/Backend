@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-const subredditSchema = mongoose.Schema({
+const mongoose = require('mongoose');
+const subredditSchema =new mongoose.Schema({
   name: {type: String, required: true, unique: true},
   moderatorsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   status: {type: String, required: true},
@@ -64,4 +64,4 @@ const subredditSchema = mongoose.Schema({
 });
 
 const subredditModel = mongoose.model('subreddits', subredditSchema);
-export default subredditModel;
+module.exports = subredditModel;

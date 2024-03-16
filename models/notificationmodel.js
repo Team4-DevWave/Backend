@@ -14,6 +14,6 @@ const notificationSchema = new mongoose.Schema({
   sender: {type: mongoose.Schema.Types.ObjectId, ref: 'users'},
 });
 
-const Notification = mongoose.model('notifications', notificationSchema);
+const notificationModel = mongoose.model('notifications', notificationSchema);
 
-module.exports = Notification;
+module.exports = notificationModel;

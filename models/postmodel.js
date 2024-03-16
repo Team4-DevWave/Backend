@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const postSchema = mongoose.Schema({
+const mongoose=require('mongoose');
+const postSchema = new mongoose.Schema({
   commentsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
   userID: {
     type: mongoose.Schema.Types.ObjectId,

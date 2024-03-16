@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema({
     type: Date,
   },
   votes: {type: Number, default: 0},
-  postID: {
+  post: {
     type: mongoose.Schema.ObjectId,
     ref: 'posts',
     required: [true, 'comment must belong to a post'],
