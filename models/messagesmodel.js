@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-  sender: {
+  from: {
     type: mongoose.Schema.ObjectId,
     ref: 'users',
     required: [true, 'please enter a sender username'],
   },
-  reciever: {
+  to: {
     type: mongoose.Schema.ObjectId,
     ref: 'users',
     required: [true, 'please enter a reciever username'],
@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: [true, 'please enter a message subject'],
   },
-  content: {
+  message: {
     type: String,
     required: [true, 'please enter a message content'],
   },
