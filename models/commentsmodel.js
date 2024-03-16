@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema({
-  author: {
+  user: {
     type: mongoose.Schema.ObjectId,
     ref: 'users',
     required: [true, 'please enter a username'],

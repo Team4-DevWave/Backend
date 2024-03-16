@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const postSchema = mongoose.Schema({
   commentsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
   userID: {
@@ -16,8 +16,9 @@ const postSchema = mongoose.Schema({
   lastEditedTime: {type: Date, required: true},
   votes: {type: Number, required: true},
   content: {type: String, required: true},
-  locked: {type: Boolean, required: false},
+  locked: {type: Boolean, required: false, default: false},
+  hidden: {type: Boolean, required: false, default: false},
 });
 
-const postModel = mongoose.model('reviews', postSchema);
-export default postModel;
+const postModel = mongoose.model('posts', postSchema);
+module.exports = postModel;

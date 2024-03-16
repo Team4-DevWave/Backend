@@ -148,7 +148,6 @@ exports.protect = catchAsync(async (req, res, next) => {
         new Apperror('you are not logged in! please log in to gain access', 401),
     );
   }
-  console.log('inside middleware 1');
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const user = await userModel.findById(decoded.userID);
   if (!user) {
@@ -180,9 +179,19 @@ exports.signup = catchAsync(async (req, res, next) => {
   if (!req.body.passwordConfirm) {
     return next(new Apperror('password confirm is required', 401));
   }
+  const interests = req.body.interests;
+  const country = req.body.country;
+  const email = req.body.email;
+  const username = req.body.username;
+  const password = req.body.password;
+  const passwordConfirm = req.body.passwordConfirm;
+  const gender= req.body.gender;
+  if (!interests || !email || !username || !password || !passwordConfirm) {
+    return next(new Apperror('Please provide all fields', 400));
+  }
   const settings = await settingsModel.create({});
-
-  const newUser = await userModel.create(req.body);
+  const newUser = await userModel.create({username: username, interests: interests, country: country?country:'',
+    gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
   newUser.verified=false;
   newUser.settings = settings._id;
 

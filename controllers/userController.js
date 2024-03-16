@@ -1,6 +1,8 @@
 const userModel = require('../models/usermodel');
 const Apperror = require('../utils/apperror');
+const postModel = require('../models/postmodel');
 const catchAsync = require('../utils/catchasync');
+const commentModel = require('../models/commentsmodel');
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
     return next(new Apperror('Please provide a username', 400));
@@ -13,5 +15,101 @@ exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   res.status(200).json({
     status: 'success',
     message: 'Username available',
+  });
+});
+exports.getPosts=catchAsync(async (req, res, next)=>{
+  const username=req.params.username;
+  const user=await userModel.findOne({username: username});
+  if (!user) {
+    return next(new Apperror('User not found', 400));
+  }
+  const posts=await postModel.find({userID: user._id, hidden: false});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: posts,
+    },
+  });
+});
+exports.getComments=catchAsync(async (req, res, next)=>{
+  const username=req.params.username;
+  const user=await userModel.findOne({username: username});
+  if (!user) {
+    return next(new Apperror('User not found', 400));
+  }
+  const comments=await commentModel.find({user: user._id});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      comments: comments,
+    },
+  });
+});
+exports.getOverview=catchAsync(async (req, res, next)=>{
+  const username=req.params.username;
+  console.log(username);
+  const user=await userModel.findOne({username: username});
+  if (!user) {
+    return next(new Apperror('User not found', 400));
+  }
+  const posts=await postModel.find({userID: user._id, hidden: false});
+  const comments=await commentModel.find({user: user._id});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      comments: comments,
+      posts: posts,
+    },
+  });
+});
+exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
+  const posts=await postModel.find({userID: req.user.id, hidden: true});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: posts,
+    },
+  });
+});
+exports.getSaved=catchAsync(async (req, res, next)=>{
+  const comments=await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}});
+  const posts=await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: posts,
+      comments: comments,
+    },
+  });
+});
+exports.getAbout=catchAsync(async (req, res, next)=>{
+  const username=req.params.username;
+  const user=await userModel.findOne({username: username});
+  if (!user) {
+    return next(new Apperror('User not found', 400));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      karma: user.karma,
+    },
+  });
+});
+exports.getUpvoted=catchAsync(async (req, res, next)=>{
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: req.user.upvotes.posts,
+      comments: req.user.upvotes.comments,
+    },
+  });
+});
+exports.getDownvoted=catchAsync(async (req, res, next)=>{
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: req.user.downvotes.posts,
+      comments: req.user.downvotes.comments,
+    },
   });
 });
