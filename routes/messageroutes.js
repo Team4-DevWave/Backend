@@ -1,6 +1,7 @@
 const express = require('express');
 const messageController = require('../controllers/messagecontroller');
 const authController = require('../controllers/authcontroller');
+// eslint-disable-next-line new-cap
 const router = express.Router();
 
 router.use(authController.protect);

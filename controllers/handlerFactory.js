@@ -1,6 +1,6 @@
-const catchAsync = require('./../utils/catchasync');
-const APIFeatures = require('./../utils/apifeatures');
-const AppError = require('./../utils/apperror');
+const catchAsync = require('../utils/catchasync');
+const APIFeatures = require('../utils/apifeatures');
+const AppError = require('../utils/apperror');
 
 exports.deleteOne = (model) =>
   catchAsync(async (req, res, next) => {
@@ -25,9 +25,7 @@ exports.updateOne = (model, modifyReqBody = (req) => req.body) =>
     }
     res.status(200).json({
       status: 'success',
-      data: {
-        data: doc,
-      },
+      data: doc,
     });
   });
 
@@ -36,9 +34,7 @@ exports.createOne = (model, modifyReqBody = (req) => req.body) =>
     const doc = await model.create(modifyReqBody(req));
     res.status(201).json({
       status: 'success',
-      data: {
-        data: doc,
-      },
+      data: doc,
     });
   });
 
@@ -55,9 +51,7 @@ exports.getOne = (model, populateOptions) =>
     res.status(200).json({
       status: 'success',
       result: doc.length,
-      data: {
-        data: doc,
-      },
+      data: doc,
     });
   });
 
@@ -65,13 +59,11 @@ exports.getAll = (model, filterFunc = () => ({})) =>
   catchAsync(async (req, res, next) => {
     const filter = filterFunc(req);
     const doc = await model.find(filter);
-
     res.status(200).json({
       status: 'success',
       result: doc.length,
-      data: {
+      data:
         doc,
-      },
     });
   });
 

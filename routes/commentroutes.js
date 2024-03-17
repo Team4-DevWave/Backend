@@ -1,6 +1,7 @@
 const express = require('express');
 const authController = require('./../controllers/authcontroller.js');
 const commentController = require('./../controllers/commentcontroller');
+// eslint-disable-next-line new-cap
 const commentRouter = express.Router({mergeParams: true});
 
 commentRouter.use(authController.protect);

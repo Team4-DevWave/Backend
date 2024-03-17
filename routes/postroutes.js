@@ -1,7 +1,7 @@
 const express = require('express');
 const postController = require('./../controllers/postcontroller');
-// const authController = require("./../controllers/authcontroller");
 const commentRouter = require('./commentroutes');
+// eslint-disable-next-line new-cap
 const postRouter = express.Router();
 postRouter.use('/:postid/comments', commentRouter);
 

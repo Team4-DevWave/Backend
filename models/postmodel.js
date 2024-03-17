@@ -16,7 +16,8 @@ const postSchema = new mongoose.Schema({
   lastEditedTime: {type: Date, required: true},
   votes: {type: Number, required: true},
   content: {type: String, required: true},
-  locked: {type: Boolean, required: false},
+  locked: {type: Boolean, required: false, default: false},
+  hidden: {type: Boolean, required: false, default: false},
 });
 
 const postModel = mongoose.model('posts', postSchema);

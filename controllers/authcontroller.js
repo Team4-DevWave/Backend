@@ -5,7 +5,7 @@ const settingsModel = require('./../models/settingsmodel');
 // making a user requires settings
 const catchAsync = require('./../utils/catchasync');
 const jwt = require('jsonwebtoken');
-const AppError = require('./../utils/apperror');
+const Apperror = require('./../utils/apperror');
 const mailControl = require('./../nodemailer-gmail/mailcontrols');
 const signToken = (id) => {
   return jwt.sign(
@@ -23,15 +23,10 @@ const sendVerificationEmail = (user) => {
     return;
   }
   const Token = crypto.randomBytes(32).toString('hex');
-  user.verificationToken = Token;
-  mailControl.sendEmail(
-      user.email,
-      'Welcome to Reddit',
-      'Welcome to Reddit,please click the link to verify your email: http://localhost:8000/api/v1/users/verify/' +
-      user.username +
-      '/' +
-      Token,
-  ); // TODO modify link when hosting
+  user.verificationToken=Token;
+  mailControl.sendEmail(user.email, 'Welcome to Reddit',
+      'Welcome to Reddit,please click the link to verify your email: http://localhost:8000/api/v1/users/verify/'+
+  user.username+'/'+Token); // TODO modify link when hosting
   return Token;
 };
 const createSendToken = (user, statusCode, res) => {
@@ -54,37 +49,98 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 exports.login = catchAsync(async (req, res, next) => {
-  const {email} = req.body;
-  const {password} = req.body;
-  const {username} = req.body;
+  const email = req.body.email;
+  const password = req.body.password;
+  const username = req.body.username;
   // 1) check if email and pass exist
   if (!password) {
-    return next(new AppError('Please provide password', 400));
+    return next(new Apperror('Please provide password', 400));
   }
   if (!email || !username) {
-    return next(new AppError('Please provide email/username', 400));
+    return next(new Apperror('Please provide email/username', 400));
   }
   // 2) check if user exists and password is correct
   let user;
   if (email) {
-    user = await userModel.findOne({email: email}).select('+password'); // select + is used to show hidden entity
+    user = await userModel.findOne({email: email}).select('+password');
   } else {
-    user = await userModel.findOne({username: username}).select('+password'); // select + is used to show hidden entity
+    user = await userModel.findOne({username: username}).select('+password');
   }
 
-  // to compare the password with the encrypted password on DB then encrypt the req pass and compare it with the encrypted one is DB , the function created to do so is found in usermodel as it's related to the data. that function is called correctpassword
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError('Incorrect email or password'), 401);
+    return next(new Apperror('Incorrect email or password'), 401);
   }
   // 3) if everything is okay , send token to client
   createSendToken(user, 200, res);
 });
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const username = req.body.username;
+  const email = req.body.email;
+  if (!email || !username) {
+    return next(new Apperror('Please provide email/username', 400));
+  }
+  const user = await userModel.findOne({email: email, username: username});
+  if (!user) {
+    return next(new Apperror('User not found', 400));
+  }
+  if (!user.verified) {
+    return next(new Apperror('User not verified', 400));
+  }
+  const resetToken = user.createPasswordResetToken();
+  await user.save({validateBeforeSave: false});
+  mailControl.sendEmail(
+      email,
+      `Hello ${username}`,
+      'If you forgot your password please click the link if not please ignore' +
+      +'http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
+  );
+});
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const token = req.params.token;
+  const password = req.body.password;
+  const passwordConfirm = req.body.passwordConfirm;
+  if (!password || !passwordConfirm) {
+    return next(new Apperror('Please provide password and passwordConfirm', 400));
+  }
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await userModel.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: {$gt: Date.now()},
+  });
+  if (!user) {
+    return next(new Apperror('Token is invalid or has expired', 400));
+  }
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  await user.save();
+  createSendToken(user, 200, res);
+});
+exports.updatePassword=catchAsync(async (req, res, next)=>{
+  const currentPassword=req.body.currentPassword;
+  const newPassword=req.body.newPassword;
+  const passwordConfirm=req.body.passwordConfirm;
+  if (!currentPassword || !newPassword || !passwordConfirm) {
+    return next(new Apperror('Please provide all fields', 400));
+  }
+  const user=await userModel.findById(req.user.id).select('+password');
+  if (!user) {
+    return next(new Apperror('User not found', 400));
+  }
+  if (!(await user.correctPassword(currentPassword, user.password))) {
+    return next(new Apperror('Password is incorrect', 400));
+  }
+  user.password=newPassword;
+  user.passwordConfirm=passwordConfirm;
+  await user.save();
+  createSendToken(user, 200, res);
+});
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
-  // console.log(req.headers.authorization);
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+      req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
@@ -92,14 +148,14 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   if (!token) {
     return next(
-        new AppError('you are not logged in! please log in to gain access', 401),
+        new Apperror('you are not logged in! please log in to gain access', 401),
     );
   }
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const user = await userModel.findById(decoded.userID);
   if (!user) {
     return next(
-        new AppError(
+        new Apperror(
             'the user belonging to this token does no longer exist ',
             401,
         ),
@@ -107,47 +163,57 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   if (user.changedPasswordsAfter(decoded.iat)) {
     return next(
-        new AppError('user recently changed password, please log in again', 401),
+        new Apperror('user recently changed password, please log in again', 401),
     );
   }
   req.user = user;
+  console.log('passed the protect middleware');
   next();
 });
 exports.signup = catchAsync(async (req, res, next) => {
-  // mailControl.sendEmail(req.body.email,"Welcome to Reddit","Welcome to Reddit,please click the link to verify your email: http://localhost:3000/verify/"+req.body.username+"/123"); //TODO modify link when hosting
-  let user = await userModel.findOne({username: req.body.username});
+  let user=await userModel.findOne({username: req.body.username});
   if (user) {
-    return next(new AppError('username is taken', 401));
+    return next(new Apperror('username is taken', 401));
   }
   user = await userModel.findOne({email: req.body.email});
   if (user) {
-    return next(new AppError('email already used', 401));
+    return next(new Apperror('email already used', 401));
   }
   if (!req.body.passwordConfirm) {
-    return next(new AppError('password confirm is required', 401));
+    return next(new Apperror('password confirm is required', 401));
+  }
+  const interests = req.body.interests;
+  const country = req.body.country;
+  const email = req.body.email;
+  const username = req.body.username;
+  const password = req.body.password;
+  const passwordConfirm = req.body.passwordConfirm;
+  const gender= req.body.gender;
+  if (!interests || !email || !username || !password || !passwordConfirm) {
+    return next(new Apperror('Please provide all fields', 400));
   }
   const settings = await settingsModel.create({});
-
-  const newUser = await userModel.create(req.body);
-  newUser.verified = false;
+  const newUser = await userModel.create({username: username, interests: interests, country: country?country:'',
+    gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
+  newUser.verified=false;
   newUser.settings = settings._id;
 
-  const token = sendVerificationEmail(newUser); // TODO move under user.save
-  newUser.verficationToken = token;
+  const token=sendVerificationEmail(newUser); // TODO move under user.save
+  newUser.verficationToken=token;
   await newUser.save();
 
   createSendToken(newUser, 201, res);
 });
 exports.verifyEmail = catchAsync(async (req, res, next) => {
-  const user = await userModel.findOne({username: req.params.username});
+  const user=await userModel.findOne({username: req.params.username});
   if (!user) {
-    return next(new AppError('user not found', 401));
+    return next(new Apperror('user not found', 401));
   }
-  if (user.verificationToken !== req.params.token) {
-    return next(new AppError('invalid token', 401));
+  if (user.verificationToken!==req.params.token) {
+    return next(new Apperror('invalid token', 401));
   }
-  user.verified = true;
-  user.verificationToken = undefined;
+  user.verified=true;
+  user.verificationToken=undefined;
   await user.save();
   res.status(200).json({
     status: 'success',
