@@ -22,3 +22,38 @@ exports.createMessage = catchAsync(async (req, res, next) => {
     },
   });
 });
+exports.markAllRead = catchAsync(async (req, res, next) => {
+  await messageModel.updateMany({to: req.user.id}, {read: true});
+  res.status(200).json({
+    status: 'success',
+  });
+});
+exports.markReadMessage = catchAsync(async (req, res, next) => {
+  const message = await messageModel.findById(req.params.id);
+  if (!message) {
+    return next(new AppError('no message with that id', 404));
+  }
+  if (message.to !== req.user.id) {
+    return next(new AppError('you are not allowed to mark this message as read', 403));
+  }
+  message.read = !message.read;
+  await message.save();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message,
+    },
+  });
+});
+exports.reportMessage = catchAsync(async (req, res, next) => {
+  const message = await messageModel.findById(req.params.id);
+  if (!message) {
+    return next(new AppError('no message with that id', 404));
+  }// TO DO
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message,
+    },
+  });
+});

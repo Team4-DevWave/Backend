@@ -6,6 +6,9 @@ const router = express.Router();
 
 router.use(authController.protect);
 router
+    .route('/compose')
+    .post(messageController.createMessage);
+router
     .route('/inbox')
     .get(messageController.getInbox);
 router
@@ -15,10 +18,13 @@ router
     .route('/unread')
     .get(messageController.getUnread);
 router
-    .route('/compose')
-    .post(messageController.createMessage);
+    .route('/markAllRead')
+    .patch(messageController.markAllRead);
 router
     .route('/:id')
-    .get(messageController.getMessage);
-
+    .get(messageController.getMessage)
+    .patch(messageController.markReadMessage);
+router
+    .route('/:id/report')
+    .post(messageController.reportMessage);
 module.exports = router;
