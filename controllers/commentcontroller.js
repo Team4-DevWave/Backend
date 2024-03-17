@@ -6,13 +6,16 @@ const userModel = require('../models/usermodel');
 
 exports.getComments = handlerFactory.getAll(commentModel);
 exports.getComment = handlerFactory.getOne(commentModel);
-exports.createComment = handlerFactory.createOne(commentModel, (req) => {
-  req.body.post = req.params.postid;
+exports.createComment = handlerFactory.createOne(commentModel, async (req) => {
+  req.body.post = req.params.id;
   req.body.user = req.user.id;
+  req.body.mentioned=await handlerFactory.checkMentions(userModel, req.body.content);
   return req.body;
 });
-exports.editComment = handlerFactory.updateOne(commentModel, (req) => {
+exports.editComment = handlerFactory.updateOne(commentModel, async (req) => {
   req.body.lastEdited = Date.now();
+  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body.content);
+  console.log(req.body.mentioned);
   return req.body;
 });
 exports.deleteComment = handlerFactory.deleteOne(commentModel);
@@ -37,49 +40,7 @@ exports.saveComment = catchAsync(async (req, res, next) => {
 });
 
 exports.reportComment = catchAsync(async (req, res, next) => {});
-exports.voteComment = catchAsync(async (req, res, next) => {
-  const voteType= req.body.voteType;
-  const comment= await commentModel.findById(req.params.id);
-  if (!comment) {
-    return next(new AppError('no comment with that id', 404));
-  }
-  let uservote;
 
-  if (req.user.upvotes.comments.includes(req.params.id)) {
-    uservote=1;
-  } else if (req.user.downvotes.comments.includes(req.params.id)) {
-    uservote=-1;
-  } else {
-    uservote=0;
-  }
-  if (voteType==uservote) {
-    comment.votes-=voteType;
-    if (voteType==1) {
-      req.user.upvotes.comments.pull(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes.comments.pull(req.params.id);
-    }
-  } else if (voteType==-uservote) {
-    comment.votes+=2*voteType;
-    if (voteType==1) {
-      req.user.upvotes.comments.push(req.params.id);
-      req.user.downvotes.comments.pull(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes.comments.push(req.params.id);
-      req.user.upvotes.comments.pull(req.params.id);
-    }
-  } else {
-    comment.votes+=voteType;
-    if (voteType==1) {
-      req.user.upvotes.comments.push(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes.comments.push(req.params.id);
-    }
-  }
-  await comment.save();
-  await req.user.save();
-  res.status(200).json({
-    status: 'success',
-  });
-});
+
+exports.voteComment = handlerFactory.voteOne(commentModel, 'comments');
 exports.addCommentReply = catchAsync(async (req, res, next) => {});
