@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchasync');
 const commentModel = require('../models/commentsmodel');
 const handlerFactory = require('./handlerfactory');
 const settingsModel = require('../models/settingsmodel');
+const paginate = require('../utils/paginate');
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
     return next(new Apperror('Please provide a username', 400));
@@ -21,11 +22,12 @@ exports.usernameAvailable=catchAsync(async (req, res, next)=>{
 });
 exports.getPosts=catchAsync(async (req, res, next)=>{
   const username=req.params.username;
+  const pageNumber=req.params.pageNumber || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
     return next(new Apperror('User not found', 400));
   }
-  const posts=await postModel.find({userID: user._id, hidden: false});
+  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -35,11 +37,12 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
 });
 exports.getComments=catchAsync(async (req, res, next)=>{
   const username=req.params.username;
+  const pageNumber=req.params.pageNumber || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
     return next(new Apperror('User not found', 400));
   }
-  const comments=await commentModel.find({user: user._id});
+  const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -50,12 +53,13 @@ exports.getComments=catchAsync(async (req, res, next)=>{
 exports.getOverview=catchAsync(async (req, res, next)=>{
   const username=req.params.username;
   console.log(username);
+  const pageNumber=req.params.pageNumber || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
     return next(new Apperror('User not found', 400));
   }
-  const posts=await postModel.find({userID: user._id, hidden: false});
-  const comments=await commentModel.find({user: user._id});
+  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}), 10, pageNumber);
+  const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -65,7 +69,8 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   });
 });
 exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
-  const posts=await postModel.find({userID: req.user.id, hidden: true});
+  const pageNumber=req.params.pageNumber || 1;
+  const posts=paginate.paginate(await postModel.find({userID: req.user.id, hidden: true}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -74,8 +79,11 @@ exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getSaved=catchAsync(async (req, res, next)=>{
-  const comments=await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}});
-  const posts=await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}});
+  const pageNumber=req.params.pageNumber || 1;
+  const comments=paginate.paginate(await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}}),
+      10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
+      10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -90,10 +98,13 @@ exports.getAbout=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new Apperror('User not found', 400));
   }
+  // TODO add a follower count field and return it here
   res.status(200).json({
     status: 'success',
     data: {
-      karma: user.karma,
+      postKarma: user.karma.posts,
+      commentKarma: user.karma.comments,
+      cakeDay: user.dateJoined,
     },
   });
 });
