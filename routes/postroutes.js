@@ -13,7 +13,7 @@ postRouter
     .get(postController.getPosts);
 postRouter.get('/:postid', postController.getPost);
 postRouter.delete('/:postid/delete', postController.deletePost);
-postRouter.delete('/:postid/unhide', postController.hidePost);
+postRouter.delete('/:postid/unhide', postController.unhidePost);
 postRouter.post('/:postid/vote', postController.vote);
 postRouter.patch('/:postid/edit', postController.editPost);
 postRouter.patch('/:postid/save', postController.savePost);

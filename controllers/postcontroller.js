@@ -37,10 +37,11 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  await userModel.findByIdAndUpdate(req.user.id, {
+  const user = await userModel.findByIdAndUpdate(req.user.id, {
     $pull: {hiddenPosts: post.id},
+    new: true,
   });
-  await post.save();
+  console.log(user.hiddenPosts);
   res.status(200).json({
     status: 'success',
     data: {

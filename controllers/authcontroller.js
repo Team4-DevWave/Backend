@@ -74,7 +74,6 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // to compare the password with the encrypted password on DB then encrypt the req pass and compare it with the encrypted one is DB , the function created to do so is found in usermodel as it's related to the data. that function is called correctpassword
   if (!user || !(await user.correctPassword(password, user.password))) {
-    console.log('yo');
     return next(new AppError('Incorrect email or password'), 401);
   }
   // 3) if everything is okay , send token to client
