@@ -1,11 +1,11 @@
 const express = require('express');
 const postController = require('./../controllers/postcontroller');
-// const authController = require("./../controllers/authcontroller");
+const authController = require('./../controllers/authcontroller');
 const commentRouter = require('./commentroutes');
 const postRouter = express.Router();
 postRouter.use('/:postid/comments', commentRouter);
 
-// postRouter.use(authController.protect);
+postRouter.use(authController.protect);
 
 postRouter
     .route('/')
@@ -13,6 +13,7 @@ postRouter
     .get(postController.getPosts);
 postRouter.get('/:postid', postController.getPost);
 postRouter.delete('/:postid/delete', postController.deletePost);
+postRouter.delete('/:postid/unhide', postController.hidePost);
 postRouter.post('/:postid/vote', postController.vote);
 postRouter.patch('/:postid/edit', postController.editPost);
 postRouter.patch('/:postid/save', postController.savePost);
