@@ -38,18 +38,48 @@ exports.saveComment = catchAsync(async (req, res, next) => {
 
 exports.reportComment = catchAsync(async (req, res, next) => {});
 exports.voteComment = catchAsync(async (req, res, next) => {
-  // if (req.body.voteType == 'upvote') {
-  //   if (req.user.upvotes.comments.includes(req.params.commentid)) {
-  //     await commentModel.findByIdAndUpdate(req.params.commentid, {$inc: {votes: -1}});
-  //     await userModel.findByIdAndUpdate(req.user.id, {
-  //       $pull: {'upvotes.comments': req.params.commentid},
-  //     });
-  //   } else {
-  //     await commentModel.findByIdAndUpdate(req.params.commentid, {$inc: {votes: 1}});
-  //     await userModel.findByIdAndUpdate(req.user.id, {
-  //       $addToSet: {'upvotes.comments': req.params.commentid},
-  //     });
-  //   }
-  // }
+  const voteType= req.body.voteType;
+  const comment= await commentModel.findById(req.params.id);
+  if (!comment) {
+    return next(new AppError('no comment with that id', 404));
+  }
+  let uservote;
+
+  if (req.user.upvotes.comments.includes(req.params.id)) {
+    uservote=1;
+  } else if (req.user.downvotes.comments.includes(req.params.id)) {
+    uservote=-1;
+  } else {
+    uservote=0;
+  }
+  if (voteType==uservote) {
+    comment.votes-=voteType;
+    if (voteType==1) {
+      req.user.upvotes.comments.pull(req.params.id);
+    } else if (voteType==-1) {
+      req.user.downvotes.comments.pull(req.params.id);
+    }
+  } else if (voteType==-uservote) {
+    comment.votes+=2*voteType;
+    if (voteType==1) {
+      req.user.upvotes.comments.push(req.params.id);
+      req.user.downvotes.comments.pull(req.params.id);
+    } else if (voteType==-1) {
+      req.user.downvotes.comments.push(req.params.id);
+      req.user.upvotes.comments.pull(req.params.id);
+    }
+  } else {
+    comment.votes+=voteType;
+    if (voteType==1) {
+      req.user.upvotes.comments.push(req.params.id);
+    } else if (voteType==-1) {
+      req.user.downvotes.comments.push(req.params.id);
+    }
+  }
+  await comment.save();
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
 });
 exports.addCommentReply = catchAsync(async (req, res, next) => {});
