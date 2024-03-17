@@ -11,6 +11,8 @@ exports.editPost = handlerFactory.updateOne(postModel);
 exports.deletePost = handlerFactory.deleteOne(postModel);
 exports.vote = catchAsync(async (req, res, next) => {});
 exports.savePost = catchAsync(async (req, res, next) => {});
+
+
 exports.hidePost = catchAsync(async (req, res, next) => {
   console.log('yo');
   const post = await postModel.findById(req.params.postid);
@@ -28,6 +30,8 @@ exports.hidePost = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+
 exports.unhidePost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
