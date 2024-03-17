@@ -1,13 +1,10 @@
 const express = require('express');
 const messageController = require('../controllers/messagecontroller');
 const authController = require('../controllers/authcontroller');
-// eslint-disable-next-line new-cap
+// eslint-disable-next-line
 const router = express.Router();
 
 router.use(authController.protect);
-router
-    .route('/:id')
-    .get(messageController.getMessage);
 router
     .route('/inbox')
     .get(messageController.getInbox);
@@ -20,5 +17,8 @@ router
 router
     .route('/compose')
     .post(messageController.createMessage);
+router
+    .route('/:id')
+    .get(messageController.getMessage);
 
 module.exports = router;
