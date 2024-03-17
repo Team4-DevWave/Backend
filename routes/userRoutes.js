@@ -12,7 +12,7 @@ userRouter.patch('/resetPassword/:token', authController.resetPassword);
 userRouter.get('/:username/posts', userController.getPosts);
 userRouter.get('/:username/comments', userController.getComments);
 userRouter.get('/:username/overview', userController.getOverview);
-userRouter.get('/:username/about', userController.getAbout);
+userRouter.get('/:username/about', userController.getAbout); // might not need
 userRouter.get('/:username', userController.getUserByUsername);
 userRouter.use(authController.protect);
 userRouter.get('/:username/saved', userController.getSaved);
