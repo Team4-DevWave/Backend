@@ -6,9 +6,6 @@ const router = express.Router();
 
 router.use(authController.protect);
 router
-    .route('/:id')
-    .get(messageController.getMessage);
-router
     .route('/inbox')
     .get(messageController.getInbox);
 router
@@ -20,5 +17,8 @@ router
 router
     .route('/compose')
     .post(messageController.createMessage);
+router
+    .route('/:id')
+    .get(messageController.getMessage);
 
 module.exports = router;
