@@ -220,3 +220,4 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     message: 'email verified',
   });
 });
+// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
