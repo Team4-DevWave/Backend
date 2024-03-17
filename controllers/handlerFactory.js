@@ -55,10 +55,10 @@ exports.getOne = (model, populateOptions) =>
     });
   });
 
-exports.getAll = (model, filterFunc = async () => ({})) =>
+exports.getAll = (model, filterFunc = () => ({})) =>
   catchAsync(async (req, res, next) => {
-    const filter =await filterFunc(req);
-    const doc= await model.find(filter);
+    const filter = filterFunc(req);
+    const doc = await model.find(filter);
     res.status(200).json({
       status: 'success',
       result: doc.length,
