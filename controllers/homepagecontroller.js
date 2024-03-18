@@ -15,7 +15,7 @@ exports.getCommunities = catchasync(async (req, res, next) => {
 });
 
 
-exports.createPost = catchasync(async (req, res, next) => {
+exports.createPost = catchasync(async (req, res, next) => { // optimization needed
   if (!req.params.userorsubreddit || !req.params.subreddtnam_or_username) {
     return res.status(400).json({
       status: 'fail',
