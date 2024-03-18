@@ -16,7 +16,8 @@ const postSchema = new mongoose.Schema({
   lastEditedTime: {type: Date},
   votes: {type: Number, defaults: 0, required: false},
   content: {type: String, required: true},
-  locked: {type: Boolean, defaults: false, required: false},
+  locked: {type: Boolean, required: false, default: false},
+  mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
 });
 
 const postModel = mongoose.model('posts', postSchema);

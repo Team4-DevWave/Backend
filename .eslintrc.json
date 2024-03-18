@@ -15,6 +15,7 @@
     "rules": {
         "linebreak-style": 0,
         "max-len": ["error", 120],
+        "filenames": "off",
         "no-invalid-this": "off"
     }
 }

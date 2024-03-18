@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
-// name,email,photo,password,password confirm, password changed at, password reset token, password reset expires, date joined, country, upvotes,downvotes, karma,saved posts and comments, viewed posts, hidden posts, comments, posts, followed users, blocked users, joined subreddits, user profile, safety and privacy, feed settings, notifications, email settings, chat and messaging settings, active
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -17,13 +16,20 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
     validate: [validator.isEmail, 'please enter a valid email'],
-    // custom validator to check if its format is an email (npm package)
   },
   password: {
     type: String,
     required: [true, 'please enter a password'],
     minlength: 8,
     select: false, // password should not be shown in the database
+  },
+  verified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    default: '',
   },
   passwordConfirm: {
     type: String,
@@ -52,6 +58,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['I prefer not to say', 'man', 'woman', 'non-binary', 'other'],
     default: 'I prefer not to say',
+  },
+  interests: {
+    type: [String],
+    default: [],
+    required: [true, 'please enter your interests'],
   },
   active: {
     type: Boolean,
@@ -139,9 +150,11 @@ const userSchema = new mongoose.Schema({
   karma: {
     comments: {
       type: Number,
+      default: 0,
     },
     posts: {
       type: Number,
+      default: 0,
     },
   },
 });
@@ -155,7 +168,6 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// user login could be faster than updating this value , this ensures that the token is always created after changing the password
 userSchema.pre('save', function(next) {
   if (!this.isModified('password') || this.isNew) return next();
   this.passwordChangedAt = Date.now() - 1000;
