@@ -15,7 +15,7 @@ postRouter
     .get(postController.getPosts);
 postRouter.get('/:id', postController.getPost);
 postRouter.delete('/:id/delete', postController.deletePost);
-postRouter.delete('/:postid/unhide', postController.unhidePost);
+postRouter.delete('/:id/unhide', postController.unhidePost);
 postRouter.post('/:id/vote', postController.vote);
 postRouter.patch('/:id/edit', postController.editPost);
 postRouter.patch('/:id/save', postController.savePost);

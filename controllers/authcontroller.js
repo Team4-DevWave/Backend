@@ -1,6 +1,6 @@
 const {promisify} = require('util');
 const crypto = require('crypto');
-const userModel = require('./../models/usermodel');
+const userModel = require('../models/usermodel');
 const settingsModel = require('./../models/settingsmodel');
 // making a user requires settings
 const catchAsync = require('./../utils/catchasync');
@@ -226,6 +226,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
 });
 // ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
 exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
+  console.log('yo');
   const model = type === 'post' ? postModel : commentModel;
   // Get the post or comment
   const post = await model.findById(req.params.id);
