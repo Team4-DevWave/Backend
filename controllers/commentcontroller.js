@@ -15,7 +15,7 @@ exports.createComment = handlerFactory.createOne(commentModel, async (req) => {
 exports.editComment = handlerFactory.updateOne(commentModel, async (req) => {
   req.body.lastEdited = Date.now();
   req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body.content);
-  console.log(req.body.mentioned);
+  // console.log(req.body.mentioned);
   return req.body;
 });
 exports.deleteComment = handlerFactory.deleteOne(commentModel);
@@ -29,12 +29,11 @@ exports.saveComment = catchAsync(async (req, res, next) => {
   const update= comment.saved ?
     {$addToSet: {'savedPostsAndComments.comments': req.params.id}} :
     {$pull: {'savedPostsAndComments.comments': req.params.id}};
-  const user=await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
+  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
     data: {
       comment: comment,
-      user: user,
     },
   });
 });
