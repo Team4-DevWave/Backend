@@ -5,7 +5,7 @@ const commentController = require('./../controllers/commentcontroller');
 const commentRouter = express.Router({mergeParams: true});
 
 commentRouter.use(authController.protect);
-commentRouter.use(authController.checkSubredditAccess('comment'));
+// commentRouter.use(authController.checkSubredditAccess('comment'));
 
 commentRouter
     .route('/')
