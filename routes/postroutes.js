@@ -2,12 +2,12 @@ const express = require('express');
 const postController = require('./../controllers/postcontroller');
 // const authController = require("./../controllers/authcontroller");
 const commentRouter = require('./commentroutes');
-const authController = require('./../controllers/authcontroller');
+// const authController = require('./../controllers/authcontroller');
 // eslint-disable-next-line new-cap
 const postRouter = express.Router();
 postRouter.use('/:id/comments', commentRouter);
 
-postRouter.use(authController.checkSubredditAccess('post'));
+// postRouter.use(authController.checkSubredditAccess('post'));
 
 postRouter
     .route('/')
