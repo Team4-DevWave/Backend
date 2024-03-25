@@ -5,6 +5,8 @@ const authController = require('../controllers/authcontroller');
 const userRouter = express.Router();
 userRouter.post('/signup', authController.signup);
 userRouter.post('/login', authController.login);
+userRouter.get('/googleLogin', authController.googleLogin);
+userRouter.post('/googleSignup', authController.googleSignup);
 userRouter.get('/verify/:username/:token', authController.verifyEmail);
 userRouter.get('/check/:username', userController.usernameAvailable);
 userRouter.post('/forgotPassword', authController.forgotPassword);
