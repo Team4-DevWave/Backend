@@ -27,6 +27,10 @@ const messageSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  collapsed: {
+    type: Boolean,
+    default: false,
+  },
   parentmessage: {
     type: mongoose.Schema.ObjectId,
     ref: 'messages',
