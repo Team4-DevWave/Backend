@@ -35,6 +35,14 @@ const messageSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'messages',
   },
+  comment: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'comments',
+  },
+  post: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'posts',
+  },
 });
 
 const messageModel = mongoose.model('messages', messageSchema);
