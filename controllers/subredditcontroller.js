@@ -1,5 +1,5 @@
 const subredditModel = require('../models/subredditmodel');
-const AppError = require('../utils/apperror');
+// const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 
