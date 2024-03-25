@@ -3,17 +3,17 @@ const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const catchAsync = require('../utils/catchasync');
 const commentModel = require('../models/commentsmodel');
-const handlerFactory = require('./handlerfactory');
+// const handlerFactory = require('./handlerfactory');
 const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
-    return next(new AppError('Please provide a username', 400));
+    return next(new AppError('Please provide a username', 404));
   }
   const username=req.params.username;
   const user=await userModel.findOne({username: username});
   if (user) {
-    return next(new AppError('Username not available', 400));
+    return next(new AppError('Username not available', 404));
   }
   res.status(200).json({
     status: 'success',
@@ -25,7 +25,7 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   const pageNumber=req.params.pageNumber || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
-    return next(new AppError('User not found', 400));
+    return next(new AppError('User not found', 404));
   }
   const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}), 10, pageNumber);
   res.status(200).json({
@@ -145,7 +145,9 @@ const handleUserAction = (action, subaction) =>
       [updateOperation]: {[actionField]: targetUser._id},
     }, {new: true});
     updatedUser.save();
-    res.status(200).json({
+    let statusCode;
+    subaction === 'add' ? statusCode=200 : statusCode=204;
+    res.status(statusCode).json({
       status: 'success',
       data: {
         user: updatedUser,
@@ -171,19 +173,39 @@ exports.checkBlocked=catchAsync(async (req, res, next) => {
   }
   next();
 });
-
-exports.getMe = (req, res, next) => {
-  req.params.id = req.user.id;
-  next();
-};
-
-exports.setSettingsId = (req, res, next) => {
-  req.params.id = req.user.settings;
-  next();
-};
-exports.getUser = handlerFactory.getOne(userModel);
-exports.getMySettings = handlerFactory.getOne(settingsModel);
-exports.updateMySettings = handlerFactory.updateOne(settingsModel);
+exports.addFriend = handleUserAction('follow', 'add');
+exports.removeFriend =handleUserAction('follow', 'remove');
+exports.blockUser = handleUserAction('block', 'add');
+exports.unblockUser = handleUserAction('block', 'remove');
+exports.getCurrentUser = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: req.user,
+    },
+  });
+});
+exports.getMySettings = catchAsync(async (req, res, next) => {
+  const settings = await settingsModel.findById(req.user.settings);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      settings: settings,
+    },
+  });
+});
+exports.updateMySettings = catchAsync(async (req, res, next) => {
+  const settings = await settingsModel.findByIdAndUpdate(req.user.settings, {$set: req.body}, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      settings: settings,
+    },
+  });
+});
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id, {active: false});
   res.status(204).json({
@@ -191,10 +213,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
-exports.addFriend = handleUserAction('follow', 'add');
-exports.removeFriend =handleUserAction('follow', 'remove');
-exports.blockUser = handleUserAction('block', 'add');
-exports.unblockUser = handleUserAction('block', 'remove');
+
 exports.getUserByUsername = catchAsync(async (req, res, next) => {
   const username = req.params.username;
   if (!username) {
@@ -211,5 +230,22 @@ exports.getUserByUsername = catchAsync(async (req, res, next) => {
       commentKarma: user.karma.comments,
       cakeDay: user.dateJoined,
     },
+  });
+});
+
+exports.deleteUser = catchAsync(async (req, res, next) => { // for admin
+  const username = req.params.username;
+  if (!username) {
+    return next(new AppError('Please provide a username', 400));
+  }
+  const user=await userModel.findOne({username: username});
+  if (!user) {
+    return next(new AppError('No user with that username', 404));
+  }
+  await settingsModel.deleteOne(user.settings);
+  await userModel.deleteOne(user.id);
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });
