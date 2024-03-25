@@ -9,9 +9,9 @@ userRouter.get('/verify/:username/:token', authController.verifyEmail);
 userRouter.get('/check/:username', userController.usernameAvailable);// TESTED
 userRouter.post('/forgotPassword', authController.forgotPassword);
 userRouter.patch('/resetPassword/:token', authController.resetPassword);
-userRouter.get('/:username/posts/:pageNumber', userController.getPosts);// TESTED
-userRouter.get('/:username/comments/:pageNumber', userController.getComments);// TESTED
-userRouter.get('/:username/overview/:pageNumber', userController.getOverview);// TESTED
+userRouter.get('/:username/posts', userController.getPosts);// TESTED
+userRouter.get('/:username/comments', userController.getComments);// TESTED
+userRouter.get('/:username/overview', userController.getOverview);// TESTED
 userRouter.get('/:username/about', userController.getAbout); // might not need // TESTED
 userRouter.get('/:username', userController.getUserByUsername);// TESTED
 
@@ -21,10 +21,10 @@ userRouter
     .route('/me/current')
     .get(userController.getCurrentUser)// TESTED
     .delete(userController.deleteMe); // TESTED
-userRouter.get('/me/saved/:pageNumber', userController.getSaved);// TESTED
-userRouter.get('/me/hidden/:pageNumber', userController.gethiddenPosts);// TESTED
-userRouter.get('/me/upvoted/:pageNumber', userController.getUpvoted);// TESTED
-userRouter.get('/me/downvoted/:pageNumber', userController.getDownvoted);// TESTED
+userRouter.get('/me/saved', userController.getSaved);// TESTED
+userRouter.get('/me/hidden', userController.gethiddenPosts);// TESTED
+userRouter.get('/me/upvoted', userController.getUpvoted);// TESTED
+userRouter.get('/me/downvoted', userController.getDownvoted);// TESTED
 userRouter
     .route('/me/settings')
     .get(userController.getMySettings)// TESTED

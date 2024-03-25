@@ -79,7 +79,7 @@ describe('GET /api/v1/users/:username/posts/:pageNumber', () => {
   it('should get a user\'s posts', async () => {
     const username = 'moaz';
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/${username}/posts/${pageNumber}`);
+    const response = await request(app).get(`/api/v1/users/${username}/posts`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('posts');
@@ -89,7 +89,7 @@ describe('GET /api/v1/users/:username/comments/:pageNumber', () => {
   it('should get a user\'s comments', async () => {
     const username = 'moaz';
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/${username}/comments/${pageNumber}`);
+    const response = await request(app).get(`/api/v1/users/${username}/comments`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('comments');
@@ -99,7 +99,7 @@ describe('GET /api/v1/users/:username/overview/:pageNumber', () => {
   it('should get a user\'s overview', async () => {
     const username = 'moaz';
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/${username}/overview/${pageNumber}`);
+    const response = await request(app).get(`/api/v1/users/${username}/overview`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('comments');
@@ -110,7 +110,7 @@ describe('GET /api/v1/users/:username/overview/:pageNumber', () => {
 describe('GET /api/v1/users/me/saved/:pageNumber', () => {
   it('should get a user\'s saved posts and comments', async () => {
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/me/saved/${pageNumber}`).set('Authorization', `Bearer ${token}`);
+    const response = await request(app).get(`/api/v1/users/me/saved`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('comments');
@@ -121,7 +121,7 @@ describe('GET /api/v1/users/me/hidden/:pageNumber', () => {
   it('should get a user\'s hidden posts', async () => {
     const username = 'moaz';
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/me/hidden/${pageNumber}`).set('Authorization', `Bearer ${token}`);
+    const response = await request(app).get(`/api/v1/users/me/hidden`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('posts');
@@ -131,7 +131,7 @@ describe('GET /api/v1/users/me/upvoted/:pageNumber', () => {
   it('should get a user\'s upvoted posts and comments', async () => {
     const username = 'moaz';
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/me/upvoted/${pageNumber}`).set('Authorization', `Bearer ${token}`);
+    const response = await request(app).get(`/api/v1/users/me/upvoted`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('comments');
@@ -142,7 +142,7 @@ describe('GET /api/v1/users/me/downvoted/:pageNumber', () => {
   it('should get a user\'s downvoted posts and comments', async () => {
     const username = 'moaz';
     const pageNumber = 1;
-    const response = await request(app).get(`/api/v1/users/me/downvoted/${pageNumber}`).set('Authorization', `Bearer ${token}`);
+    const response = await request(app).get(`/api/v1/users/me/downvoted`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
     expect(response.body.data).toHaveProperty('comments');
