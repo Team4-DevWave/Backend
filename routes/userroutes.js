@@ -20,7 +20,7 @@ userRouter.use(authController.protect);
 userRouter
     .route('/me/current')
     .get(userController.getCurrentUser)// TESTED
-    .delete(userController.deleteMe);
+    .delete(userController.deleteMe); // TESTED
 userRouter.get('/me/saved/:pageNumber', userController.getSaved);// TESTED
 userRouter.get('/me/hidden/:pageNumber', userController.gethiddenPosts);// TESTED
 userRouter.get('/me/upvoted/:pageNumber', userController.getUpvoted);// TESTED
@@ -28,8 +28,8 @@ userRouter.get('/me/downvoted/:pageNumber', userController.getDownvoted);// TEST
 userRouter
     .route('/me/settings')
     .get(userController.getMySettings)// TESTED
-    .patch(userController.updateMySettings);
-userRouter.patch('/me/settings/changepassword', authController.updatePassword);
+    .patch(userController.updateMySettings); // TESTED
+userRouter.patch('/me/settings/changepassword', authController.updatePassword); // TESTED
 // userRouter.patch("/me/updateEmail", userController.updateEmail);
 userRouter
     .route('/me/friend/:username')
