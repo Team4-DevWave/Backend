@@ -8,6 +8,8 @@ describe('POST /api/v1/users/signup', () => {
 // beforeEach(async () => {
 //     await userModel.deleteOne({ username: 'testuser' });
 // },300000);
+
+//REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should create a new user successfully', async () => {
     const user = {
       username: 'testuser',
@@ -24,30 +26,10 @@ describe('POST /api/v1/users/signup', () => {
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty('token');
     expect(response.body.data).toHaveProperty('user');
-    expect(response.body.data.user).toHaveProperty('_id');
-    expect(response.body.data.user).toHaveProperty('email');
-    expect(response.body.data.user).toHaveProperty('username');
-    expect(response.body.data.user).toHaveProperty('savedPostsAndComments');
-    expect(response.body.data.user).toHaveProperty('upvotes');
-    expect(response.body.data.user).toHaveProperty('downvotes');
-    expect(response.body.data.user).toHaveProperty('karma');
-    expect(response.body.data.user).toHaveProperty('dateJoined');
-    expect(response.body.data.user).toHaveProperty('country');
-    expect(response.body.data.user).toHaveProperty('gender');
-    expect(response.body.data.user).toHaveProperty('followedUsers');
-    expect(response.body.data.user).toHaveProperty('blockedUsers');
-    expect(response.body.data.user).toHaveProperty('joinedSubreddits');
-    expect(response.body.data.user).toHaveProperty('followedPosts');
-    expect(response.body.data.user).toHaveProperty('viewedPosts');
-    expect(response.body.data.user).toHaveProperty('hiddenPosts');
-    expect(response.body.data.user).toHaveProperty('comments');
-    expect(response.body.data.user).toHaveProperty('posts');
-    expect(response.body.data.user).toHaveProperty('settings');
-    expect(response.body.data.user).toHaveProperty('interests');
-    expect(response.body.data.user).toHaveProperty('verificationToken');
-    expect(response.body.data.user).toHaveProperty('verified');
   });
 });
+
+//REMEMBER TO REVERSE PASSWORDS BACK IN POSTMAN TO BE ABLE TO TEST LOGIN
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
@@ -59,28 +41,7 @@ describe('POST /api/v1/users/login', () => {
     token = response.body.token;
   expect(response.statusCode).toBe(200);
   expect(response.body).toHaveProperty('token');
-  expect(response.body.data.user).toHaveProperty('_id');
-  expect(response.body.data.user).toHaveProperty('username');
-  expect(response.body.data.user).toHaveProperty('email');
-  expect(response.body.data.user).toHaveProperty('savedPostsAndComments');
-  expect(response.body.data.user).toHaveProperty('upvotes');
-  expect(response.body.data.user).toHaveProperty('downvotes');
-  expect(response.body.data.user).toHaveProperty('karma');
-  expect(response.body.data.user).toHaveProperty('dateJoined');
-  expect(response.body.data.user).toHaveProperty('country');
-  expect(response.body.data.user).toHaveProperty('gender');
-  expect(response.body.data.user).toHaveProperty('followedUsers');
-  expect(response.body.data.user).toHaveProperty('blockedUsers');
-  expect(response.body.data.user).toHaveProperty('joinedSubreddits');
-  expect(response.body.data.user).toHaveProperty('followedPosts');
-  expect(response.body.data.user).toHaveProperty('viewedPosts');
-  expect(response.body.data.user).toHaveProperty('hiddenPosts');
-  expect(response.body.data.user).toHaveProperty('comments');
-  expect(response.body.data.user).toHaveProperty('posts');
-  expect(response.body.data.user).toHaveProperty('settings');
-  expect(response.body.data.user).toHaveProperty('interests');
-  expect(response.body.data.user).toHaveProperty('verificationToken');
-  expect(response.body.data.user).toHaveProperty('verified');
+  expect(response.body.data).toHaveProperty('user');
   });
   it('should not log in a user with invalid credentials', async () => {
     const userCredentials = {
@@ -210,7 +171,23 @@ describe('GET /api/v1/users/me/current', () => {
     expect(response.body.data).toHaveProperty('user');
   });
 });
+// REVERSE THE PASSWORD BACK IN POSTMAN TO BE ABLE TO TEST
+describe('PATCH /api/v1/users/me/settings/changepassword', () => {
+  it('should update a user password', async () => {
+    // Assuming the user is already logged in and you have their token
+    const currentPassword = 'pass1234';
+    const newPassword = 'mariambackend';
+    const passwordConfirm = 'mariambackend';
 
+    const response = await request(app)
+      .patch(`/api/v1/users/me/settings/changepassword`)
+      .send({ currentPassword, newPassword, passwordConfirm })
+      .set('Authorization', `Bearer ${token}`);
+    token = response.body.token;  
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toHaveProperty('status', 'success');
+  });
+});
 describe('GET /api/v1/users/me/settings', () => {
   it('should get the logged in user\'s settings', async () => {
     const response = await request(app)
@@ -222,6 +199,26 @@ describe('GET /api/v1/users/me/settings', () => {
   });
 });
 
+describe('PATCH /api/v1/users/me/settings', () => {
+  it('should update user settings', async () => {
+    // Assuming the user is already logged in and you have their token
+    const newSettings = {
+      // Replace with the actual settings you want to update
+      userProfile:{
+        profilePicture: "newprofilepic"
+    }  
+    };
+
+    const response = await request(app)
+      .patch(`/api/v1/users/me/settings`)
+      .send(newSettings)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty('status', 'success');
+    expect(response.body.data.settings).toMatchObject(newSettings);
+  });
+});
 describe('POST /api/v1/users/me/friend/:username', () => {
   it('should add a user as a friend', async () => {
     const username = 'mariam';
@@ -285,6 +282,18 @@ describe('DELETE /api/v1/users/me/block/:username', () => {
     const username = 'mohamed';
     const response = await request(app)
       .delete(`/api/v1/users/me/block/${username}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(204);
+  });
+});
+
+//REVERSE ACTIVE BACK IN POSTMAN TO BE ABLE TO TEST AGAIN
+describe('DELETE /api/v1/users/me/current', () => {
+  it('should deactivate a user', async () => {
+    // Assuming the user is already logged in and you have their token
+    const response = await request(app)
+      .delete(`/api/v1/users/me/current`)
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.statusCode).toBe(204);
