@@ -19,7 +19,7 @@ app.use('/api/v1/comments', commentRouter);
 app.use('/api/v1/r', subredditRouter);
 app.use('/api/v1/messages', messageRouter);
 app.use('/api/v1/homepage', homepageRouter);
-app.use('/api/v1/posts', postRouter);
+// app.use('/api/v1/posts', postRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`cant find ${req.originalUrl} on this server!`, 400));

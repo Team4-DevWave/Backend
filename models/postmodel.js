@@ -18,6 +18,7 @@ const postSchema = new mongoose.Schema({
   content: {type: String, required: true},
   locked: {type: Boolean, required: false, default: false},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  approved: {type: Boolean, required: true, default: false},
 });
 
 const postModel = mongoose.model('posts', postSchema);
