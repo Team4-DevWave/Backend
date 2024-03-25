@@ -10,20 +10,31 @@ router
     .post(messageController.createMessage);
 router
     .route('/inbox')
-    .get(messageController.getInbox);
+    .get(messageController.getAllInbox);
 router
     .route('/sent')
-    .get(messageController.getSent);
+    .get(messageController.getAllSent);
 router
     .route('/unread')
-    .get(messageController.getUnread);
+    .get(messageController.getAllUnread);
+router
+    .route('/postreply')
+    .get(messageController.getAllPostReply);
+router
+    .route('/mentions')
+    .get(messageController.getAllMentions);
 router
     .route('/markAllRead')
     .patch(messageController.markAllRead);
 router
     .route('/:id')
-    .get(messageController.getMessage)
-    .patch(messageController.markReadMessage);
+    .get(messageController.getMessage);
+router
+    .route('/:id/markRead') // mark message as read/unread
+    .patch(messageController.toggleReadMessage);
+router
+    .route('/:id/delete')
+    .delete(messageController.deleteMessage);
 router
     .route('/:id/report')
     .post(messageController.reportMessage);
