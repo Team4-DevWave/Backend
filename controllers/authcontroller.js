@@ -97,6 +97,10 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       'If you forgot your password please click the link if not please ignore' +
       +'http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
   );
+  res.status(200).json({
+    status: 'success',
+    message: 'Token sent to email',
+  });
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
   const token = req.params.token;
