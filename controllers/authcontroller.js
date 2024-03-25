@@ -129,10 +129,10 @@ exports.updatePassword=catchAsync(async (req, res, next)=>{
   }
   const user=await userModel.findById(req.user.id).select('+password');
   if (!user) {
-    return next(new AppError('User not found', 400));
+    return next(new AppError('you are not logged in! please log in to gain access', 401));
   }
   if (!(await user.correctPassword(currentPassword, user.password))) {
-    return next(new AppError('Password is incorrect', 400));
+    return next(new AppError('Password is incorrect', 401));
   }
   user.password=newPassword;
   user.passwordConfirm=passwordConfirm;
