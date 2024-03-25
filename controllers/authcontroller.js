@@ -225,7 +225,6 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
 });
 // ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
 exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
-  console.log('yo');
   const model = type === 'post' ? postModel : commentModel;
   // Get the post or comment
   const post = await model.findById(req.params.id);
