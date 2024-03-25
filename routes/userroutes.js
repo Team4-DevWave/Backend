@@ -14,21 +14,22 @@ userRouter.get('/:username/comments/:pageNumber', userController.getComments);//
 userRouter.get('/:username/overview/:pageNumber', userController.getOverview);// TESTED
 userRouter.get('/:username/about', userController.getAbout); // might not need // TESTED
 userRouter.get('/:username', userController.getUserByUsername);// TESTED
+
 userRouter.use(authController.protect);
-userRouter.get('/me/saved/:pageNumber', userController.getSaved);// TESTED
-userRouter.get('/me/hidden/:pageNumber', userController.gethiddenPosts);// TESTED
-userRouter.get('/me/upvoted/:pageNumber', userController.getUpvoted);// TESTED
-userRouter.get('/me/downvoted/:pageNumber', userController.getDownvoted);// TESTED
-userRouter.post('/changepassword', authController.updatePassword);
+
 userRouter
     .route('/me/current')
     .get(userController.getCurrentUser)// TESTED
     .delete(userController.deleteMe);
+userRouter.get('/me/saved/:pageNumber', userController.getSaved);// TESTED
+userRouter.get('/me/hidden/:pageNumber', userController.gethiddenPosts);// TESTED
+userRouter.get('/me/upvoted/:pageNumber', userController.getUpvoted);// TESTED
+userRouter.get('/me/downvoted/:pageNumber', userController.getDownvoted);// TESTED
 userRouter
     .route('/me/settings')
     .get(userController.getMySettings)// TESTED
     .patch(userController.updateMySettings);
-// userRouter.patch("/me/updatePassword", authController.updatePassword);
+userRouter.patch('/me/settings/changepassword', authController.updatePassword);
 // userRouter.patch("/me/updateEmail", userController.updateEmail);
 userRouter
     .route('/me/friend/:username')
