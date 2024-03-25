@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const userRouter = require('./routes/userroutes.js');
 const postRouter = require('./routes/postroutes.js');

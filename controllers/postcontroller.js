@@ -131,7 +131,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
       });
     }
   }
-  const type = req.params.userorsubreddit;
   const currentTime = new Date();
   let post = null;
   if (req.url.startsWith('/submit/u/')) {
