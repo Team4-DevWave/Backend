@@ -1,9 +1,12 @@
 const subredditModel = require('../models/subredditmodel');
 const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
+const paginate = require('../utils/paginate');
 
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
-  const subreddits = await subredditModel.find({category: req.query.category});
+  const pageNumber = req.query.page || 1;
+  let subreddits = await subredditModel.find({category: req.query.category});
+  subreddits=paginate.paginate(subreddits, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -22,16 +25,6 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getSubredditsOfCategory = catchAsync(async (req, res, next) => {
-  const subreddits = await subredditModel.find({category: req.params.category});
-  res.status(200).json({
-    status: 'success',
-    data: {
-      subreddits,
-    },
-  });
-});
-
 exports.getSubreddit = catchAsync(async (req, res, next) => {
   const subreddit = await subredditModel.findOne({name: req.params.subreddit});
   res.status(200).json({
@@ -43,7 +36,9 @@ exports.getSubreddit = catchAsync(async (req, res, next) => {
 });
 
 exports.getPostsBySubreddit = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
   const subreddit = await subredditModel.findOne({name: req.params.subreddit}).populate('posts');
+  subreddit.posts = paginate.paginate(subreddit.posts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {

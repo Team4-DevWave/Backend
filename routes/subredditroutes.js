@@ -12,9 +12,6 @@ subredditRouter
     .route('/create')
     .post(subredditController.createSubreddit);
 subredditRouter
-    .route('/:category')// QUERY MIGHT BE BETTER IN ALL ROUTE
-    .get(subredditController.getSubredditsOfCategory);
-subredditRouter
     .route('/:subreddit')
     .get(subredditController.getSubreddit);
 subredditRouter

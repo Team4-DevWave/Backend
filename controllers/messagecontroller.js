@@ -28,7 +28,6 @@ exports.getAllInbox = catchAsync(async (req, res, next) => {
     },
   });
 });
-// handlerFactory.getAll(messageModel, (req) => ({to: req.user.id}));
 
 exports.getAllSent = catchAsync(async (req, res, next) => {
   const messages = await messageModel.find({from: req.user.id});
@@ -39,7 +38,6 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
     },
   });
 });
-// handlerFactory.getAll(messageModel, (req) => ({from: req.user.id}));
 
 exports.getAllUnread = catchAsync(async (req, res, next) => {
   const messages = await messageModel.find({to: req.user.id, read: false});
@@ -50,7 +48,6 @@ exports.getAllUnread = catchAsync(async (req, res, next) => {
     },
   });
 });
-// handlerFactory.getAll(messageModel, (req) => ({to: req.user.id, read: false}));
 
 exports.getAllPostReply = catchAsync(async (req, res, next) => {
   const message = await messageModel.findById(req.params.id);

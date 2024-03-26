@@ -6,15 +6,8 @@ const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 
 exports.getPosts = handlerFactory.getAll(postModel);
+
 exports.getPost = handlerFactory.getOne(postModel);
-
-
-exports.createPost = handlerFactory.createOne(postModel, async (req) => {
-  req.body.user = req.user.id;
-  req.body.mentioned=await handlerFactory.checkMentions(userModel, req.body.content);
-  return req.body;
-});
-
 
 exports.editPost = handlerFactory.updateOne(postModel, async (req) => {
   req.body.lastEditedTime = Date.now();
@@ -22,12 +15,9 @@ exports.editPost = handlerFactory.updateOne(postModel, async (req) => {
   return req.body;
 });
 
-
 exports.deletePost = handlerFactory.deleteOne(postModel);
 
-
 exports.vote = exports.voteComment = handlerFactory.voteOne(postModel, 'posts');
-
 
 exports.savePost = catchAsync(async (req, res, next) => {
   const post= await postModel.findById(req.params.id);
@@ -47,7 +37,6 @@ exports.savePost = catchAsync(async (req, res, next) => {
   });
 });
 
-
 exports.hidePost = catchAsync(async (req, res, next) => {
   console.log('yo');
   const post = await postModel.findById(req.params.id);
@@ -65,7 +54,6 @@ exports.hidePost = catchAsync(async (req, res, next) => {
     },
   });
 });
-
 
 exports.unhidePost = catchAsync(async (req, res, next) => {
   console.log('yo');
@@ -88,18 +76,12 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
 
 exports.createPost = catchAsync(async (req, res, next) => {
   if (!req.params.subreddtnam_or_username) {
-    return res.status(400).json({
-      status: 'fail',
-      message: 'Invalid Data Insertion',
-    });
+    return next(new AppError('Invalid Data Insertion', 400));
   }
   if (!req.url.startsWith('/submit/u/')) {
     const subreddit = await subredditModel.findOne({name: req.params.subreddtnam_or_username});
     if (!subreddit) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Subreddit not found',
-      });
+      return next(new AppError('Subreddit not found', 404));
     }
   }
   const currentTime = new Date();
@@ -115,7 +97,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
       content: req.body.content,
       approved: true});
     post = newPost;
-    console.log(post);
     const user = req.user;
     await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}});
   } else if (req.url.startsWith('/submit/r/')) {

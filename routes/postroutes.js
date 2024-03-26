@@ -7,17 +7,16 @@ const postRouter = express.Router();
 postRouter.use(authController.protect);
 
 postRouter
-    .route('/submit/u/:subreddtnam_or_username')
+    .route('/submit/u/:subreddit')
     .post(postController.createPost);
 
-postRouter.use('/:id/comments', commentRouter);
+postRouter.use('/:id/comments', commentRouter); // NEEDS REVIEW
 
-postRouter.use('/submit/r/:subreddtnam_or_username', authController.checkSubredditAccess('post'));
+postRouter.use('/submit/r/:subreddit', authController.checkSubredditAccess('post'));
 
 postRouter
     .route('/')
     .post(postController.createPost);
-// .get(postController.getPosts);
 postRouter.get('/:id', postController.getPost);
 postRouter.delete('/:id/delete', postController.deletePost);
 postRouter.delete('/:id/unhide', postController.unhidePost);
@@ -28,5 +27,5 @@ postRouter.patch('/:id/report', postController.reportPost);
 postRouter.patch('/:id/hide', postController.hidePost);
 postRouter.post('/:id/crosspost', postController.crosspost);
 postRouter
-    .route('/submit/r/:subreddtnam_or_username').post(postController.createPost);
+    .route('/submit/r/:subreddit').post(postController.createPost);
 module.exports = postRouter;
