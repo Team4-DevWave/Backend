@@ -1,3 +1,4 @@
+/* eslint-disable */
 class AppError extends Error {
   // inherit from class error
 

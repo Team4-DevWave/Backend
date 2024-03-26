@@ -5,15 +5,14 @@ const commentController = require('./../controllers/commentcontroller');
 const commentRouter = express.Router({mergeParams: true});
 
 commentRouter.use(authController.protect);
+// commentRouter.use(authController.checkSubredditAccess('comment'));
 
 commentRouter
     .route('/')
-    .post(commentController.createComment)
-    .get(commentController.getComments);
+    .post(commentController.createComment);
 commentRouter
     .route('/:id')
     .get(commentController.getComment)
-    .post(commentController.addCommentReply)
     .patch(commentController.editComment)
     .delete(commentController.deleteComment);
 commentRouter.route('/:id/report').post(commentController.reportComment);
