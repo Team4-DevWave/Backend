@@ -53,6 +53,13 @@ const createSendToken = (user, statusCode, res) => {
     },
   });
 };
+const verify=async (client, token) => {
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: clientID,
+  });
+  return ticket.getPayload();
+};
 exports.googleLogin = catchAsync(async (req, res, next) => {
   const googleToken = req.query.token;
   const client = new OAuth2Client(clientID);
