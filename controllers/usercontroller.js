@@ -27,7 +27,9 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}), 10, pageNumber);
+  console.log(user._id);
+  console.log(await postModel.find({userID: user._id}));
+  const posts=paginate.paginate(await postModel.find({userID: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -70,7 +72,7 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
 });
 exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
-  const posts=paginate.paginate(await postModel.find({userID: req.user.id, hidden: true}), 10, pageNumber);
+  const posts=paginate.paginate(req.user.hiddenPosts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {

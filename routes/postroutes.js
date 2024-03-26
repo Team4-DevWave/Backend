@@ -14,10 +14,7 @@ postRouter.use('/:id/comments', commentRouter); // NEEDS REVIEW
 
 postRouter.use('/submit/r/:subreddit', authController.checkSubredditAccess('post'));
 
-postRouter
-    .route('/')
-    .post(postController.createPost);
-postRouter.get('/:id', postController.getPost);
+postRouter.get('/:id', postController.getPost); // TODO check this route validity
 postRouter.delete('/:id/delete', postController.deletePost);
 postRouter.delete('/:id/unhide', postController.unhidePost);
 postRouter.post('/:id/vote', postController.vote);

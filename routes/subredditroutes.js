@@ -3,11 +3,12 @@ const subredditController = require('../controllers/subredditcontroller');
 const authController = require('./../controllers/authcontroller');
 // eslint-disable-next-line new-cap
 const subredditRouter = express.Router();
-subredditRouter.use(authController.protect);
+
 
 subredditRouter
     .route('/all')
-    .get(subredditController.getAllSubreddits);
+    .get(subredditController.getAllSubreddits); // TODO exclude private subs
+subredditRouter.use(authController.protect);
 subredditRouter
     .route('/create')
     .post(subredditController.createSubreddit);

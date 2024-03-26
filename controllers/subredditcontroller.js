@@ -16,21 +16,34 @@ exports.getAllSubreddits = catchAsync(async (req, res, next) => {
 });
 
 exports.createSubreddit = catchAsync(async (req, res, next) => {
-  let subreddit = await subredditModel.findOne({name: req.body.name});
+  const subreddit = await subredditModel.findOne({name: req.body.name});
   if (subreddit) {
     return next(new AppError('Subreddit already exists', 409));
   }
-  subreddit = await subredditModel.create(req.body);
+  console.log(req.user);
+  const newCommunity = await subredditModel.create(
+      {
+        name: req.body.name,
+        moderators: [req.user._id],
+        members: [req.user._id],
+        srSettings: {
+          srType: req.body.srType,
+          nsfw: req.body.nsfw,
+        },
+      });
   res.status(201).json({
     status: 'success',
     data: {
-      subreddit,
+      newCommunity,
     },
   });
 });
 
 exports.getSubreddit = catchAsync(async (req, res, next) => {
   const subreddit = await subredditModel.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit does not exist', 404));
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -39,7 +52,7 @@ exports.getSubreddit = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getPostsBySubreddit = catchAsync(async (req, res, next) => {
+exports.getPostsBySubreddit = catchAsync(async (req, res, next) => { // TODO check access
   const pageNumber = req.query.page || 1;
   const subreddit = await subredditModel.findOne({name: req.params.subreddit}).populate('posts');
   subreddit.posts = paginate.paginate(subreddit.posts, 10, pageNumber);
@@ -65,7 +78,7 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
       new: true,
     });
   }
-  if (subreddit.membersID.includes(req.user.id)) {
+  if (subreddit.members.includes(req.user.id)) {
     return next(new AppError('You are already a member of this subreddit', 409));
   }
   const user = req.user;
@@ -75,6 +88,9 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
   await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {members: user.id}});
   user.joinedSubreddits.push(subreddit.id);
   await user.save();
+  res.status(200).json({
+    status: 'success',
+  });
 });
 
 exports.unsubscribeToSubreddit = catchAsync(async (req, res, next) => {
@@ -86,6 +102,9 @@ exports.unsubscribeToSubreddit = catchAsync(async (req, res, next) => {
   await subredditModel.findByIdAndUpdate(subreddit.id, {$pull: {members: user.id}});
   user.joinedSubreddits.pull(subreddit.id);
   await user.save();
+  res.status(200).json({
+    status: 'success',
+  });
 });
 
 exports.getSubredditRules = catchAsync(async (req, res, next) => {

@@ -6,7 +6,7 @@ const commentRouter = express.Router({mergeParams: true});
 
 commentRouter.use(authController.protect);
 // commentRouter.use(authController.checkSubredditAccess('comment'));
-
+// validate the user ability to comment
 commentRouter
     .route('/')
     .post(commentController.createComment);

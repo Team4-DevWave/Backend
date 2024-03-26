@@ -17,7 +17,7 @@ exports.editPost = handlerFactory.updateOne(postModel, async (req) => {
 
 exports.deletePost = handlerFactory.deleteOne(postModel);
 
-exports.vote = exports.voteComment = handlerFactory.voteOne(postModel, 'posts');
+exports.vote = handlerFactory.voteOne(postModel, 'posts');
 
 exports.savePost = catchAsync(async (req, res, next) => {
   const post= await postModel.findById(req.params.id);
@@ -72,11 +72,12 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
 });
 
 exports.createPost = catchAsync(async (req, res, next) => {
-  if (!req.params.subreddtnam_or_username) {
+  if (!req.params.subreddit) {
     return next(new AppError('Invalid Data Insertion', 400));
   }
   if (!req.url.startsWith('/submit/u/')) {
-    const subreddit = await subredditModel.findOne({name: req.params.subreddtnam_or_username});
+    console.log(req.params.subreddit);
+    const subreddit = await subredditModel.findOne({name: req.params.subreddit});
     if (!subreddit) {
       return next(new AppError('Subreddit not found', 404));
     }
@@ -97,7 +98,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
     const user = req.user;
     await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}});
   } else if (req.url.startsWith('/submit/r/')) {
-    const subreddit = await subredditModel.findOne({name: req.params.subreddtnam_or_username});
+    const subreddit = await subredditModel.findOne({name: req.params.subreddit});
     const newPost = await postModel.create({
       userID: req.user.id,
       postedTime: currentTime,
