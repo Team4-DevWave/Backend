@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const subredditSchema =new mongoose.Schema({
   name: {type: String, required: true, unique: true},
-  moderatorsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  moderators: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   status: {type: String, default: 'Active', required: true},
-  membersID: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
+  members: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   postsToBeApproved: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
-  postsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
+  posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
   description: {type: String},
   category: {type: String},
   srSettings: {

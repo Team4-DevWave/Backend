@@ -1,19 +1,33 @@
 const express = require('express');
 const subredditController = require('../controllers/subredditcontroller');
 const authController = require('./../controllers/authcontroller');
+// eslint-disable-next-line new-cap
+const subredditRouter = express.Router();
+subredditRouter.use(authController.protect);
 
-const router = express.Router();
-
-router.use(authController.protect);
-
-
-router
-    .route('/')
-    .get(subredditController.getAllSubreddits)
+subredditRouter
+    .route('/all')
+    .get(subredditController.getAllSubreddits);
+subredditRouter
+    .route('/create')
     .post(subredditController.createSubreddit);
-
-router
+subredditRouter
+    .route('/:category')// QUERY MIGHT BE BETTER IN ALL ROUTE
+    .get(subredditController.getSubredditsOfCategory);
+subredditRouter
+    .route('/:subreddit')
+    .get(subredditController.getSubreddit);
+subredditRouter
+    .route('/:subreddit/posts')
+    .get(subredditController.getPostsBySubreddit);
+subredditRouter
     .route('/:subreddit/subscribe')
-    .post();
+    .post(subredditController.subscribeToSubreddit);
+subredditRouter
+    .route('/:subreddit/unsubscribe')
+    .delete(subredditController.unsubscribeToSubreddit);
+subredditRouter
+    .route('/:subreddit/rules')
+    .get(subredditController.getSubredditRules);
 
-module.exports = router;
+module.exports = subredditRouter;
