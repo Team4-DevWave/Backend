@@ -12,13 +12,10 @@ exports.joinSubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit) {
     return next(new AppError('Subreddit does not exist', 404));
   }
-  console.log(subreddit.srSettings.srType);
   if (subreddit.srSettings.srType === 'private') {
     if (!subreddit.invitedUsers.includes(req.user.id)) {
       return next(new AppError('You cannot have access to this subreddit as it is private', 403));
     }
-    console.log(subreddit.invitedUsers);
-    console.log(req.user.id);
     await subredditModel.findByIdAndUpdate(subreddit.id, {
       $pull: {invitedUsers: req.user.id},
       new: true,
