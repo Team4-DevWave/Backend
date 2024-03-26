@@ -3,12 +3,14 @@ const catchasync = require('../utils/catchasync');
 
 
 exports.getCommunities = catchasync(async (req, res, next) => {
-  const communities = await subredditModel.find({});
-  const userCommunities = req.user.joinedSubreddits;
+  const allcommunities = await subredditModel.find({});
+  const myuserCommunities = req.user.joinedSubreddits;
   res.status(200).json({
     status: 'success',
-    communities,
-    userCommunities,
+    data: {
+      communities: {allcommunities},
+      userCommunities: {myuserCommunities},
+    },
   });
 });
 

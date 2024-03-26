@@ -1,7 +1,6 @@
 const express = require('express');
 const postController = require('./../controllers/postcontroller');
 const homepageController = require('./../controllers/homepagecontroller');
-// const authController = require("./../controllers/authcontroller");
 const commentRouter = require('./commentroutes');
 const authController = require('./../controllers/authcontroller');
 // eslint-disable-next-line new-cap
@@ -10,12 +9,12 @@ const postRouter = express.Router();
 postRouter.use(authController.protect);
 
 postRouter
-    .route('/submit/u/:subreddtnam_or_username').post(postController.createPost);
+    .route('/submit/u/:subreddit').post(postController.createPost);
 
 
 postRouter.use('/:id/comments', commentRouter);
 
-postRouter.use('/submit/r/:subreddtnam_or_username', authController.checkSubredditAccess('post'));
+postRouter.use('/submit/r/:subreddit', authController.checkSubredditAccess('post'));
 
 postRouter
     .route('/')
@@ -34,7 +33,7 @@ postRouter
     .route('/submit').get(homepageController.getCommunities);
 
 postRouter
-    .route('/submit/r/:subreddtnam_or_username').post(postController.createPost);
+    .route('/submit/r/:subreddit').post(postController.createPost);
 
 
 module.exports = postRouter;

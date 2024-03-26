@@ -8,13 +8,13 @@ router.use(authController.protect);
 
 
 router
-    .route('/')
-    .get(subredditController.getAllSubreddits);
+    .route('/create_community').post(subredditController.createCommunity);
+
+// router.use('/:subreddit/subscribe', authController.checkSubredditAccess('post'));
+// router.use('/', authController.checkSubredditAccess('post'));
 
 router
     .route('/:subreddit/subscribe').post(subredditController.joinSubreddit);
 
-router
-    .route('/create_community').post(subredditController.createCommunity);
 
 module.exports = router;

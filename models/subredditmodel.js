@@ -62,6 +62,7 @@ const subredditSchema =new mongoose.Schema({
     mutedList: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
     approvedList: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   },
+  invitedUsers: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
 });
 
 const subredditModel = mongoose.model('subreddits', subredditSchema);
