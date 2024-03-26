@@ -41,8 +41,4 @@ userRouter
     .route('/me/block/:username')
     .post(userController.unfollowBlockedUser, userController.blockUser)// TESTED
     .delete(userController.unblockUser);// TESTED
-// admin only routes INCOMPLETE
-// userRouter
-//     .route('/admin/delete/:username')
-//     .delete(userController.deleteUser);
 module.exports = userRouter;

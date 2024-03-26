@@ -1,7 +1,7 @@
 const subredditModel = require('../models/subredditmodel');
-const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const paginate = require('../utils/paginate');
+const AppError = require('../utils/apperror');
 
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -16,7 +16,11 @@ exports.getAllSubreddits = catchAsync(async (req, res, next) => {
 });
 
 exports.createSubreddit = catchAsync(async (req, res, next) => {
-  const subreddit = await subredditModel.create(req.body);
+  let subreddit = await subredditModel.findOne({name: req.body.name});
+  if (subreddit) {
+    return next(new AppError('Subreddit already exists', 409));
+  }
+  subreddit = await subredditModel.create(req.body);
   res.status(201).json({
     status: 'success',
     data: {
@@ -49,6 +53,21 @@ exports.getPostsBySubreddit = catchAsync(async (req, res, next) => {
 
 exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
   const subreddit = await subredditModel.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit does not exist', 404));
+  }
+  if (subreddit.srSettings.srType === 'private') {
+    if (!subreddit.invitedUsers.includes(req.user.id)) {
+      return next(new AppError('You cannot have access to this subreddit as it is private', 403));
+    }
+    await subredditModel.findByIdAndUpdate(subreddit.id, {
+      $pull: {invitedUsers: req.user.id},
+      new: true,
+    });
+  }
+  if (subreddit.membersID.includes(req.user.id)) {
+    return next(new AppError('You are already a member of this subreddit', 409));
+  }
   const user = req.user;
   if (subreddit.members.includes(user.id)) {
     return next(new AppError('You are already subscribed to this subreddit', 400));

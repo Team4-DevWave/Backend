@@ -38,7 +38,6 @@ exports.savePost = catchAsync(async (req, res, next) => {
 });
 
 exports.hidePost = catchAsync(async (req, res, next) => {
-  console.log('yo');
   const post = await postModel.findById(req.params.id);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
@@ -56,16 +55,14 @@ exports.hidePost = catchAsync(async (req, res, next) => {
 });
 
 exports.unhidePost = catchAsync(async (req, res, next) => {
-  console.log('yo');
   const post = await postModel.findById(req.params.id);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  const user = await userModel.findByIdAndUpdate(req.user.id, {
+  await userModel.findByIdAndUpdate(req.user.id, {
     $pull: {hiddenPosts: post.id},
     new: true,
   });
-  console.log(user.hiddenPosts);
   res.status(200).json({
     status: 'success',
     data: {
