@@ -7,8 +7,6 @@ const catchAsync = require('./../utils/catchasync');
 const jwt = require('jsonwebtoken');
 const Apperror = require('./../utils/apperror');
 const mailControl = require('./../nodemailer-gmail/mailcontrols');
-const {OAuth2Client} = require('google-auth-library');
-const clientID='500020411396-l7soq48qpasrds9ipgo5nff5656i0ial.apps.googleusercontent.com';
 const signToken = (id) => {
   return jwt.sign(
       {
@@ -31,13 +29,6 @@ const sendVerificationEmail = (user) => {
   user.username+'/'+Token); // TODO modify link when hosting
   return Token;
 };
-const verify=async (client, token) => {
-  const ticket = await client.verifyIdToken({
-    idToken: token,
-    audience: clientID,
-  });
-  return ticket.getPayload();
-};
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
   const cookieOptions = {
@@ -57,49 +48,6 @@ const createSendToken = (user, statusCode, res) => {
     },
   });
 };
-exports.googleLogin = catchAsync(async (req, res, next) => {
-  const googleToken = req.query.token;
-  const client = new OAuth2Client(clientID);
-  const payload = await verify(client, googleToken);
-  if (!payload.email_verified) {
-    return next(new Apperror('Email not verified', 400));
-  }
-  const user = await userModel.findOne({email: payload.email});
-  if (!user) {
-    return next(new Apperror('User not found', 400));
-  }
-  createSendToken(user, 200, res);
-});
-exports.googleSignup = catchAsync(async (req, res, next) => {
-  const googleToken = req.body.token;
-  const client = new OAuth2Client(clientID);
-  const payload = await verify(client, googleToken);
-  if (!payload.email_verified) {
-    return next(new Apperror('Email not verified', 400));
-  }
-  const user = await userModel.findOne({email: payload.email});
-  if (user) {
-    return next(new Apperror('User already exists', 400));
-  }
-  const interests = req.body.interests;
-  const country = req.body.country;
-  const email = payload.email;
-  const username = req.body.username;
-  const password = payload.at_hash;
-  const passwordConfirm = payload.at_hash;
-  const gender= req.body.gender;
-  if (!interests || !username || !password || !passwordConfirm) {
-    return next(new Apperror('Please provide all fields', 400));
-  }
-  const settings = await settingsModel.create({});
-  const newUser = await userModel.create({username: username, interests: interests, country: country?country:'',
-    gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
-  newUser.verified=false;
-  newUser.settings = settings._id;
-  newUser.verficationToken=sendVerificationEmail(newUser);
-  await newUser.save();
-  createSendToken(newUser, 201, res);
-});
 exports.login = catchAsync(async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
