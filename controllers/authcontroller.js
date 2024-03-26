@@ -7,8 +7,8 @@ const catchAsync = require('./../utils/catchasync');
 const jwt = require('jsonwebtoken');
 const AppError = require('./../utils/apperror');
 const mailControl = require('./../nodemailer-gmail/mailcontrols');
-const postModel = require('../models/postmodel');
 const commentModel = require('../models/commentsmodel');
+const subredditModel = require('../models/subredditmodel');
 
 const signToken = (id) => {
   return jwt.sign(
@@ -228,16 +228,18 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   });
 });
 // ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
+// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
 exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
-  const model = type === 'post' ? postModel : commentModel;
+  const model = type === 'post' ? subredditModel : commentModel;
   // Get the post or comment
-  const post = await model.findById(req.params.id);
+  const subreddit = await model.findOne({name: req.params.subreddtnam_or_username});
   // Check if the subreddit is public
-  if (post.subreddit.type === 'public') {
+  if (subreddit.srSettings.srType === 'public') {
     return next();
   }
   // If the subreddit is private or restricted, check if the user is a member
-  const membership = await userModel.findOne({user: req.user.id, joinedSubreddits: post.subreddit.id});
+  const membership = await userModel.findOne({_id: req.user.id, joinedSubreddits: {$in: [subreddit.id]}});
+  console.log(membership);
 
   if (!membership) {
     return next(new AppError('You are not authorized to access this subreddit', 403));

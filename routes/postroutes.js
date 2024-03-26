@@ -1,11 +1,18 @@
 const express = require('express');
 const postController = require('./../controllers/postcontroller');
-// const authController = require("./../controllers/authcontroller");
+const authController = require('./../controllers/authcontroller');
 const commentRouter = require('./commentroutes');
 // eslint-disable-next-line new-cap
 const postRouter = express.Router();
+postRouter.use(authController.protect);
+
+postRouter
+    .route('/submit/u/:subreddtnam_or_username')
+    .post(postController.createPost);
+
 postRouter.use('/:id/comments', commentRouter);
-// postRouter.use(authController.checkSubredditAccess('post'));
+
+postRouter.use('/submit/r/:subreddtnam_or_username', authController.checkSubredditAccess('post'));
 
 postRouter
     .route('/')
@@ -20,5 +27,6 @@ postRouter.patch('/:id/save', postController.savePost);
 postRouter.patch('/:id/report', postController.reportPost);
 postRouter.patch('/:id/hide', postController.hidePost);
 postRouter.post('/:id/crosspost', postController.crosspost);
-
+postRouter
+    .route('/submit/r/:subreddtnam_or_username').post(postController.createPost);
 module.exports = postRouter;
