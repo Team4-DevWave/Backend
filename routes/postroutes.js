@@ -5,12 +5,9 @@ const commentRouter = require('./commentroutes');
 // eslint-disable-next-line new-cap
 const postRouter = express.Router();
 postRouter.use(authController.protect);
-
-postRouter
-    .route('/submit/u/:subreddit')
-    .post(postController.createPost);
-
 postRouter.use('/:id/comments', commentRouter); // NEEDS REVIEW
+
+postRouter.post('/submit/u/:subreddit', postController.createPost);
 
 postRouter.use('/submit/r/:subreddit', authController.checkSubredditAccess('post'));
 
@@ -23,6 +20,6 @@ postRouter.patch('/:id/save', postController.savePost);
 postRouter.patch('/:id/report', postController.reportPost);
 postRouter.patch('/:id/hide', postController.hidePost);
 postRouter.post('/:id/crosspost', postController.crosspost);
-postRouter
-    .route('/submit/r/:subreddit').post(postController.createPost);
+postRouter.post('/submit/r/:subreddit', postController.createPost);
+
 module.exports = postRouter;

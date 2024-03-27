@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const commentController = require('../controllers/commentcontroller');
 const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.ObjectId,
@@ -43,14 +42,6 @@ const commentSchema = new mongoose.Schema({
     type: [mongoose.Schema.ObjectId],
     ref: 'users',
   },
-});
-commentSchema.post('save', async function() {
-  // `this` is the saved or updated comment
-  const comment = this;
-  // Check if the document is new or was updated
-  // if (comment.isNew || comment.isModified()) {
-  commentController.createMessage(comment);
-  // }
 });
 
 const commentModel = mongoose.model('comments', commentSchema);
