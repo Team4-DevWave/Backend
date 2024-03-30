@@ -27,7 +27,7 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new Apperror('User not found', 400));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}), 10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({userID: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -52,8 +52,7 @@ exports.getComments=catchAsync(async (req, res, next)=>{
 });
 exports.getOverview=catchAsync(async (req, res, next)=>{
   const username=req.params.username;
-  console.log(username);
-  const pageNumber=req.params.pageNumber || 1;
+  const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
     return next(new Apperror('User not found', 400));

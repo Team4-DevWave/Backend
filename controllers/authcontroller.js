@@ -220,3 +220,23 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     message: 'email verified',
   });
 });
+// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
+// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
+exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
+  const model = type === 'post' ? subredditModel : commentModel;
+  // Get the post or comment
+  const subreddit = await model.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit not found', 404));
+  }
+  // Check if the subreddit is public
+  if (subreddit.srSettings.srType === 'public') {
+    return next();
+  }
+  // If the subreddit is private or restricted, check if the user is a member
+  const membership = await userModel.findOne({_id: req.user.id, joinedSubreddits: {$in: [subreddit.id]}});
+  if (!membership) {
+    return next(new AppError('You are not authorized to access this subreddit', 403));
+  }
+  next();
+});
