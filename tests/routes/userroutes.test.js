@@ -75,7 +75,7 @@ describe('GET /api/v1/users/check/:username', () => {
     expect(response.body).toHaveProperty('message', 'Username not available');
   });
 });
-describe('GET /api/v1/users/:username/posts/:pageNumber', () => {
+describe('GET /api/v1/users/:username/posts', () => {
   it('should get a user\'s posts', async () => {
     const username = 'moaz';
     const pageNumber = 1;
@@ -85,7 +85,7 @@ describe('GET /api/v1/users/:username/posts/:pageNumber', () => {
     expect(response.body.data).toHaveProperty('posts');
   });
 });
-describe('GET /api/v1/users/:username/comments/:pageNumber', () => {
+describe('GET /api/v1/users/:username/comments', () => {
   it('should get a user\'s comments', async () => {
     const username = 'moaz';
     const pageNumber = 1;
@@ -95,7 +95,7 @@ describe('GET /api/v1/users/:username/comments/:pageNumber', () => {
     expect(response.body.data).toHaveProperty('comments');
   });
 });
-describe('GET /api/v1/users/:username/overview/:pageNumber', () => {
+describe('GET /api/v1/users/:username/overview', () => {
   it('should get a user\'s overview', async () => {
     const username = 'moaz';
     const pageNumber = 1;
@@ -107,7 +107,7 @@ describe('GET /api/v1/users/:username/overview/:pageNumber', () => {
   });
 });
 
-describe('GET /api/v1/users/me/saved/:pageNumber', () => {
+describe('GET /api/v1/users/me/saved', () => {
   it('should get a user\'s saved posts and comments', async () => {
     const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/me/saved`).set('Authorization', `Bearer ${token}`);
@@ -117,7 +117,7 @@ describe('GET /api/v1/users/me/saved/:pageNumber', () => {
     expect(response.body.data).toHaveProperty('posts');
   });
 });
-describe('GET /api/v1/users/me/hidden/:pageNumber', () => {
+describe('GET /api/v1/users/me/hidden', () => {
   it('should get a user\'s hidden posts', async () => {
     const username = 'moaz';
     const pageNumber = 1;
@@ -127,7 +127,7 @@ describe('GET /api/v1/users/me/hidden/:pageNumber', () => {
     expect(response.body.data).toHaveProperty('posts');
   });
 });
-describe('GET /api/v1/users/me/upvoted/:pageNumber', () => {
+describe('GET /api/v1/users/me/upvoted', () => {
   it('should get a user\'s upvoted posts and comments', async () => {
     const username = 'moaz';
     const pageNumber = 1;
@@ -138,7 +138,7 @@ describe('GET /api/v1/users/me/upvoted/:pageNumber', () => {
     expect(response.body.data).toHaveProperty('posts');
   });
 });
-describe('GET /api/v1/users/me/downvoted/:pageNumber', () => {
+describe('GET /api/v1/users/me/downvoted', () => {
   it('should get a user\'s downvoted posts and comments', async () => {
     const username = 'moaz';
     const pageNumber = 1;

@@ -286,7 +286,6 @@ exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
   // Get the post or comment
   const subreddit = await model.findOne({name: req.params.subreddit});
   if (!subreddit) {
-    console.log(req.params.subreddit);
     return next(new AppError('Subreddit not found', 404));
   }
   // Check if the subreddit is public

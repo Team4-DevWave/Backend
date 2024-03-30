@@ -76,7 +76,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid Data Insertion', 400));
   }
   if (!req.url.startsWith('/submit/u/')) {
-    console.log(req.params.subreddit);
     const subreddit = await subredditModel.findOne({name: req.params.subreddit});
     if (!subreddit) {
       return next(new AppError('Subreddit not found', 404));

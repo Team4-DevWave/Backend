@@ -20,7 +20,6 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
   if (subreddit) {
     return next(new AppError('Subreddit already exists', 409));
   }
-  console.log(req.user);
   const newCommunity = await subredditModel.create(
       {
         name: req.body.name,
@@ -71,7 +70,7 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
   }
   if (subreddit.srSettings.srType === 'private') {
     if (!subreddit.invitedUsers.includes(req.user.id)) {
-      return next(new AppError('You cannot have access to this subreddit as it is private', 403));
+      return next(new AppError('You cannot have access to this subreddit as it is private', 404));
     }
     await subredditModel.findByIdAndUpdate(subreddit.id, {
       $pull: {invitedUsers: req.user.id},
