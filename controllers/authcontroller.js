@@ -97,9 +97,8 @@ exports.googleSignup = catchAsync(async (req, res, next) => {
   const settings = await settingsModel.create({});
   const newUser = await userModel.create({username: username, interests: interests, country: country?country:'',
     gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
-  newUser.verified=false;
+  newUser.verified=true;
   newUser.settings = settings._id;
-  newUser.verficationToken=sendVerificationEmail(newUser);
   await newUser.save();
   createSendToken(newUser, 201, res);
 });

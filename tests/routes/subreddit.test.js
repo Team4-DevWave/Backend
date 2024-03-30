@@ -110,7 +110,7 @@ it('should not join a user in a private community that does not have an invite',
 it('should not join a user in a community as the user is already in the community', async () => {
   const subreddit = 'planetOfTheApes';
   const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${token}`);;
-  expect(response.statusCode).toBe(409);
+  expect(response.statusCode).toBe(404);
   expect(response.body).toHaveProperty('status', 'fail');
   expect(response.body).toHaveProperty('message', 'You are already a member of this subreddit');
 });

@@ -157,7 +157,7 @@ const handleUserAction = (action, subaction) =>
 exports.unfollowBlockedUser=catchAsync(async (req, res, next) => {
   const user =await userModel.findById(req.user.id);
   const blockUser= await userModel.findOne({username: req.params.username});
-  if (user.followedUsers.includes(blockUser._id)) {
+  if (blockUser && user.followedUsers.includes(blockUser._id)) {
     user.followedUsers.pull(blockUser._id);
     await user.save();
   }
@@ -167,7 +167,7 @@ exports.unfollowBlockedUser=catchAsync(async (req, res, next) => {
 exports.checkBlocked=catchAsync(async (req, res, next) => {
   const user =await userModel.findById(req.user.id);
   const followUser= await userModel.findOne({username: req.params.username});
-  if (user.blockedUsers.includes(followUser._id)) {
+  if (followUser && user.blockedUsers.includes(followUser._id)) {
     return next(new AppError('You have blocked this user', 400));
   }
   next();
