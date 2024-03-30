@@ -23,6 +23,10 @@ const createMessage = catchAsync(async (comment) => {
   // Send a message to each mentioned user
   if (comment.mentioned && comment.mentioned.length > 0) {
     comment.mentioned.forEach(async (userId) => {
+      // If the user is the one who created the comment, skip sending the message
+      if (userId.toString() === comment.user.toString()) {
+        return;
+      }
       const user = await userModel.findById(userId);
       if (!user) {
         throw new AppError('User not found', 404);
@@ -43,7 +47,7 @@ const createMessage = catchAsync(async (comment) => {
     throw new AppError('Post not found', 404);
   }
   // Check if the comment's user is not the post's owner
-  if (comment.user !== post.userID) {
+  if (comment.user.toString() !== post.userID.toString()) {
     await messageModel.create({
       from: comment.user,
       to: post.userID,
@@ -68,7 +72,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
     content: req.body.content,
     mentioned: await handlerFactory.checkMentions(userModel, req.body.content),
   });
-  // createMessage(comment);
+  createMessage(comment);
   res.status(201).json({
     status: 'success',
     data: {
@@ -85,18 +89,18 @@ exports.editComment = catchAsync(async (req, res, next) => {
   if (comment.user != req.user.id) {
     return next(new AppError('you are not allowed to edit this comment', 403));
   }
-  // const oldMentions = comment.mentioned;
+  const oldMentions = comment.mentioned;
   comment.content = req.body.content;
   comment.lastEdited = Date.now();
   comment.mentioned = await handlerFactory.checkMentions(userModel, req.body.content);
   await comment.save();
   // Check for new mentions
-  // const newMentions = comment.mentioned.filter((mention) => !oldMentions.includes(mention));
-  // if (newMentions.length > 0) {
-  //   newMentions.forEach((user) => {
-  //     createMessage(comment);
-  //   });
-  // }
+  const newMentions = comment.mentioned.filter((mention) => !oldMentions.includes(mention));
+  if (newMentions.length > 0) {
+    newMentions.forEach((user) => {
+      createMessage(comment);
+    });
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -116,7 +120,7 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   // await comment.remove();
   res.status(204).json({
     status: 'success',
-    data: null,
+    // data: null,
   });
 });
 
@@ -133,9 +137,9 @@ exports.saveComment = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
-    data: {
-      comment: comment,
-    },
+    // data: {
+    //   comment: comment,
+    // },
   });
 });
 
