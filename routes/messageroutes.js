@@ -9,7 +9,7 @@ router
     .route('/compose')
     .post(messageController.createMessage);
 router
-    .route('/inbox')
+    .route('/inbox') // same as get all messages
     .get(messageController.getAllInbox);
 router
     .route('/sent')
