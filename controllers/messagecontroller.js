@@ -1,8 +1,8 @@
 const messageModel = require('../models/messagesmodel');
 const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
-// const handlerFactory = require('./handlerfactory');
 const userModel = require('../models/usermodel');
+const paginate = require('../utils/paginate');
 
 exports.createMessage = catchAsync(async (req, res, next) => {
   req.body.from===''?req.body.from = req.user.id: req.body.from;
@@ -20,7 +20,8 @@ exports.createMessage = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllInbox = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({to: req.user.id}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -30,9 +31,10 @@ exports.getAllInbox = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllSent = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
     from: req.user.id,
-    subject: {$nin: ['username mention', 'post reply']}});
+    subject: {$nin: ['username mention', 'post reply']}}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -42,7 +44,9 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllUnread = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id, read: false});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id, read: false}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -52,7 +56,9 @@ exports.getAllUnread = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllPostReply = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id, subject: {$in: ['post reply']}});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id, subject: {$in: ['post reply']}}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -62,7 +68,9 @@ exports.getAllPostReply = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllMentions = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id, subject: {$in: ['username mention']}});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id, subject: {$in: ['username mention']}}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -102,7 +110,6 @@ exports.deleteMessage =catchAsync(async (req, res, next) => {
   await message.remove();
   res.status(204).json({
     status: 'success',
-    data: null,
   });
 });
 
@@ -124,16 +131,10 @@ exports.toggleReadMessage = catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
-  // if (message.to.toString() !== req.user.id ) {
-  //   return next(new AppError('you are not allowed to mark this message as read', 403));
-  // }
   message.read = !message.read;
   await message.save();
   res.status(200).json({
     status: 'success',
-    data: {
-      message,
-    },
   });
 });
 
