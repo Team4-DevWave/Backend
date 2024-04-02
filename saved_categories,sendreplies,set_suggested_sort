@@ -1,0 +1,105 @@
+/**
+ * Retrieves saved categories for a user.
+ * @param {string} username - The username of the Reddit user.
+ * @returns {Promise<Object>} A promise that resolves to the saved categories.
+ */
+async function getSavedCategories(username) {
+    const url = `https://www.reddit.com/user/${username}/saved_categories.json`;
+        try {
+        const response = await fetch(url);
+        if (response.status !== 200) {
+            const errorMessage = `Failed to fetch saved categories : ${ response.statusText }`;
+                throw new Error(errorMessage);
+        }
+        return await response.json();
+    }
+    catch (error) {
+        const errorMessage = `Error retrieving saved categories : ${ error.message }`;
+            console.error(errorMessage);
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Sets whether the user receives replies to their submissions and comments via inbox.
+ * @param {string} username - The username of the Reddit user.
+ * @param {boolean} enable - True to enable sending replies, false to disable.
+ * @returns {Promise<void>} A promise that resolves when the operation is complete.
+ */
+async function setSendReplies(username, enable) {
+    const url = `https://www.reddit.com/api/sendreplies`;
+        const data = new URLSearchParams({
+            username,
+            enable: enable ? 'true' : 'false'
+            });
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body : data,
+            headers : {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            });
+        if (response.status !== 200) {
+            const errorMessage = `Failed to set send replies status : ${ response.statusText }`;
+                throw new Error(errorMessage);
+        }
+    }
+    catch (error) {
+        const errorMessage = `Error setting send replies status : ${ error.message }`;
+            console.error(errorMessage);
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Sets the suggested sort for a subreddit.
+ * @param {string} subredditName - The name of the subreddit.
+ * @param {string} suggestedSort - The suggested sort method (e.g., 'hot', 'new', 'top').
+ * @returns {Promise<void>} A promise that resolves when the operation is complete.
+ */
+async function setSuggestedSort(subredditName, suggestedSort) {
+    const url = `https://www.reddit.com/r/${subredditName}/api/set_suggested_sort`;
+        const data = new URLSearchParams({
+            sort: suggestedSort
+            });
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body : data,
+            headers : {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            });
+        if (response.status !== 200) {
+            const errorMessage = `Failed to set suggested sort : ${ response.statusText }`;
+                throw new Error(errorMessage);
+
+        }
+    }
+    catch (error) {
+        const errorMessage = `Error setting suggested sort : ${ error.message }`;
+            console.error(errorMessage);
+        throw new Error(errorMessage);
+
+    }
+}
+
+// Example usage:
+async function exampleUsage() {
+    try {
+        const savedCategories = await getSavedCategories('your_username');
+        console.log('Saved Categories:', savedCategories);
+
+        await setSendReplies('your_username', true);
+        console.log('Send replies status set successfully.');
+
+        await setSuggestedSort('subreddit_name', 'new');
+        console.log('Suggested sort set successfully.');
+    }
+    catch (error) {
+        console.error('An error occurred:', error);
+    }
+}
+
+exampleUsage();
