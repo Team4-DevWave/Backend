@@ -1,0 +1,89 @@
+
+//subreddit info, report T4 :
+
+const { getSubredditInfo, getReportReasons } = require('./subredditFunctions'); 
+
+describe('Subreddit Functions', () = > {
+    describe('getSubredditInfo', () = > {
+        it('should retrieve subreddit information', async() = > {
+            const subredditName = 'example_subreddit';
+            const subredditInfo = await getSubredditInfo(subredditName);
+            expect(subredditInfo).toBeDefined();
+            expect(subredditInfo.display_name).toBe(subredditName);
+        });
+
+        it('should handle errors gracefully', async() = > {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(getSubredditInfo(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+
+    describe('getReportReasons', () = > {
+        it('should retrieve report reasons for a subreddit', async() = > {
+            const subredditName = 'example_subreddit';
+            const reportReasons = await getReportReasons(subredditName);
+            expect(reportReasons).toBeDefined();
+           
+        });
+
+        it('should handle errors gracefully', async() = > {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(getReportReasons(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+});
+
+
+//saved_categories, sendreplies, set_suggested_sort T4:
+
+const {
+    getSavedCategories,
+        setSendReplies,
+        setSuggestedSort,
+} = require('./subredditFunctions'); 
+
+    describe('Subreddit Functions', () = > {
+        describe('getSavedCategories', () = > {
+            it('should retrieve saved categories for a user', async() = > {
+                const username = 'example_user';
+                const savedCategories = await getSavedCategories(username);
+                expect(savedCategories).toBeDefined();
+                
+            });
+
+            it('should throw an error for invalid username', async() = > {
+                const invalidUsername = 'invalid_user';
+                await expect(getSavedCategories(invalidUsername)).rejects.toThrow();
+            });
+        });
+
+        describe('setSendReplies', () = > {
+            it('should set send replies status for a user', async() = > {
+                const username = 'example_user';
+                const enable = true;
+                await expect(setSendReplies(username, enable)).resolves.not.toThrow();
+                
+            });
+
+            it('should throw an error for invalid username', async() = > {
+                const invalidUsername = 'invalid_user';
+                const enable = true;
+                await expect(setSendReplies(invalidUsername, enable)).rejects.toThrow();
+            });
+        });
+
+        describe('setSuggestedSort', () = > {
+            it('should set suggested sort for a subreddit', async() = > {
+                const subredditName = 'example_subreddit';
+                const suggestedSort = 'new';
+                await expect(setSuggestedSort(subredditName, suggestedSort)).resolves.not.toThrow();
+                
+            });
+
+            it('should throw an error for invalid subreddit name', async() = > {
+                const invalidSubredditName = 'invalid_subreddit';
+                const suggestedSort = 'new';
+                await expect(setSuggestedSort(invalidSubredditName, suggestedSort)).rejects.toThrow();
+            });
+        });
+    });
