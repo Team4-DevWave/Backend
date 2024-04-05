@@ -20,6 +20,20 @@ exports.usernameAvailable=catchAsync(async (req, res, next)=>{
     message: 'Username available',
   });
 });
+exports.emailAvailable=catchAsync(async (req, res, next)=>{
+  if (!req.params.email) {
+    return next(new AppError('Please provide a email', 404));
+  }
+  const email=req.params.email;
+  const user=await userModel.findOne({email: email});
+  if (user) {
+    return next(new AppError('Email not available', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    message: 'Email available',
+  });
+});
 exports.getPosts=catchAsync(async (req, res, next)=>{
   const username=req.params.username;
   const pageNumber=req.query.page || 1;

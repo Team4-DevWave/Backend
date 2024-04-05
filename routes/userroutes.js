@@ -5,6 +5,7 @@ const authController = require('../controllers/authcontroller');
 const userRouter = express.Router();
 userRouter.post('/signup', authController.signup);// TESTED
 userRouter.post('/login', authController.login);// TESTED
+userRouter.post('/forgotUsername', authController.forgotUsername);// TESTED
 userRouter.get('/googleLogin', authController.googleLogin);
 userRouter.post('/googleSignup', authController.googleSignup);
 userRouter.get('/verify/:username/:token', authController.verifyEmail);
@@ -16,7 +17,7 @@ userRouter.get('/:username/comments', userController.getComments);// TESTED
 userRouter.get('/:username/overview', userController.getOverview);// TESTED
 userRouter.get('/:username/about', userController.getAbout); // might not need // TESTED
 userRouter.get('/:username', userController.getUserByUsername);// TESTED
-
+userRouter.get('/checkEmail/:email', userController.emailAvailable);// TESTED
 userRouter.use(authController.protect);
 
 userRouter
