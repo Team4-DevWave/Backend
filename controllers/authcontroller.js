@@ -110,7 +110,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!password) {
     return next(new AppError('Please provide password', 400));
   }
-  if (!email || !username) {
+  if (!email && !username) {
     return next(new AppError('Please provide email/username', 400));
   }
   // 2) check if user exists and password is correct
@@ -193,6 +193,22 @@ exports.updatePassword=catchAsync(async (req, res, next)=>{
   user.passwordConfirm=passwordConfirm;
   await user.save();
   createSendToken(user, 200, res);
+});
+exports.forgotUsername=catchAsync(async (req, res, next)=>{
+  const email=req.body.email;
+  if (!email) {
+    return next(new AppError('Please provide email', 400));
+  }
+  const user=await userModel.findOne({email: email});
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+  console.log(user);
+  mailControl.sendEmail(email, 'Hello', 'Your username is '+user.username);
+  res.status(200).json({
+    status: 'success',
+    message: 'Username sent to email',
+  });
 });
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
