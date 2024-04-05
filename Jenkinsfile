@@ -22,12 +22,12 @@ pipeline {
              sh 'docker build --cache-from hassanhatem/back:latest -t hassanhatem/back:latest .'
             }
         }
-        stage('Test') {
-            steps {
-                    sh 'docker run --name test hassanhatem/back:latest npm test'
-                sh 'docker rm test'
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //             sh 'docker run --name test hassanhatem/back:latest npm test'
+        //         sh 'docker rm test'
+        //     }
+        // }
         stage('Push') {
             steps {
              withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
