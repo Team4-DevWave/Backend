@@ -1,8 +1,8 @@
 const messageModel = require('../models/messagesmodel');
 const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
-const handlerFactory = require('./handlerfactory');
 const userModel = require('../models/usermodel');
+const paginate = require('../utils/paginate');
 
 exports.createMessage = catchAsync(async (req, res, next) => {
   req.body.from===''?req.body.from = req.user.id: req.body.from;
@@ -14,13 +14,14 @@ exports.createMessage = catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: 'success',
     data: {
-      data: newMessage,
+      newMessage,
     },
   });
 });
 
 exports.getAllInbox = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({to: req.user.id}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -30,7 +31,10 @@ exports.getAllInbox = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllSent = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({from: req.user.id});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    from: req.user.id,
+    subject: {$nin: ['username mention', 'post reply']}}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -40,7 +44,9 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllUnread = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id, read: false});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id, read: false}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -50,27 +56,21 @@ exports.getAllUnread = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllPostReply = catchAsync(async (req, res, next) => {
-  const message = await messageModel.findById(req.params.id);
-  if (!message) {
-    return next(new AppError('no message with that id', 404));
-  }
-  if (message.to !== req.user.id) {
-    return next(new AppError('you are not allowed to reply to this message', 403));
-  }
-  req.body.from = req.user.id;
-  req.body.to = message.from;
-  req.body.parentmessage = req.params.id;
-  const newMessage = await messageModel.create(req.body);
-  res.status(201).json({
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id, subject: {$in: ['post reply']}}).sort({createdAt: -1}), 10, pageNumber);
+  res.status(200).json({
     status: 'success',
     data: {
-      data: newMessage,
+      messages,
     },
   });
 });
 
 exports.getAllMentions = catchAsync(async (req, res, next) => {
-  const messages = await messageModel.find({to: req.user.id, message: {$regex: /@/}});
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id, subject: {$in: ['username mention']}}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -86,9 +86,35 @@ exports.markAllRead = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getMessage = handlerFactory.getOne(messageModel);
+exports.getMessage = catchAsync(async (req, res, next) => {
+  const message = await messageModel.findById(req.params.id);
+  if (!message) {
+    return next(new AppError('no message with that id', 404));
+  }
+  if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
+    return next(new AppError('you are not allowed to access this message', 403));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message,
+    },
+  });
+});
 
-exports.deleteMessage = handlerFactory.deleteOne(messageModel);
+exports.deleteMessage =catchAsync(async (req, res, next) => {
+  const message = await messageModel.findById(req.params.id);
+  if (!message) {
+    return next(new AppError('no message with that id', 404));
+  }
+  if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
+    return next(new AppError('you are not allowed to delete this message', 403));
+  }
+  await message.remove();
+  res.status(204).json({
+    status: 'success',
+  });
+});
 
 exports.reportMessage = catchAsync(async (req, res, next) => { // NEED ADMIN OR MODERATION
   const message = await messageModel.findById(req.params.id);
@@ -108,16 +134,10 @@ exports.toggleReadMessage = catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
-  if (message.to !== req.user.id) {
-    return next(new AppError('you are not allowed to mark this message as read', 403));
-  }
   message.read = !message.read;
   await message.save();
   res.status(200).json({
     status: 'success',
-    data: {
-      message,
-    },
   });
 });
 

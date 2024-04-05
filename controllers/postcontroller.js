@@ -4,18 +4,60 @@ const subredditModel = require('../models/subredditmodel');
 const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
+const paginate = require('../utils/paginate');
 
-exports.getPosts = handlerFactory.getAll(postModel);
-
-exports.getPost = handlerFactory.getOne(postModel);
-
-exports.editPost = handlerFactory.updateOne(postModel, async (req) => {
-  req.body.lastEditedTime = Date.now();
-  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body.content);
-  return req.body;
+exports.getPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const posts = await paginate.paginate(postModel.find({}), 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts,
+    },
+  });
 });
 
-exports.deletePost = handlerFactory.deleteOne(postModel);
+exports.getPost = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      post,
+    },
+  });
+});
+
+exports.editPost = catchAsync(async (req, res, next) => {
+  let post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  req.body.lastEditedTime = Date.now();
+  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
+  post = await postModel.findByIdAndUpdate(req.params.id, {$set: req.body}, {
+    new: true,
+    runValidators: true});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      post,
+    },
+  });
+});
+
+exports.deletePost = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  await post.remove();
+  res.status(204).json({
+    status: 'success',
+  });
+});
 
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
 
@@ -118,5 +160,5 @@ exports.createPost = catchAsync(async (req, res, next) => {
     },
   });
 });
-exports.reportPost = catchAsync(async (req, res, next) => {});
+exports.reportPost = catchAsync(async (req, res, next) => {}); // TODO NEED MODERATION
 exports.crosspost = catchAsync(async (req, res, next) => {});
