@@ -14,7 +14,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: 'success',
     data: {
-      data: newMessage,
+      newMessage,
     },
   });
 });
@@ -91,6 +91,9 @@ exports.getMessage = catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
+  if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
+    return next(new AppError('you are not allowed to access this message', 403));
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -104,7 +107,7 @@ exports.deleteMessage =catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
-  if (message.to.toString() !== req.user.id.toString()) {
+  if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this message', 403));
   }
   await message.remove();
