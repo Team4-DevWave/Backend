@@ -14,7 +14,7 @@ exports.getComment=catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      comment: comment,
+      comment,
     },
   });
 });
@@ -76,7 +76,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: 'success',
     data: {
-      comment: comment,
+      comment,
     },
   });
 });
@@ -104,7 +104,7 @@ exports.editComment = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      comment: comment,
+      comment,
     },
   });
 });
@@ -137,9 +137,9 @@ exports.saveComment = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
-    // data: {
-    //   comment: comment,
-    // },
+    data: {
+      comment,
+    },
   });
 });
 
