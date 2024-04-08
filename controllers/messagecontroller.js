@@ -103,14 +103,14 @@ exports.getMessage = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteMessage =catchAsync(async (req, res, next) => {
-  const message = await messageModel.findById(req.params.id);
+  const message = await messageModel.findByIdAndDelete(req.params.id);
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
   if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this message', 403));
   }
-  await message.remove();
+  // await message.remove();
   res.status(204).json({
     status: 'success',
   });
