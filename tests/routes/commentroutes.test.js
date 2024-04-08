@@ -37,7 +37,6 @@ describe('PATCH /api/v1/posts/:postid/comments/:commentid/save', () => {
     const res = await request(app)
         .patch(`/api/v1/posts/${postid}/comments/${commentid}/save`)
         .set('Authorization', `Bearer ${token}`);
-    console.log(res.body);
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toHaveProperty('comment');  
   });
@@ -68,7 +67,6 @@ describe('GET /api/v1/posts/:postid/comments/:commentid', () => {
     const res = await request(app)
         .get(`/api/v1/posts/${postid}/comments/${commentid}`)
         .set('Authorization', `Bearer ${token}`);
-
     expect(res.statusCode).toEqual(200);
     expect(res.body.data).toHaveProperty('comment');
   });
