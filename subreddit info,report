@@ -1,40 +1,23 @@
-/**
- * Retrieves information about a subreddit.
- * @param {string} subredditName - The name of the subreddit.
- * @returns {Promise<Object>} A promise that resolves to the subreddit information.
- */
-async function getSubredditInfo(subredditName) {
-    const url = `https://www.reddit.com/r/${subredditName}/about.json`;
-        try {
-        const response = await fetch(url);
-        if (response.status !== 200) {
-            const errorMessage = `Failed to fetch subreddit information : ${ response.statusText }`;
-                throw new Error(errorMessage);
-        }
-        const data = await response.json();
-        return data.data;
-    }
-    catch (error) {
-        const errorMessage = `Error retrieving subreddit information : ${ error.message }`;
-            console.error(errorMessage);
-        throw new Error(errorMessage);
+const Subreddit = require('../models/subredditModel');
 
-    }
-}
-
-/**
- * Reports subreddit information.
- * @param {string} subredditName - The name of the subreddit.
- */
-async function reportSubredditInfo(subredditName) {
+exports.getSubredditInfo = async(req, res, next) = > {
     try {
-        const subredditInfo = await getSubredditInfo(subredditName);
-        console.log('Subreddit Information:', subredditInfo);
+        const subredditName = req.params.subredditName;
+        const subredditInfo = await Subreddit.getSubredditInfo(subredditName);
+        res.status(200).json(subredditInfo);
     }
     catch (error) {
-        console.error('Failed to report subreddit information:', error);
+        res.status(500).json({ error: error.message });
     }
-}
+};
 
-// Example usage:
-reportSubredditInfo('AskReddit');
+exports.reportSubredditInfo = async(req, res, next) = > {
+    try {
+        const subredditName = req.params.subredditName;
+        await Subreddit.reportSubredditInfo(subredditName);
+        res.status(200).json({ message: 'Subreddit information reported successfully.' });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
