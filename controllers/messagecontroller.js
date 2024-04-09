@@ -110,7 +110,6 @@ exports.deleteMessage =catchAsync(async (req, res, next) => {
   if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this message', 403));
   }
-  // await message.remove();
   res.status(204).json({
     status: 'success',
   });
