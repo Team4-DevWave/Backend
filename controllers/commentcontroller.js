@@ -72,6 +72,9 @@ exports.createComment =catchAsync(async (req, res, next) => {
     content: req.body.content,
     mentioned: await handlerFactory.checkMentions(userModel, req.body.content),
   });
+  const post = await postModel.findById(req.params.id);
+  post.commentsID.push(comment._id);
+  await post.save();
   createMessage(comment);
   res.status(201).json({
     status: 'success',
