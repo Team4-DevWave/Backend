@@ -24,13 +24,13 @@ router
     .route('/mentions')
     .get(messageController.getAllMentions);
 router
-    .route('/markAllRead')
+    .route('/markallread')
     .patch(messageController.markAllRead);
 router
     .route('/:id')
     .get(messageController.getMessage);
 router
-    .route('/:id/markRead') // mark message as read/unread
+    .route('/:id/markread') // mark message as read/unread
     .patch(messageController.toggleReadMessage);
 router
     .route('/:id/delete')

@@ -3,9 +3,9 @@ const postController = require('./../controllers/postcontroller');
 const authController = require('./../controllers/authcontroller');
 const commentRouter = require('./commentroutes');
 // eslint-disable-next-line new-cap
-const postRouter = express.Router();
+const postRouter = express.Router({mergeParams: true});
 postRouter.use(authController.protect);
-postRouter.use('/:id/comments', commentRouter); // NEEDS REVIEW
+postRouter.use('/:postid/comments', commentRouter); // NEEDS REVIEW
 
 postRouter.post('/submit/u/:subreddit', postController.createPost);
 

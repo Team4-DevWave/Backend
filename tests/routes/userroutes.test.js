@@ -1,7 +1,6 @@
 /* eslint-disable */
 
 const request = require('supertest');
-const userModel = require('../../models/usermodel');
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/signup', () => {
@@ -78,7 +77,6 @@ describe('GET /api/v1/users/check/:username', () => {
 describe('GET /api/v1/users/:username/posts', () => {
   it('should get a user\'s posts', async () => {
     const username = 'moaz';
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/${username}/posts`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -88,7 +86,6 @@ describe('GET /api/v1/users/:username/posts', () => {
 describe('GET /api/v1/users/:username/comments', () => {
   it('should get a user\'s comments', async () => {
     const username = 'moaz';
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/${username}/comments`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -98,7 +95,6 @@ describe('GET /api/v1/users/:username/comments', () => {
 describe('GET /api/v1/users/:username/overview', () => {
   it('should get a user\'s overview', async () => {
     const username = 'moaz';
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/${username}/overview`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -109,7 +105,6 @@ describe('GET /api/v1/users/:username/overview', () => {
 
 describe('GET /api/v1/users/me/saved', () => {
   it('should get a user\'s saved posts and comments', async () => {
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/me/saved`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -120,7 +115,6 @@ describe('GET /api/v1/users/me/saved', () => {
 describe('GET /api/v1/users/me/hidden', () => {
   it('should get a user\'s hidden posts', async () => {
     const username = 'moaz';
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/me/hidden`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -178,6 +172,24 @@ describe('PATCH /api/v1/users/me/settings/changepassword', () => {
     const currentPassword = 'pass1234';
     const newPassword = 'mariambackend';
     const passwordConfirm = 'mariambackend';
+
+    const response = await request(app)
+      .patch(`/api/v1/users/me/settings/changepassword`)
+      .send({ currentPassword, newPassword, passwordConfirm })
+      .set('Authorization', `Bearer ${token}`);
+    token = response.body.token;  
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toHaveProperty('status', 'success');
+  });
+});
+
+
+describe('PATCH /api/v1/users/me/settings/changepassword', () => {
+  it('should update a user password to his old password', async () => {
+    // Assuming the user is already logged in and you have their token
+    const currentPassword = 'mariambackend';
+    const newPassword = 'pass1234';
+    const passwordConfirm = 'pass1234';
 
     const response = await request(app)
       .patch(`/api/v1/users/me/settings/changepassword`)
