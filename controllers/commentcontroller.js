@@ -66,6 +66,13 @@ exports.createComment =catchAsync(async (req, res, next) => {
   if (!req.body.content) {
     return next(new AppError('no content found', 404));
   }
+  const post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  if (post.locked) {
+    return next(new AppError('post is locked', 400));
+  }
   const comment = await commentModel.create({
     post: req.params.id,
     user: req.user.id,
