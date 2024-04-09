@@ -6,9 +6,9 @@ const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 
-exports.getPosts = catchAsync(async (req, res, next) => {
+exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = await paginate.paginate(postModel.find({}), 10, pageNumber);
+  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid}).exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -18,10 +18,12 @@ exports.getPosts = catchAsync(async (req, res, next) => {
 });
 
 exports.getPost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
+  post.numViews += 1;
+  await post.save();
   res.status(200).json({
     status: 'success',
     data: {
@@ -31,13 +33,13 @@ exports.getPost = catchAsync(async (req, res, next) => {
 });
 
 exports.editPost = catchAsync(async (req, res, next) => {
-  let post = await postModel.findById(req.params.id);
+  let post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
   req.body.lastEditedTime = Date.now();
   req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
-  post = await postModel.findByIdAndUpdate(req.params.id, {$set: req.body}, {
+  post = await postModel.findByIdAndUpdate(req.params.postid, {$set: req.body}, {
     new: true,
     runValidators: true});
   res.status(200).json({
@@ -49,7 +51,7 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -75,7 +77,7 @@ exports.lockPost = catchAsync(async (req, res, next) => {
   });
 });
 exports.savePost = catchAsync(async (req, res, next) => {
-  const post= await postModel.findById(req.params.id);
+  const post= await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -89,7 +91,7 @@ exports.savePost = catchAsync(async (req, res, next) => {
   });
 });
 exports.hidePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -106,7 +108,7 @@ exports.hidePost = catchAsync(async (req, res, next) => {
 });
 
 exports.unhidePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -147,6 +149,27 @@ exports.markSpoiler = catchAsync(async (req, res, next) => {
   await post.save();
   res.status(200).json({
     status: 'success',
+  });
+});
+
+exports.getInsights = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  let upvotesRate=0;
+  if (post.votes.upvotes + post.votes.downvotes > 0) {
+    upvotesRate = post.votes.upvotes / (post.votes.upvotes + post.votes.downvotes) * 100;
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      postID: post.id,
+      numViews: post.numViews,
+      upvotesRate: upvotesRate,
+      numComments: post.commentsID.length,
+      numShares: 0,
+    },
   });
 });
 

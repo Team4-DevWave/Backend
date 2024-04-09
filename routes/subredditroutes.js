@@ -1,8 +1,10 @@
 const express = require('express');
 const subredditController = require('../controllers/subredditcontroller');
 const authController = require('./../controllers/authcontroller');
+const postRouter = require('./postroutes');
 // eslint-disable-next-line new-cap
 const subredditRouter = express.Router();
+subredditRouter.use('/:subredditid/posts', postRouter); // NEEDS REVIEW
 
 
 subredditRouter
