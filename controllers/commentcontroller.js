@@ -117,10 +117,8 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   if (comment.user != req.user.id) {
     return next(new AppError('you are not allowed to delete this comment', 403));
   }
-  // await comment.remove();
   res.status(204).json({
     status: 'success',
-    // data: null,
   });
 });
 

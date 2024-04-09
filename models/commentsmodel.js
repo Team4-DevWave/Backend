@@ -16,7 +16,10 @@ const commentSchema = new mongoose.Schema({
   lastEdited: {
     type: Date,
   },
-  votes: {type: Number, default: 0},
+  votes: {
+    upvotes: {type: Number, default: 0},
+    downvotes: {type: Number, default: 0},
+  },
   post: {
     type: mongoose.Schema.ObjectId,
     ref: 'posts',
