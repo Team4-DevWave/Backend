@@ -1,0 +1,31 @@
+const { getSubredditInfo, getReportReasons } = require('./subredditFunctions'); 
+
+describe('Subreddit Functions', () = > {
+    describe('getSubredditInfo', () = > {
+        it('should retrieve subreddit information', async() = > {
+            const subredditName = 'example_subreddit';
+            const subredditInfo = await getSubredditInfo(subredditName);
+            expect(subredditInfo).toBeDefined();
+            expect(subredditInfo.display_name).toBe(subredditName);
+        });
+
+        it('should handle errors gracefully', async() = > {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(getSubredditInfo(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+
+    describe('getReportReasons', () = > {
+        it('should retrieve report reasons for a subreddit', async() = > {
+            const subredditName = 'example_subreddit';
+            const reportReasons = await getReportReasons(subredditName);
+            expect(reportReasons).toBeDefined();
+            
+        });
+
+        it('should handle errors gracefully', async() = > {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(getReportReasons(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+});
