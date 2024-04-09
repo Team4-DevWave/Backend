@@ -14,7 +14,7 @@ exports.getComment=catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      comment: comment,
+      comment,
     },
   });
 });
@@ -60,23 +60,28 @@ const createMessage = catchAsync(async (comment) => {
 });
 // CREATING A MESSAGE NOT TESTED YET IN CREATE AND EDIT COMMENT
 exports.createComment =catchAsync(async (req, res, next) => {
-  if (!req.params.id) {
+  if (!req.params.postid) {
     return next(new AppError('no post id found', 404));
   }
   if (!req.body.content) {
     return next(new AppError('no content found', 404));
   }
   const comment = await commentModel.create({
-    post: req.params.id,
+    post: req.params.postid,
     user: req.user.id,
     content: req.body.content,
     mentioned: await handlerFactory.checkMentions(userModel, req.body.content),
   });
+  const post = await postModel.findById(req.params.postid);
+  await userModel.findByIdAndUpdate(req.user.id,
+      {$addToSet: {'comments': comment._id}}, {new: true});
+  post.commentsID.push(comment._id);
+  await post.save();
   createMessage(comment);
   res.status(201).json({
     status: 'success',
     data: {
-      comment: comment,
+      comment,
     },
   });
 });
@@ -86,7 +91,8 @@ exports.editComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  if (comment.user != req.user.id) {
+  console.log(comment.user.toString(), req.user.id.toString());
+  if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to edit this comment', 403));
   }
   const oldMentions = comment.mentioned;
@@ -104,7 +110,7 @@ exports.editComment = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      comment: comment,
+      comment,
     },
   });
 });
@@ -114,13 +120,11 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  if (comment.user != req.user.id) {
+  if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this comment', 403));
   }
-  // await comment.remove();
   res.status(204).json({
     status: 'success',
-    // data: null,
   });
 });
 
@@ -137,9 +141,9 @@ exports.saveComment = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
-    // data: {
-    //   comment: comment,
-    // },
+    data: {
+      comment,
+    },
   });
 });
 
