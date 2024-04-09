@@ -1,0 +1,36 @@
+const User = require('../models/userModel');
+
+exports.getSavedCategories = async(req, res, next) = > {
+    try {
+        const username = req.params.username;
+        const savedCategories = await User.getSavedCategories(username);
+        res.status(200).json(savedCategories);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.setSendReplies = async(req, res, next) = > {
+    try {
+        const username = req.params.username;
+        const enable = req.body.enable;
+        await User.setSendReplies(username, enable);
+        res.status(200).json({ message: 'Send replies status set successfully.' });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.setSuggestedSort = async(req, res, next) = > {
+    try {
+        const subredditName = req.params.subredditName;
+        const suggestedSort = req.body.suggestedSort;
+        await User.setSuggestedSort(subredditName, suggestedSort);
+        res.status(200).json({ message: 'Suggested sort set successfully.' });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
