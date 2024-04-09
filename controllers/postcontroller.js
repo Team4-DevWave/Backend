@@ -6,9 +6,9 @@ const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 
-exports.getPosts = catchAsync(async (req, res, next) => {
+exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = await paginate.paginate(postModel.find({}), 10, pageNumber);
+  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid}).exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -18,7 +18,7 @@ exports.getPosts = catchAsync(async (req, res, next) => {
 });
 
 exports.getPost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -33,13 +33,13 @@ exports.getPost = catchAsync(async (req, res, next) => {
 });
 
 exports.editPost = catchAsync(async (req, res, next) => {
-  let post = await postModel.findById(req.params.id);
+  let post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
   req.body.lastEditedTime = Date.now();
   req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
-  post = await postModel.findByIdAndUpdate(req.params.id, {$set: req.body}, {
+  post = await postModel.findByIdAndUpdate(req.params.postid, {$set: req.body}, {
     new: true,
     runValidators: true});
   res.status(200).json({
@@ -51,7 +51,7 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -64,15 +64,15 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
 
 exports.savePost = catchAsync(async (req, res, next) => {
-  const post= await postModel.findById(req.params.id);
+  const post= await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
   post.saved = !post.saved;
   await post.save();
   const update= post.saved ?
-    {$addToSet: {'savedPostsAndComments.posts': req.params.id}} :
-    {$pull: {'savedPostsAndComments.posts': req.params.id}};
+    {$addToSet: {'savedPostsAndComments.posts': req.params.postid}} :
+    {$pull: {'savedPostsAndComments.posts': req.params.postid}};
   await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
@@ -82,7 +82,7 @@ exports.savePost = catchAsync(async (req, res, next) => {
 });
 
 exports.hidePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -99,7 +99,7 @@ exports.hidePost = catchAsync(async (req, res, next) => {
 });
 
 exports.unhidePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -116,7 +116,7 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
 });
 
 exports.getInsights = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
