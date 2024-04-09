@@ -22,6 +22,8 @@ exports.getPost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
+  post.numViews += 1;
+  await post.save();
   res.status(200).json({
     status: 'success',
     data: {
@@ -109,6 +111,27 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       post,
+    },
+  });
+});
+
+exports.getInsights = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  let upvotesRate=0;
+  if (post.votes.upvotes + post.votes.downvotes > 0) {
+    upvotesRate = post.votes.upvotes / (post.votes.upvotes + post.votes.downvotes) * 100;
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      postID: post.id,
+      numViews: post.numViews,
+      upvotesRate: upvotesRate,
+      numComments: post.commentsID.length,
+      numShares: 0,
     },
   });
 });
