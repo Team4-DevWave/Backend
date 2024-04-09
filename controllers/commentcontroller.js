@@ -79,6 +79,10 @@ exports.createComment =catchAsync(async (req, res, next) => {
     content: req.body.content,
     mentioned: await handlerFactory.checkMentions(userModel, req.body.content),
   });
+  await userModel.findByIdAndUpdate(req.user.id,
+      {$addToSet: {'comments': comment._id}}, {new: true});
+  post.commentsID.push(comment._id);
+  await post.save();
   createMessage(comment);
   res.status(201).json({
     status: 'success',

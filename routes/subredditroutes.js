@@ -27,5 +27,6 @@ subredditRouter
 subredditRouter
     .route('/:subreddit/rules')
     .get(subredditController.getSubredditRules);
+subredditRouter.get('/:subreddit/top', subredditController.getTopPostsBySubreddit);
 
 module.exports = subredditRouter;

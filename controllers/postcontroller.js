@@ -61,7 +61,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
 exports.lockPost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -80,10 +80,10 @@ exports.savePost = catchAsync(async (req, res, next) => {
     return next(new AppError('no post with that id', 404));
   }
   const update= req.user.savedPostsAndComments.posts.includes(post.id) ?
-  {$pull: {'savedPostsAndComments.posts': req.params.id}}:
-  {$addToSet: {'savedPostsAndComments.posts': req.params.id}};
+  {$pull: {'savedPostsAndComments.posts': req.params.postid}}:
+  {$addToSet: {'savedPostsAndComments.posts': req.params.postid}};
 
-  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
+  await userModel.findByIdAndUpdate(req.user.postid, update, {new: true});
   res.status(200).json({
     status: 'success',
   });
@@ -122,7 +122,7 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
   });
 });
 exports.markNSFW = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -136,7 +136,7 @@ exports.markNSFW = catchAsync(async (req, res, next) => {
   });
 });
 exports.markSpoiler = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
