@@ -320,14 +320,3 @@ describe('post /api/v1/users/forgetUsername', () => {
     expect(response.statusCode).toBe(400);
   });
 });
-// //ADMIN
-// describe('DELETE /api/v1/users/admin/delete/:username', () => {
-//   it('should delete a user', async () => {
-//     const username = 'testuser';
-//     // First, create the user
-//     let response = await request(app)
-//       .delete(`/api/v1/users/admin/delete/${username}`)
-//       // .set('Authorization', `Bearer ${adminToken}`);
-//     expect(response.statusCode).toBe(204);
-//   });
-// });

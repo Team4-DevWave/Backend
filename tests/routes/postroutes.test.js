@@ -155,5 +155,29 @@ describe('GET /api/v1/posts/submit', () => {
     expect(response.body.data).toHaveProperty('subreddits');
   });
   })
+  describe('GET /api/v1/posts/[id]/nsfw', () => {
+          
+    
+    it('should toggle the nsfw status of the post', async () => {
+      const response = await request(app).patch(`/api/v1/posts/65ff1fec2116981dac6bd5c2/nsfw`).send().set('Authorization', `Bearer ${token}`);
+      expect(response.statusCode).toBe(200);
+    });
+    })
+    describe('GET /api/v1/posts/[id]/spoiler', () => {
+          
+    
+      it('should toggle the spoiler status of the post', async () => {
+        const response = await request(app).patch(`/api/v1/posts/65ff1fec2116981dac6bd5c2/spoiler`).send().set('Authorization', `Bearer ${token}`);
+        expect(response.statusCode).toBe(200);
+      });
+      })
+      describe('GET /api/v1/posts/[id]/lock', () => {
+          
+    
+        it('should toggle the lock status of the post', async () => {
+          const response = await request(app).patch(`/api/v1/posts/65ff1fec2116981dac6bd5c2/lock`).send().set('Authorization', `Bearer ${token}`);
+          expect(response.statusCode).toBe(200);
+        });
+        })
 
   

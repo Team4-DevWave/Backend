@@ -13,12 +13,18 @@ postRouter.use('/submit/r/:subreddit', authController.checkSubredditAccess('post
 
 postRouter.get('/:id', postController.getPost); // TODO check this route validity
 postRouter.delete('/:id/delete', postController.deletePost);
+postRouter.patch('/:id/hide', postController.hidePost);
 postRouter.delete('/:id/unhide', postController.unhidePost);
+// they all toggle
+postRouter.patch('/:id/save', postController.savePost);
+postRouter.patch('/:id/nsfw', postController.markNSFW);
+postRouter.patch('/:id/spoiler', postController.markSpoiler);
+postRouter.patch('/:id/lock', postController.lockPost);
 postRouter.post('/:id/vote', postController.vote);
 postRouter.patch('/:id/edit', postController.editPost);
-postRouter.patch('/:id/save', postController.savePost);
+
 postRouter.patch('/:id/report', postController.reportPost);
-postRouter.patch('/:id/hide', postController.hidePost);
+
 postRouter.post('/:id/crosspost', postController.crosspost);
 postRouter.post('/submit/r/:subreddit', postController.createPost);
 
