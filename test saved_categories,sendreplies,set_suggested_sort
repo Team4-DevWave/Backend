@@ -1,0 +1,51 @@
+const {
+    getSavedCategories,
+        setSendReplies,
+        setSuggestedSort,
+} = require('./subredditFunctions'); 
+
+    describe('Subreddit Functions', () = > {
+        describe('getSavedCategories', () = > {
+            it('should retrieve saved categories for a user', async() = > {
+                const username = 'example_user';
+                const savedCategories = await getSavedCategories(username);
+                expect(savedCategories).toBeDefined();
+                
+            });
+
+            it('should throw an error for invalid username', async() = > {
+                const invalidUsername = 'invalid_user';
+                await expect(getSavedCategories(invalidUsername)).rejects.toThrow();
+            });
+        });
+
+        describe('setSendReplies', () = > {
+            it('should set send replies status for a user', async() = > {
+                const username = 'example_user';
+                const enable = true;
+                await expect(setSendReplies(username, enable)).resolves.not.toThrow();
+                
+            });
+
+            it('should throw an error for invalid username', async() = > {
+                const invalidUsername = 'invalid_user';
+                const enable = true;
+                await expect(setSendReplies(invalidUsername, enable)).rejects.toThrow();
+            });
+        });
+
+        describe('setSuggestedSort', () = > {
+            it('should set suggested sort for a subreddit', async() = > {
+                const subredditName = 'example_subreddit';
+                const suggestedSort = 'new';
+                await expect(setSuggestedSort(subredditName, suggestedSort)).resolves.not.toThrow();
+                
+            });
+
+            it('should throw an error for invalid subreddit name', async() = > {
+                const invalidSubredditName = 'invalid_subreddit';
+                const suggestedSort = 'new';
+                await expect(setSuggestedSort(invalidSubredditName, suggestedSort)).rejects.toThrow();
+            });
+        });
+    });
