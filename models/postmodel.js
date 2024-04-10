@@ -14,12 +14,16 @@ const postSchema = new mongoose.Schema({
   spoiler: {type: Boolean, required: true},
   nsfw: {type: Boolean, required: true},
   lastEditedTime: {type: Date},
-  votes: {type: Number, default: 0, required: false},
   text_body: {type: String},
   image_vid: {type: String},
   url: {type: String},
   poll: {type: Map, of: Number},
   locked: {type: Boolean, default: false},
+  votes: {
+    upvotes: {type: Number, default: 0},
+    downvotes: {type: Number, default: 0},
+  },
+  locked: {type: Boolean, required: false, default: false},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},
 });

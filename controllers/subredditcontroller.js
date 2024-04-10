@@ -2,6 +2,7 @@ const subredditModel = require('../models/subredditmodel');
 const catchAsync = require('../utils/catchasync');
 const paginate = require('../utils/paginate');
 const AppError = require('../utils/apperror');
+const postModel = require('../models/postmodel');
 
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -89,6 +90,50 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
   await user.save();
   res.status(200).json({
     status: 'success',
+  });
+});
+exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
+  if (!req.params.subreddit) {
+    return next(new AppError('Please provide a subreddit', 400));
+  }
+  const subreddit = await subredditModel.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit does not exist', 404));
+  }
+  const pageNumber = req.query.page || 1;
+  const user = req.user;
+  if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
+    return next(new AppError('You are not subscribed to this subreddit', 400));
+  }
+  const posts = await postModel.find({subreddit: subreddit.id}).sort({'votes.upvotes': -1}).exec();
+  const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: paginatedPosts,
+    },
+  });
+});
+exports.getRandomPostsBySubreddit = catchAsync(async (req, res, next) => {
+  if (!req.params.subreddit) {
+    return next(new AppError('Please provide a subreddit', 400));
+  }
+  const subreddit = await subredditModel.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit does not exist', 404));
+  }
+  const pageNumber = req.query.page || 1;
+  const user = req.user;
+  if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
+    return next(new AppError('You are not subscribed to this subreddit', 400));
+  }
+  const posts = await postModel.find({subreddit: subreddit.id}).exec();
+  const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: paginatedPosts,
+    },
   });
 });
 

@@ -91,34 +91,45 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
   } else {
     uservote=0;
   }
-  if (voteType==uservote) {
-    doc.votes-=voteType;
+  if (uservote===0) {
     if (voteType==1) {
-      req.user.upvotes[voteOn].pull(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes[voteOn].pull(req.params.id);
-    }
-  } else if (voteType==-uservote) {
-    doc.votes+=2*voteType;
-    if (voteType==1) {
+      doc.votes.upvotes+=1;
       req.user.upvotes[voteOn].push(req.params.id);
-      req.user.downvotes[voteOn].pull(req.params.id);
-    } else if (voteType==-1) {
+    }
+    if (voteType==-1) {
+      doc.votes.downvotes+=1;
       req.user.downvotes[voteOn].push(req.params.id);
-      req.user.upvotes[voteOn].pull(req.params.id);
     }
   } else {
-    doc.votes+=voteType;
-    if (voteType==1) {
-      req.user.upvotes[voteOn].push(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes[voteOn].push(req.params.id);
+    if (voteType==uservote) {
+      if (voteType==1) {
+        doc.votes.upvotes-=1;
+        req.user.upvotes[voteOn].pull(req.params.id);
+      }
+      if (voteType==-1) {
+        doc.votes.downvotes-=1;
+        req.user.downvotes[voteOn].pull(req.params.id);
+      }
+    } else {
+      if (voteType==1) {
+        doc.votes.upvotes+=1;
+        doc.votes.downvotes-=1;
+        req.user.upvotes[voteOn].push(req.params.id);
+        req.user.downvotes[voteOn].pull(req.params.id);
+      }
+      if (voteType==-1) {
+        doc.votes.downvotes+=1;
+        doc.votes.upvotes-=1;
+        req.user.downvotes[voteOn].push(req.params.id);
+        req.user.upvotes[voteOn].pull(req.params.id);
+      }
     }
   }
   await doc.save();
   await req.user.save();
   res.status(200).json({
     status: 'success',
+    data: doc,
   });
 });
 
