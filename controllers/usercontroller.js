@@ -262,3 +262,15 @@ exports.deleteUser = catchAsync(async (req, res, next) => { // for admin
     data: null,
   });
 });
+
+exports.changeCountry = catchAsync(async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  user.country = req.body.country;
+  await user.save();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});

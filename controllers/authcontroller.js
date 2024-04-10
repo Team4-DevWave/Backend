@@ -314,3 +314,21 @@ exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
   }
   next();
 });
+
+exports.changeEmail = catchAsync(async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  if (user.email===req.body.email) {
+    return next(new AppError('You\'re using the same email ', 401));
+  }
+  user.email = req.body.email;
+  user.verified=false;
+  const token=sendVerificationEmail(user);
+  user.verficationToken=token;
+  await user.save();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});

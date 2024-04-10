@@ -33,7 +33,8 @@ userRouter
     .get(userController.getMySettings)// TESTED
     .patch(userController.updateMySettings); // TESTED
 userRouter.patch('/me/settings/changepassword', authController.updatePassword); // TESTED
-// userRouter.patch("/me/updateEmail", userController.updateEmail);
+userRouter.patch('/me/settings/changeemail', authController.changeEmail);
+userRouter.patch('/me/settings/changecountry', userController.changeCountry);
 userRouter
     .route('/me/friend/:username')
     .post(userController.checkBlocked, userController.addFriend)// TESTED
