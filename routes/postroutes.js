@@ -14,7 +14,7 @@ postRouter.get('/', postController.getSubredditPosts);
 postRouter.get('/:postid', postController.getPost); // TODO check this route validity
 postRouter.delete('/:postid/delete', postController.deletePost);
 postRouter.delete('/:postid/unhide', postController.unhidePost);
-postRouter.post('/:postid/vote', postController.vote);
+postRouter.patch('/:postid/vote', postController.vote);
 postRouter.patch('/:postid/edit', postController.editPost);
 postRouter.patch('/:postid/save', postController.savePost);
 postRouter.patch('/:postid/report', postController.reportPost);
