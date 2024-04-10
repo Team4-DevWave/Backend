@@ -158,6 +158,13 @@ exports.createPost = catchAsync(async (req, res, next) => {
         newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
       }
     }
+    if (req.body.type === 'url') {
+      if (!req.body.url) {
+        return next(new AppError('No link uploaded', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {url: req.body.url}, {new: true});
+      }
+    }
     if (req.body.text_body) {
       newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
     }
