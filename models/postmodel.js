@@ -23,7 +23,6 @@ const postSchema = new mongoose.Schema({
     upvotes: {type: Number, default: 0},
     downvotes: {type: Number, default: 0},
   },
-  locked: {type: Boolean, required: false, default: false},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},
 });
