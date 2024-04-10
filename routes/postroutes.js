@@ -22,5 +22,8 @@ postRouter.patch('/:postid/hide', postController.hidePost);
 postRouter.get('/:postid/insights', postController.getInsights);
 postRouter.post('/:postid/crosspost', postController.crosspost);
 postRouter.post('/submit/r/:subreddit', postController.createPost);
+postRouter.patch('/:postid/nsfw', postController.markNSFW);
+postRouter.patch('/:postid/spoiler', postController.markSpoiler);
+postRouter.patch('/:postid/lock', postController.lockPost);
 
 module.exports = postRouter;

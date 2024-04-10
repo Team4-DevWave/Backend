@@ -311,14 +311,24 @@ describe('DELETE /api/v1/users/me/current', () => {
     expect(response.statusCode).toBe(204);
   });
 });
-// //ADMIN
-// describe('DELETE /api/v1/users/admin/delete/:username', () => {
-//   it('should delete a user', async () => {
-//     const username = 'testuser';
-//     // First, create the user
-//     let response = await request(app)
-//       .delete(`/api/v1/users/admin/delete/${username}`)
-//       // .set('Authorization', `Bearer ${adminToken}`);
-//     expect(response.statusCode).toBe(204);
-//   });
-// });
+describe('post /api/v1/users/forgetUsername', () => {
+  it('should get the logged in user\'s settings', async () => {
+    const response = await request(app)
+      .post('/api/v1/users/forgetUsername').send({email: 'modyben43@gmail.com'});
+    expect(response.statusCode).toBe(200);
+  });
+});
+describe('post /api/v1/users/forgetUsername', () => {
+  it('should get the logged in user\'s settings', async () => {
+    const response = await request(app)
+      .post('/api/v1/users/forgetUsername').send({email: 'modyben4@gmail.com'});
+    expect(response.statusCode).toBe(404);
+  });
+});
+describe('post /api/v1/users/forgetUsername', () => {
+  it('should get the logged in user\'s settings', async () => {
+    const response = await request(app)
+      .post('/api/v1/users/forgetUsername').send({});
+    expect(response.statusCode).toBe(400);
+  });
+});

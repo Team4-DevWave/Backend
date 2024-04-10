@@ -66,13 +66,19 @@ exports.createComment =catchAsync(async (req, res, next) => {
   if (!req.body.content) {
     return next(new AppError('no content found', 404));
   }
+  const post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  if (post.locked) {
+    return next(new AppError('post is locked', 400));
+  }
   const comment = await commentModel.create({
     post: req.params.postid,
     user: req.user.id,
     content: req.body.content,
     mentioned: await handlerFactory.checkMentions(userModel, req.body.content),
   });
-  const post = await postModel.findById(req.params.postid);
   await userModel.findByIdAndUpdate(req.user.id,
       {$addToSet: {'comments': comment._id}}, {new: true});
   post.commentsID.push(comment._id);

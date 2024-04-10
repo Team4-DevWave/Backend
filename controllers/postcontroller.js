@@ -62,25 +62,34 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 });
 
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
-
+exports.lockPost = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.userID.toString() != req.user._id.toString()) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  post.locked = !post.locked;
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
 exports.savePost = catchAsync(async (req, res, next) => {
   const post= await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
-  post.saved = !post.saved;
-  await post.save();
-  const update= post.saved ?
-    {$addToSet: {'savedPostsAndComments.posts': req.params.postid}} :
-    {$pull: {'savedPostsAndComments.posts': req.params.postid}};
-  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
+  const update= req.user.savedPostsAndComments.posts.includes(post.id) ?
+  {$pull: {'savedPostsAndComments.posts': req.params.postid}}:
+  {$addToSet: {'savedPostsAndComments.posts': req.params.postid}};
+
+  await userModel.findByIdAndUpdate(req.user.postid, update, {new: true});
   res.status(200).json({
     status: 'success',
-    data: {post,
-    },
   });
 });
-
 exports.hidePost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -112,6 +121,34 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
     data: {
       post,
     },
+  });
+});
+exports.markNSFW = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.userID.toString() != req.user._id.toString()) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  post.nsfw = !post.nsfw;
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+exports.markSpoiler = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.userID.toString() != req.user._id.toString()) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  post.spoiler = !post.spoiler;
+  await post.save();
+  res.status(200).json({
+    status: 'success',
   });
 });
 
