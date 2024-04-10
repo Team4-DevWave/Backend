@@ -18,6 +18,7 @@ const postSchema = new mongoose.Schema({
   text_body: {type: String},
   image_vid: {type: String},
   url: {type: String},
+  poll: {type: Map, of: Number},
   locked: {type: Boolean, default: false},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},

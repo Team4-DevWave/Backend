@@ -165,6 +165,13 @@ exports.createPost = catchAsync(async (req, res, next) => {
         newPost = await postModel.findByIdAndUpdate(newPostID, {url: req.body.url}, {new: true});
       }
     }
+    if (req.body.type === 'poll') {
+      if (!req.body.poll) {
+        return next(new AppError('No options created', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {poll: req.body.poll}, {new: true});
+      }
+    }
     if (req.body.text_body) {
       newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
     }
@@ -173,7 +180,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
     await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}});
   } else if (req.url.startsWith('/submit/r/')) {
     const subreddit = await subredditModel.findOne({name: req.params.subreddit});
-    const newPost = await postModel.create({
+    let newPost = await postModel.create({
       userID: req.user.id,
       postedTime: currentTime,
       title: req.body.title,
@@ -182,6 +189,35 @@ exports.createPost = catchAsync(async (req, res, next) => {
       nsfw: req.body.nsfw,
       content: req.body.content,
       subredditID: subreddit.id});
+    const newPostID = newPost.id;
+    if (req.body.type === 'image/video') {
+      if (!req.body.image_vid) {
+        return next(new AppError('No file uploaded', 400));
+      } else {
+        const result = await cloudinary.uploader.upload(`data:image/png;base64,${req.body.image_vid}`, {
+          resource_type: 'auto',
+        });
+        const url = result.secure_url;
+        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+      }
+    }
+    if (req.body.type === 'url') {
+      if (!req.body.url) {
+        return next(new AppError('No link uploaded', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {url: req.body.url}, {new: true});
+      }
+    }
+    if (req.body.type === 'poll') {
+      if (!req.body.poll) {
+        return next(new AppError('No options created', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {poll: req.body.poll}, {new: true});
+      }
+    }
+    if (req.body.text_body) {
+      newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
+    }
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}});
