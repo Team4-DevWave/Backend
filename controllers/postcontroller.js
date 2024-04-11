@@ -98,7 +98,6 @@ exports.sharePost= catchAsync(async (req, res, next) => {
 });
 exports.getPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
-  // .populate('comments');
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
