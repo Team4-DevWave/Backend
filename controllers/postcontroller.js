@@ -20,7 +20,6 @@ exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const posts = paginate.paginate(await postModel.find({
     subredditID: req.params.subredditid})
-  // .populate('userID', 'username').exec()
   , 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -38,7 +37,9 @@ exports.sharePost= catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-
+  if (post.parentPost) {
+    return next(new AppError('Cannot share a shared post', 400));
+  }
   if (destination==='') {
     const postsAsString = req.user.posts.map((post) => post.toString());
     console.log(postsAsString, post.id);
@@ -56,6 +57,10 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     newPostData.title= req.body.title? req.body.title: post.title;
     newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
     newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+    newPostData.vote= {upvotes: 0, downvotes: 0};
+    newPostData.subredditID=null;
+    newPostData.numViews=0;
+    newPostData.commentsCount=0;
     const newPost = await postModel.create(newPostData);
     newPost.save();
     req.user.posts.push(newPost.id);
@@ -65,7 +70,8 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     if (!subreddit) {
       return next(new AppError('No subreddit found with that name', 404));
     }
-    const postsAsString = await postModel.find({subredditID: subreddit.id}).exec().map((post) => post.id);
+    const posts = await postModel.find({subredditID: subreddit.id}).exec();
+    const postsAsString = posts.map((post) => post.id);
     if (postsAsString.includes(post.id)) {
       return next(new AppError('Post already here', 400));
     }
@@ -80,6 +86,10 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     newPostData.title= req.body.title? req.body.title: post.title;
     newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
     newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+    newPostData.vote= {upvotes: 0, downvotes: 0};
+    newPostData.subredditID=subreddit.id;
+    newPostData.numViews=0;
+    newPostData.commentsCount=0;
     const newPost = await postModel.create(newPostData);
     newPost.save();
   }
@@ -95,12 +105,10 @@ exports.getPost = catchAsync(async (req, res, next) => {
   }
   post.numViews += 1;
   await post.save();
-  let pOut=await post.populate('userID', 'username');
-  pOut=await pOut.populate('subredditID', 'name');
   res.status(200).json({
     status: 'success',
     data: {
-      pOut,
+      post,
     },
   });
 });
@@ -140,7 +148,7 @@ exports.lockPost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  if (post.userID.toString() != req.user._id.toString()) {
+  if (post.userID.id != req.user.id) {
     return next(new AppError('You are not the owner of the post', 400));
   }
   post.locked = !post.locked;
@@ -201,7 +209,7 @@ exports.markNSFW = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  if (post.userID.toString() != req.user._id.toString()) {
+  if (post.userID.id != req.user.id) {
     return next(new AppError('You are not the owner of the post', 400));
   }
   post.nsfw = !post.nsfw;
@@ -215,7 +223,7 @@ exports.markSpoiler = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  if (post.userID.toString() != req.user._id.toString()) {
+  if (post.userID.id != req.user.id) {
     return next(new AppError('You are not the owner of the post', 400));
   }
   post.spoiler = !post.spoiler;

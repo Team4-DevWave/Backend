@@ -44,11 +44,22 @@ const postSchema = new mongoose.Schema({
 
 // //query middle ware
 postSchema.pre(/^find/, function(next) {
-  // anything that starts with find ex: findanddelete/findandupdate
   this.populate({
-    // this points to the current query (used to populate all ur docs)
-    path: 'userID subredditID parentPost',
-    select: 'username', // - means remove the selected fields from showing in the population
+    path: 'userID',
+    select: 'username',
+  });
+  next();
+});
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'parentPost',
+  });
+  next();
+});
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'subredditID',
+    select: 'name',
   });
   next();
 });

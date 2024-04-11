@@ -41,8 +41,7 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id})
-      .populate('userID', 'username').populate('subredditID', 'name').exec(), 10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -72,8 +71,7 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 400));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false})
-      .populate('userID', 'username').populate('subredditID', 'name').exec(), 10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}).exec(), 10, pageNumber);
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -192,11 +190,12 @@ exports.addFriend = handleUserAction('follow', 'add');
 exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
-exports.getCurrentUser = catchAsync(async (req, res, next) => {
+exports.getCurrentUser = catchAsync(async (req, res, next) => { // TODO moderate output
+  const output=await req.user.populate('blockedUsers', 'username');
   res.status(200).json({
     status: 'success',
     data: {
-      user: req.user,
+      user: output,
     },
   });
 });

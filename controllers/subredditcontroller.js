@@ -94,8 +94,7 @@ exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  const posts = await postModel.find({subredditID: subreddit.id})
-      .populate('userID', 'username').populate('subredditID', 'name').sort({'votes.upvotes': -1}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -117,8 +116,7 @@ exports.getRandomPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  const posts = await postModel.find({subredditID: subreddit.id})
-      .populate('userID', 'username').populate('subredditID', 'name').exec();
+  const posts = await postModel.find({subredditID: subreddit.id}).exec();
   for (let i = posts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [posts[i], posts[j]] = [posts[j], posts[i]];
@@ -161,7 +159,7 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
         as: 'subredditID',
       },
     },
-    {$unwind: '$userID'},
+    {$unwind: '$subredditID'},
     {
       $lookup: {
         from: 'users',
@@ -196,9 +194,7 @@ exports.getNewPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  console.log(subreddit.name);
-  const posts = await postModel.find({subredditID: subreddit.id})
-      .populate('userID', 'username').populate('subredditID', 'name').sort({'lastEditedTime': -1}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id}).sort({'lastEditedTime': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
