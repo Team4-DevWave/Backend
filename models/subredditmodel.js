@@ -4,8 +4,6 @@ const subredditSchema =new mongoose.Schema({
   moderators: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   status: {type: String, default: 'Active', required: true},
   members: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
-  postsToBeApproved: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
-  posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
   description: {type: String},
   category: {type: String},
   srSettings: {
