@@ -6,7 +6,7 @@ const subredditSchema =new mongoose.Schema({
   members: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   postsToBeApproved: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
   posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
-  description: {type: String},
+  description: {type: String, default: null},
   category: {type: String},
   srSettings: {
     srType: {
@@ -51,10 +51,10 @@ const subredditSchema =new mongoose.Schema({
     welcomeMessage: {type: String},
   },
   srLooks: {
-    banner: {type: String},
-    icon: {type: String},
-    color: {type: String},
-    darkMode: {type: Boolean},
+    banner: {type: String, default: null},
+    icon: {type: String, default: null},
+    color: {type: String, default: null},
+    darkMode: {type: Boolean, default: false},
   },
   rules: [{type: String}],
   userManagement: {

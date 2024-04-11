@@ -160,3 +160,24 @@ exports.getSubredditRules = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.getUserSubreddits = catchAsync(async (req, res, next) => {
+  const subreddits = [];
+  if (req.user.joinedSubreddits.length === 0) {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        userSubreddits: [],
+      },
+    });
+  }
+  for (let i = 0; i < req.user.joinedSubreddits.length; i++) {
+    subreddits.push(await subredditModel.findById(req.user.joinedSubreddits[i]).select('name srLooks'));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      userSubreddits: subreddits,
+    },
+  });
+});

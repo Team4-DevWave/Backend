@@ -15,6 +15,9 @@ subredditRouter
     .route('/create')
     .post(subredditController.createSubreddit);
 subredditRouter
+    .route('/user_subreddits')
+    .get(subredditController.getUserSubreddits);
+subredditRouter
     .route('/:subreddit')
     .get(subredditController.getSubreddit);
 subredditRouter
