@@ -81,7 +81,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
   });
   await userModel.findByIdAndUpdate(req.user.id,
       {$addToSet: {'comments': comment._id}}, {new: true});
-  post.commentsID.push(comment._id);
+  post.commentsCount+=1;
   await post.save();
   createMessage(comment);
   res.status(201).json({

@@ -11,9 +11,14 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
 const app = express();
-app.use(bodyParser.json());
+
+
+// app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
+app.use(bodyParser.json({limit: '50mb', extended: true}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit: 5000000}));
+app.use(bodyParser.text({limit: '200mb'}));
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/comments', commentRouter);

@@ -130,10 +130,16 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const username = req.body.username;
   const email = req.body.email;
-  if (!email || !username) {
+  if (!email && !username) {
     return next(new AppError('Please provide email/username', 400));
   }
-  const user = await userModel.findOne({email: email, username: username});
+  let user;
+  if (email) {
+    user = await userModel.findOne({email: email});
+  } else {
+    user = await userModel.findOne({username: username});
+  }
+
   if (!user) {
     return next(new AppError('User not found', 400));
   }
@@ -143,10 +149,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({validateBeforeSave: false});
   mailControl.sendEmail(
-      email,
-      `Hello ${username}`,
-      'If you forgot your password please click the link if not please ignore' +
-      +'http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
+      user.email,
+      'Hello',
+      'If you forgot your password please click the link http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
   );
   res.status(200).json({
     status: 'success',
@@ -154,7 +159,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   });
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  const token = req.params.token;
+  console.log('reset password');
+  const token = req.body.token;
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
   if (!password || !passwordConfirm) {

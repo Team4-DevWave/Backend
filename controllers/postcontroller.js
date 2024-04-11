@@ -5,10 +5,21 @@ const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
+const cloudinary = require('cloudinary').v2;
+const mongoose = require('mongoose');
+
+
+cloudinary.config({
+  cloud_name: 'dxy3lq6gh',
+  api_key: '941913859728837',
+  api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
+});
+
 
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid}).exec(), 10, pageNumber);
+  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid})
+      .populate('userID', 'username').exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -16,7 +27,64 @@ exports.getSubredditPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
+exports.sharePost= catchAsync(async (req, res, next) => {
+  const destination = req.body.destination;
+  if (!req.body.postid) {
+    return next(new AppError('No Post', 400));
+  }
+  const post = await postModel.findById(req.body.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
 
+  if (destination==='') {
+    const postsAsString = req.user.posts.map((post) => post.toString());
+    console.log(postsAsString, post.id);
+    if (postsAsString.includes(post.id)) {
+      return next(new AppError('Post already here', 400));
+    }
+    const newPostData = {
+      // eslint-disable-next-line
+      ...post._doc,
+      // eslint-disable-next-line
+      _id: new mongoose.Types.ObjectId(), 
+      __v: 0,
+      parentPost: post._id,
+    };
+    newPostData.title= req.body.title? req.body.title: post.title;
+    newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
+    newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+    const newPost = await postModel.create(newPostData);
+    newPost.save();
+    req.user.posts.push(newPost.id);
+    req.user.save();
+  } else {
+    const subreddit = await subredditModel.findOne({name: destination});
+    if (!subreddit) {
+      return next(new AppError('No subreddit found with that name', 404));
+    }
+    const postsAsString = await postModel.find({subredditID: subreddit.id}).exec().map((post) => post.id);
+    if (postsAsString.includes(post.id)) {
+      return next(new AppError('Post already here', 400));
+    }
+    const newPostData = {
+      // eslint-disable-next-line
+      ...post._doc,
+      // eslint-disable-next-line
+      _id: new mongoose.Types.ObjectId(), 
+      __v: 0,
+      parentPost: post._id,
+    };
+    newPostData.title= req.body.title? req.body.title: post.title;
+    newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
+    newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+    const newPost = await postModel.create(newPostData);
+    newPost.save();
+  }
+  res.status(200).json({
+    status: 'success',
+  });
+});
 exports.getPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -24,10 +92,12 @@ exports.getPost = catchAsync(async (req, res, next) => {
   }
   post.numViews += 1;
   await post.save();
+  let pOut=await post.populate('userID', 'username');
+  pOut=await pOut.populate('subredditID', 'name');
   res.status(200).json({
     status: 'success',
     data: {
-      post,
+      pOut,
     },
   });
 });
@@ -167,7 +237,7 @@ exports.getInsights = catchAsync(async (req, res, next) => {
       postID: post.id,
       numViews: post.numViews,
       upvotesRate: upvotesRate,
-      numComments: post.commentsID.length,
+      numComments: post.commentsCount,
       numShares: 0,
     },
   });
@@ -186,21 +256,55 @@ exports.createPost = catchAsync(async (req, res, next) => {
   const currentTime = new Date();
   let post = null;
   if (req.url.startsWith('/submit/u/')) {
-    const newPost = await postModel.create({
+    let newPost = await postModel.create({
       userID: req.user.id,
       postedTime: currentTime,
       title: req.body.title,
       type: req.body.type,
       spoiler: req.body.spoiler,
       nsfw: req.body.nsfw,
-      content: req.body.content,
       approved: true});
+    const newPostID = newPost.id;
+    if (req.body.type === 'image/video') {
+      if (!req.body.image || !req.body.video) {
+        return next(new AppError('No file uploaded', 400));
+      } else {
+        let media = null;
+        if (req.body.image) {
+          media = req.body.image;
+        } else {
+          media = req.body.video;
+        }
+        const result = await cloudinary.uploader.upload(`data:image/png;base64,${media}`, {
+          resource_type: 'auto',
+        });
+        const url = result.secure_url;
+        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+      }
+    }
+    if (req.body.type === 'url') {
+      if (!req.body.url) {
+        return next(new AppError('No link uploaded', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {url: req.body.url}, {new: true});
+      }
+    }
+    if (req.body.type === 'poll') {
+      if (!req.body.poll) {
+        return next(new AppError('No options created', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {poll: req.body.poll}, {new: true});
+      }
+    }
+    if (req.body.text_body) {
+      newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
+    }
     post = newPost;
     const user = req.user;
     await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}});
   } else if (req.url.startsWith('/submit/r/')) {
     const subreddit = await subredditModel.findOne({name: req.params.subreddit});
-    const newPost = await postModel.create({
+    let newPost = await postModel.create({
       userID: req.user.id,
       postedTime: currentTime,
       title: req.body.title,
@@ -209,6 +313,35 @@ exports.createPost = catchAsync(async (req, res, next) => {
       nsfw: req.body.nsfw,
       content: req.body.content,
       subredditID: subreddit.id});
+    const newPostID = newPost.id;
+    if (req.body.type === 'image/video') {
+      if (!req.body.image_vid) {
+        return next(new AppError('No file uploaded', 400));
+      } else {
+        const result = await cloudinary.uploader.upload(`data:image/png;base64,${req.body.image_vid}`, {
+          resource_type: 'auto',
+        });
+        const url = result.secure_url;
+        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+      }
+    }
+    if (req.body.type === 'url') {
+      if (!req.body.url) {
+        return next(new AppError('No link uploaded', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {url: req.body.url}, {new: true});
+      }
+    }
+    if (req.body.type === 'poll') {
+      if (!req.body.poll) {
+        return next(new AppError('No options created', 400));
+      } else {
+        newPost = await postModel.findByIdAndUpdate(newPostID, {poll: req.body.poll}, {new: true});
+      }
+    }
+    if (req.body.text_body) {
+      newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
+    }
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}});

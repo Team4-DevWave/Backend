@@ -25,5 +25,5 @@ postRouter.post('/submit/r/:subreddit', postController.createPost);
 postRouter.patch('/:postid/nsfw', postController.markNSFW);
 postRouter.patch('/:postid/spoiler', postController.markSpoiler);
 postRouter.patch('/:postid/lock', postController.lockPost);
-
+postRouter.post('/share', postController.sharePost);
 module.exports = postRouter;
