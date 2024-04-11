@@ -19,6 +19,17 @@ exports.getComment=catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllComments = catchAsync(async (req, res, next) => {
+  const comments = await commentModel.find({post: req.params.postid});
+  res.status(200).json({
+    status: 'success',
+    results: comments.length,
+    data: {
+      comments,
+    },
+  });
+});
+
 const createMessage = catchAsync(async (comment) => {
   // Send a message to each mentioned user
   if (comment.mentioned && comment.mentioned.length > 0) {
@@ -33,7 +44,9 @@ const createMessage = catchAsync(async (comment) => {
       }
       await messageModel.create({
         from: comment.user,
+        fromType: 'users',
         to: userId,
+        toType: 'users',
         subject: 'username mention',
         comment: comment._id,
         message: comment.content,
@@ -50,7 +63,9 @@ const createMessage = catchAsync(async (comment) => {
   if (comment.user.toString() !== post.userID.toString()) {
     await messageModel.create({
       from: comment.user,
+      fromType: 'users',
       to: post.userID,
+      toType: 'users',
       subject: 'post reply',
       comment: comment._id,
       message: comment.content,
@@ -128,6 +143,14 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this comment', 403));
   }
+  await userModel.findByIdAndUpdate(req.user.id,
+      {$pull: {'comments': comment._id, 'savedPostsAndComments.comments': comment._id}}, {new: true});
+  const post = await postModel.findById(comment.post);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  post.commentsCount-=1;
+  await post.save();
   res.status(204).json({
     status: 'success',
   });
