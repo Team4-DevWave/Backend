@@ -1,12 +1,17 @@
 const {promisify} = require('util');
 const crypto = require('crypto');
-const userModel = require('./../models/usermodel');
+const userModel = require('../models/usermodel');
 const settingsModel = require('./../models/settingsmodel');
 // making a user requires settings
 const catchAsync = require('./../utils/catchasync');
 const jwt = require('jsonwebtoken');
-const Apperror = require('./../utils/apperror');
+const AppError = require('./../utils/apperror');
 const mailControl = require('./../nodemailer-gmail/mailcontrols');
+const commentModel = require('../models/commentsmodel');
+const subredditModel = require('../models/subredditmodel');
+const {OAuth2Client} = require('google-auth-library');
+const clientID='500020411396-l7soq48qpasrds9ipgo5nff5656i0ial.apps.googleusercontent.com';
+
 const signToken = (id) => {
   return jwt.sign(
       {
@@ -48,27 +53,76 @@ const createSendToken = (user, statusCode, res) => {
     },
   });
 };
+const verify=async (client, token) => {
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: clientID,
+  });
+  return ticket.getPayload();
+};
+exports.googleLogin = catchAsync(async (req, res, next) => {
+  const googleToken = req.query.token;
+  const client = new OAuth2Client(clientID);
+  const payload = await verify(client, googleToken);
+  if (!payload.email_verified) {
+    return next(new AppError('Email not verified', 400));
+  }
+  const user = await userModel.findOne({email: payload.email});
+  if (!user) {
+    return next(new AppError('User not found', 400));
+  }
+  createSendToken(user, 200, res);
+});
+exports.googleSignup = catchAsync(async (req, res, next) => {
+  const googleToken = req.body.token;
+  const client = new OAuth2Client(clientID);
+  const payload = await verify(client, googleToken);
+  if (!payload.email_verified) {
+    return next(new AppError('Email not verified', 400));
+  }
+  const user = await userModel.findOne({email: payload.email});
+  if (user) {
+    return next(new AppError('User already exists', 400));
+  }
+  const interests = req.body.interests;
+  const country = req.body.country;
+  const email = payload.email;
+  const username = req.body.username;
+  const password = payload.at_hash;
+  const passwordConfirm = payload.at_hash;
+  const gender= req.body.gender;
+  if (!interests || !username || !password || !passwordConfirm) {
+    return next(new AppError('Please provide all fields', 400));
+  }
+  const settings = await settingsModel.create({});
+  const newUser = await userModel.create({username: username, interests: interests, country: country?country:'',
+    gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
+  newUser.verified=true;
+  newUser.settings = settings._id;
+  await newUser.save();
+  createSendToken(newUser, 201, res);
+});
 exports.login = catchAsync(async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   const username = req.body.username;
   // 1) check if email and pass exist
   if (!password) {
-    return next(new Apperror('Please provide password', 400));
+    return next(new AppError('Please provide password', 400));
   }
-  if (!email || !username) {
-    return next(new Apperror('Please provide email/username', 400));
+  if (!email && !username) {
+    return next(new AppError('Please provide email/username', 400));
   }
   // 2) check if user exists and password is correct
   let user;
   if (email) {
     user = await userModel.findOne({email: email}).select('+password');
-  } else {
+  }
+  if (username && !user) {
     user = await userModel.findOne({username: username}).select('+password');
   }
-
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new Apperror('Incorrect email or password'), 401);
+    return next(new AppError('Incorrect email or password', 401));
   }
   // 3) if everything is okay , send token to client
   createSendToken(user, 200, res);
@@ -76,31 +130,41 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const username = req.body.username;
   const email = req.body.email;
-  if (!email || !username) {
-    return next(new Apperror('Please provide email/username', 400));
+  if (!email && !username) {
+    return next(new AppError('Please provide email/username', 400));
   }
-  const user = await userModel.findOne({email: email, username: username});
+  let user;
+  if (email) {
+    user = await userModel.findOne({email: email});
+  } else {
+    user = await userModel.findOne({username: username});
+  }
+
   if (!user) {
-    return next(new Apperror('User not found', 400));
+    return next(new AppError('User not found', 400));
   }
   if (!user.verified) {
-    return next(new Apperror('User not verified', 400));
+    return next(new AppError('User not verified', 400));
   }
   const resetToken = user.createPasswordResetToken();
   await user.save({validateBeforeSave: false});
   mailControl.sendEmail(
-      email,
-      `Hello ${username}`,
-      'If you forgot your password please click the link if not please ignore' +
-      +'http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
+      user.email,
+      'Hello',
+      'If you forgot your password please click the link http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
   );
+  res.status(200).json({
+    status: 'success',
+    message: 'Token sent to email',
+  });
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  const token = req.params.token;
+  console.log('reset password');
+  const token = req.body.token;
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
   if (!password || !passwordConfirm) {
-    return next(new Apperror('Please provide password and passwordConfirm', 400));
+    return next(new AppError('Please provide password and passwordConfirm', 400));
   }
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
   const user = await userModel.findOne({
@@ -108,7 +172,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     passwordResetExpires: {$gt: Date.now()},
   });
   if (!user) {
-    return next(new Apperror('Token is invalid or has expired', 400));
+    return next(new AppError('Token is invalid or has expired', 400));
   }
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
@@ -122,19 +186,35 @@ exports.updatePassword=catchAsync(async (req, res, next)=>{
   const newPassword=req.body.newPassword;
   const passwordConfirm=req.body.passwordConfirm;
   if (!currentPassword || !newPassword || !passwordConfirm) {
-    return next(new Apperror('Please provide all fields', 400));
+    return next(new AppError('Please provide all fields', 400));
   }
   const user=await userModel.findById(req.user.id).select('+password');
   if (!user) {
-    return next(new Apperror('User not found', 400));
+    return next(new AppError('you are not logged in! please log in to gain access', 401));
   }
   if (!(await user.correctPassword(currentPassword, user.password))) {
-    return next(new Apperror('Password is incorrect', 400));
+    return next(new AppError('Password is incorrect', 401));
   }
   user.password=newPassword;
   user.passwordConfirm=passwordConfirm;
   await user.save();
   createSendToken(user, 200, res);
+});
+exports.forgotUsername=catchAsync(async (req, res, next)=>{
+  const email=req.body.email;
+  if (!email) {
+    return next(new AppError('Please provide email', 400));
+  }
+  const user=await userModel.findOne({email: email});
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+  console.log(user);
+  mailControl.sendEmail(email, 'Hello', 'Your username is '+user.username);
+  res.status(200).json({
+    status: 'success',
+    message: 'Username sent to email',
+  });
 });
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
@@ -148,14 +228,14 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   if (!token) {
     return next(
-        new Apperror('you are not logged in! please log in to gain access', 401),
+        new AppError('you are not logged in! please log in to gain access', 401),
     );
   }
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const user = await userModel.findById(decoded.userID);
   if (!user) {
     return next(
-        new Apperror(
+        new AppError(
             'the user belonging to this token does no longer exist ',
             401,
         ),
@@ -163,7 +243,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
   if (user.changedPasswordsAfter(decoded.iat)) {
     return next(
-        new Apperror('user recently changed password, please log in again', 401),
+        new AppError('user recently changed password, please log in again', 401),
     );
   }
   req.user = user;
@@ -173,14 +253,14 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.signup = catchAsync(async (req, res, next) => {
   let user=await userModel.findOne({username: req.body.username});
   if (user) {
-    return next(new Apperror('username is taken', 401));
+    return next(new AppError('username is taken', 401));
   }
   user = await userModel.findOne({email: req.body.email});
   if (user) {
-    return next(new Apperror('email already used', 401));
+    return next(new AppError('email already used', 401));
   }
   if (!req.body.passwordConfirm) {
-    return next(new Apperror('password confirm is required', 401));
+    return next(new AppError('password confirm is required', 401));
   }
   const interests = req.body.interests;
   const country = req.body.country;
@@ -190,7 +270,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const passwordConfirm = req.body.passwordConfirm;
   const gender= req.body.gender;
   if (!interests || !email || !username || !password || !passwordConfirm) {
-    return next(new Apperror('Please provide all fields', 400));
+    return next(new AppError('Please provide all fields', 400));
   }
   const settings = await settingsModel.create({});
   const newUser = await userModel.create({username: username, interests: interests, country: country?country:'',
@@ -207,10 +287,10 @@ exports.signup = catchAsync(async (req, res, next) => {
 exports.verifyEmail = catchAsync(async (req, res, next) => {
   const user=await userModel.findOne({username: req.params.username});
   if (!user) {
-    return next(new Apperror('user not found', 401));
+    return next(new AppError('user not found', 401));
   }
   if (user.verificationToken!==req.params.token) {
-    return next(new Apperror('invalid token', 401));
+    return next(new AppError('invalid token', 401));
   }
   user.verified=true;
   user.verificationToken=undefined;
@@ -219,4 +299,24 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'email verified',
   });
+});
+// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
+// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
+exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
+  const model = type === 'post' ? subredditModel : commentModel;
+  // Get the post or comment
+  const subreddit = await model.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit not found', 404));
+  }
+  // Check if the subreddit is public
+  if (subreddit.srSettings.srType === 'public') {
+    return next();
+  }
+  // If the subreddit is private or restricted, check if the user is a member
+  const membership = await userModel.findOne({_id: req.user.id, joinedSubreddits: {$in: [subreddit.id]}});
+  if (!membership) {
+    return next(new AppError('You are not authorized to access this subreddit', 403));
+  }
+  next();
 });

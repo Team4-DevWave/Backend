@@ -1,12 +1,37 @@
 const express = require('express');
 const subredditController = require('../controllers/subredditcontroller');
+const authController = require('./../controllers/authcontroller');
+const postRouter = require('./postroutes');
 // eslint-disable-next-line new-cap
-const router = express.Router();
+const subredditRouter = express.Router();
+subredditRouter.use('/:subredditid/posts', postRouter); // NEEDS REVIEW
 
-router
-    .route('/')
-    .get(subredditController.getAllSubreddits)
+
+subredditRouter
+    .route('/all')
+    .get(subredditController.getAllSubreddits); // TODO exclude private subs
+subredditRouter.use(authController.protect);
+subredditRouter
+    .route('/create')
     .post(subredditController.createSubreddit);
+subredditRouter
+    .route('/:subreddit')
+    .get(subredditController.getSubreddit);
+subredditRouter
+    .route('/:subreddit/posts')
+    .get(subredditController.getPostsBySubreddit);
+subredditRouter
+    .route('/:subreddit/subscribe')
+    .post(subredditController.subscribeToSubreddit);
+subredditRouter
+    .route('/:subreddit/unsubscribe')
+    .delete(subredditController.unsubscribeToSubreddit);
+subredditRouter
+    .route('/:subreddit/rules')
+    .get(subredditController.getSubredditRules);
+subredditRouter.get('/:subreddit/top', subredditController.getTopPostsBySubreddit);
+subredditRouter.get('/:subreddit/hot', subredditController.getHotPostsBySubreddit);
+subredditRouter.get('/:subreddit/new', subredditController.getNewPostsBySubreddit);
+subredditRouter.get('/:subreddit/random', subredditController.getRandomPostsBySubreddit);
 
-
-module.exports = router;
+module.exports = subredditRouter;

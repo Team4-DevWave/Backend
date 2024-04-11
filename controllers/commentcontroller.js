@@ -2,20 +2,138 @@ const commentModel = require('../models/commentsmodel');
 const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
+const messageModel=require('../models/messagesmodel');
 const userModel = require('../models/usermodel');
+const postModel = require('../models/postmodel');
 
-exports.getComments = handlerFactory.getAll(commentModel);
-exports.getComment = handlerFactory.getOne(commentModel);
-exports.createComment = handlerFactory.createOne(commentModel, (req) => {
-  req.body.post = req.params.postid;
-  req.body.user = req.user.id;
-  return req.body;
+exports.getComment=catchAsync(async (req, res, next) => {
+  const comment = await commentModel.findById(req.params.id);
+  if (!comment) {
+    return next(new AppError('no comment with that id', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      comment,
+    },
+  });
 });
-exports.editComment = handlerFactory.updateOne(commentModel, (req) => {
-  req.body.lastEdited = Date.now();
-  return req.body;
+
+const createMessage = catchAsync(async (comment) => {
+  // Send a message to each mentioned user
+  if (comment.mentioned && comment.mentioned.length > 0) {
+    comment.mentioned.forEach(async (userId) => {
+      // If the user is the one who created the comment, skip sending the message
+      if (userId.toString() === comment.user.toString()) {
+        return;
+      }
+      const user = await userModel.findById(userId);
+      if (!user) {
+        throw new AppError('User not found', 404);
+      }
+      await messageModel.create({
+        from: comment.user,
+        to: userId,
+        subject: 'username mention',
+        comment: comment._id,
+        message: comment.content,
+        post: comment.post,
+      });
+    });
+  }
+  // Send a message to the post owner
+  const post = await postModel.findById(comment.post);
+  if (!post) {
+    throw new AppError('Post not found', 404);
+  }
+  // Check if the comment's user is not the post's owner
+  if (comment.user.toString() !== post.userID.toString()) {
+    await messageModel.create({
+      from: comment.user,
+      to: post.userID,
+      subject: 'post reply',
+      comment: comment._id,
+      message: comment.content,
+      post: comment.post,
+    });
+  }
 });
-exports.deleteComment = handlerFactory.deleteOne(commentModel);
+// CREATING A MESSAGE NOT TESTED YET IN CREATE AND EDIT COMMENT
+exports.createComment =catchAsync(async (req, res, next) => {
+  if (!req.params.postid) {
+    return next(new AppError('no post id found', 404));
+  }
+  if (!req.body.content) {
+    return next(new AppError('no content found', 404));
+  }
+  const post = await postModel.findById(req.params.id);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  if (post.locked) {
+    return next(new AppError('post is locked', 400));
+  }
+  const comment = await commentModel.create({
+    post: req.params.postid,
+    user: req.user.id,
+    content: req.body.content,
+    mentioned: await handlerFactory.checkMentions(userModel, req.body.content),
+  });
+  await userModel.findByIdAndUpdate(req.user.id,
+      {$addToSet: {'comments': comment._id}}, {new: true});
+  post.commentsCount+=1;
+  await post.save();
+  createMessage(comment);
+  res.status(201).json({
+    status: 'success',
+    data: {
+      comment,
+    },
+  });
+});
+// TRY SEND MESSAGE TO NEWLY MENTIONED USERS IF COMMENT EDITED
+exports.editComment = catchAsync(async (req, res, next) => {
+  const comment = await commentModel.findById(req.params.id);
+  if (!comment) {
+    return next(new AppError('no comment with that id', 404));
+  }
+  console.log(comment.user.toString(), req.user.id.toString());
+  if (comment.user.toString() != req.user.id.toString()) {
+    return next(new AppError('you are not allowed to edit this comment', 403));
+  }
+  const oldMentions = comment.mentioned;
+  comment.content = req.body.content;
+  comment.lastEdited = Date.now();
+  comment.mentioned = await handlerFactory.checkMentions(userModel, req.body.content);
+  await comment.save();
+  // Check for new mentions
+  const newMentions = comment.mentioned.filter((mention) => !oldMentions.includes(mention));
+  if (newMentions.length > 0) {
+    newMentions.forEach((user) => {
+      createMessage(comment);
+    });
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      comment,
+    },
+  });
+});
+
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const comment = await commentModel.findByIdAndDelete(req.params.id);
+  if (!comment) {
+    return next(new AppError('no comment with that id', 404));
+  }
+  if (comment.user.toString() != req.user.id.toString()) {
+    return next(new AppError('you are not allowed to delete this comment', 403));
+  }
+  res.status(204).json({
+    status: 'success',
+  });
+});
+
 exports.saveComment = catchAsync(async (req, res, next) => {
   const comment= await commentModel.findById(req.params.id);
   if (!comment) {
@@ -26,60 +144,18 @@ exports.saveComment = catchAsync(async (req, res, next) => {
   const update= comment.saved ?
     {$addToSet: {'savedPostsAndComments.comments': req.params.id}} :
     {$pull: {'savedPostsAndComments.comments': req.params.id}};
-  const user=await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
+  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
     data: {
-      comment: comment,
-      user: user,
+      comment,
     },
   });
 });
 
+// not implemented yet waiting for moderation
 exports.reportComment = catchAsync(async (req, res, next) => {});
-exports.voteComment = catchAsync(async (req, res, next) => {
-  const voteType= req.body.voteType;
-  const comment= await commentModel.findById(req.params.id);
-  if (!comment) {
-    return next(new AppError('no comment with that id', 404));
-  }
-  let uservote;
 
-  if (req.user.upvotes.comments.includes(req.params.id)) {
-    uservote=1;
-  } else if (req.user.downvotes.comments.includes(req.params.id)) {
-    uservote=-1;
-  } else {
-    uservote=0;
-  }
-  if (voteType==uservote) {
-    comment.votes-=voteType;
-    if (voteType==1) {
-      req.user.upvotes.comments.pull(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes.comments.pull(req.params.id);
-    }
-  } else if (voteType==-uservote) {
-    comment.votes+=2*voteType;
-    if (voteType==1) {
-      req.user.upvotes.comments.push(req.params.id);
-      req.user.downvotes.comments.pull(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes.comments.push(req.params.id);
-      req.user.upvotes.comments.pull(req.params.id);
-    }
-  } else {
-    comment.votes+=voteType;
-    if (voteType==1) {
-      req.user.upvotes.comments.push(req.params.id);
-    } else if (voteType==-1) {
-      req.user.downvotes.comments.push(req.params.id);
-    }
-  }
-  await comment.save();
-  await req.user.save();
-  res.status(200).json({
-    status: 'success',
-  });
-});
-exports.addCommentReply = catchAsync(async (req, res, next) => {});
+exports.voteComment = handlerFactory.voteOne(commentModel, 'comments');
+
+

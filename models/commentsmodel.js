@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.ObjectId,
@@ -17,7 +16,10 @@ const commentSchema = new mongoose.Schema({
   lastEdited: {
     type: Date,
   },
-  votes: {type: Number, default: 0},
+  votes: {
+    upvotes: {type: Number, default: 0},
+    downvotes: {type: Number, default: 0},
+  },
   post: {
     type: mongoose.Schema.ObjectId,
     ref: 'posts',
@@ -39,7 +41,7 @@ const commentSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: 'comments',
   },
-  mentioned: { // unsure
+  mentioned: {
     type: [mongoose.Schema.ObjectId],
     ref: 'users',
   },
