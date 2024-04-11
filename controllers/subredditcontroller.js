@@ -143,7 +143,6 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
   // TODO randomize for random, sort by date edited for new, select a certain time frame for hot and sort
-  console.log(subreddit.name);
   const posts = await postModel.aggregate([
     {$match: {subredditID: subreddit._id}},
     {$addFields: {voteDifference: {$subtract: ['$votes.upvotes', '$votes.downvotes']}}},

@@ -159,7 +159,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   });
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  console.log('reset password');
   const token = req.body.token;
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
@@ -209,7 +208,6 @@ exports.forgotUsername=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  console.log(user);
   mailControl.sendEmail(email, 'Hello', 'Your username is '+user.username);
   res.status(200).json({
     status: 'success',

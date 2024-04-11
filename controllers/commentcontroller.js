@@ -97,7 +97,6 @@ exports.editComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  console.log(comment.user.toString(), req.user.id.toString());
   if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to edit this comment', 403));
   }
