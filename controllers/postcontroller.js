@@ -6,8 +6,6 @@ const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
-const multer = require('multer');
 
 
 cloudinary.config({
@@ -16,7 +14,6 @@ cloudinary.config({
   api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
 });
 
-const upload = multer({dest: 'uploads/'});
 
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
