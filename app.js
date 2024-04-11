@@ -8,9 +8,10 @@ const AppError = require('./utils/apperror.js');
 const globalErrorHandler = require('./controllers/errorcontroller.js');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
 
 
 // app.use(bodyParser.json());
