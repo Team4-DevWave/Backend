@@ -54,12 +54,16 @@ exports.getSubreddit = catchAsync(async (req, res, next) => {
 
 exports.getPostsBySubreddit = catchAsync(async (req, res, next) => { // TODO check access
   const pageNumber = req.query.page || 1;
-  const subreddit = await subredditModel.findOne({name: req.params.subreddit}).populate('posts');
-  subreddit.posts = paginate.paginate(subreddit.posts, 10, pageNumber);
+  const subreddit = await subredditModel.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit does not exist', 404));
+  }
+  const posts = paginate.paginate(await postModel.find({subredditID: subreddit.id})
+      .populate('userID', 'username').populate('subredditID', 'name').exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: subreddit.posts,
+      posts: posts,
     },
   });
 });
@@ -106,7 +110,8 @@ exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  const posts = await postModel.find({subredditID: subreddit.id}).sort({'votes.upvotes': -1}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id})
+      .populate('userID', 'username').populate('subredditID', 'name').sort({'votes.upvotes': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -128,7 +133,8 @@ exports.getRandomPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  const posts = await postModel.find({subredditID: subreddit.id}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id})
+      .populate('userID', 'username').populate('subredditID', 'name').exec();
   for (let i = posts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [posts[i], posts[j]] = [posts[j], posts[i]];
@@ -160,7 +166,31 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     {$match: {subredditID: subreddit._id}},
     {$addFields: {voteDifference: {$subtract: ['$votes.upvotes', '$votes.downvotes']}}},
     {$sort: {date: -1, voteDifference: -1}},
-  ]).exec();
+    {
+      $lookup: {
+        from: 'subreddits',
+        let: {subredditID: '$subredditID'},
+        pipeline: [
+          {$match: {$expr: {$eq: ['$_id', '$$subredditID']}}},
+          {$project: {name: 1, _id: 1}}, // replace 'name' with the fields you want to include
+        ],
+        as: 'subredditID',
+      },
+    },
+    {$unwind: '$userID'},
+    {
+      $lookup: {
+        from: 'users',
+        let: {userID: '$userID'},
+        pipeline: [
+          {$match: {$expr: {$eq: ['$_id', '$$userID']}}},
+          {$project: {username: 1, _id: 1}}, // replace 'name' with the fields you want to include
+        ],
+        as: 'userID',
+      },
+    },
+    {$unwind: '$userID'},
+  ]);
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -183,7 +213,8 @@ exports.getNewPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
   console.log(subreddit.name);
-  const posts = await postModel.find({subredditID: subreddit.id}).sort({'lastEditedTime': -1}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id})
+      .populate('userID', 'username').populate('subredditID', 'name').sort({'lastEditedTime': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
