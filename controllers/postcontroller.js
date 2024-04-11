@@ -15,7 +15,18 @@ cloudinary.config({
   api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
 });
 
+exports.getBestPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const posts = paginate.paginate(await postModel.find({subredditID: {$exists: true}}).sort({numViews: -1}).exec(),
+      10, pageNumber);
 
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts,
+    },
+  });
+});
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const posts = paginate.paginate(await postModel.find({

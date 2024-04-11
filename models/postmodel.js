@@ -34,14 +34,6 @@ const postSchema = new mongoose.Schema({
   toObject: {virtuals: true}, // display virtual as object
 });
 
-// postSchema.virtual('comments', {
-//   ref: 'comments', // schema u want to reference/ connect to
-//   foreignField: 'post',
-//   // we have field called post in comment model which has the id of the post it belongs to
-//   // so we specify that in the foreignfield to connect both models
-//   localField: '_id', // then u need to specify where that tour id is specified in the current model (postmodel)
-// });
-
 // //query middle ware
 postSchema.pre(/^find/, function(next) {
   this.populate({
