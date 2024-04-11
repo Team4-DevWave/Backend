@@ -27,7 +27,30 @@ const postSchema = new mongoose.Schema({
   parentPost: {type: mongoose.Schema.Types.ObjectId, ref: 'posts'},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},
+},
+{
+  // second option is schema options (used to show virtual properties)
+  toJSON: {virtuals: true},
+  toObject: {virtuals: true}, // display virtual as object
 });
 
+// postSchema.virtual('comments', {
+//   ref: 'comments', // schema u want to reference/ connect to
+//   foreignField: 'post',
+//   // we have field called post in comment model which has the id of the post it belongs to
+//   // so we specify that in the foreignfield to connect both models
+//   localField: '_id', // then u need to specify where that tour id is specified in the current model (postmodel)
+// });
+
+// //query middle ware
+postSchema.pre(/^find/, function(next) {
+  // anything that starts with find ex: findanddelete/findandupdate
+  this.populate({
+    // this points to the current query (used to populate all ur docs)
+    path: 'userID subredditID parentPost',
+    select: 'username', // - means remove the selected fields from showing in the population
+  });
+  next();
+});
 const postModel = mongoose.model('posts', postSchema);
 module.exports = postModel;

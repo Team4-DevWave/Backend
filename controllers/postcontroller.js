@@ -18,8 +18,10 @@ cloudinary.config({
 
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid})
-      .populate('userID', 'username').exec(), 10, pageNumber);
+  const posts = paginate.paginate(await postModel.find({
+    subredditID: req.params.subredditid})
+  // .populate('userID', 'username').exec()
+  , 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -87,6 +89,7 @@ exports.sharePost= catchAsync(async (req, res, next) => {
 });
 exports.getPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
+  // .populate('comments');
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
