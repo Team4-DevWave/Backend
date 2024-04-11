@@ -74,7 +74,8 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
     from: req.user.id,
-    subject: {$nin: ['username mention', 'post reply']}}).sort({createdAt: -1}), 10, pageNumber);
+    subject: {$nin: ['username mention', 'post reply']}}).populate('from', 'username')
+      .populate('to', 'username').sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
