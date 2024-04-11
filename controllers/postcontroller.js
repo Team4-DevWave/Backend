@@ -18,9 +18,9 @@ cloudinary.config({
 
 const upload = multer({dest: 'uploads/'});
 
-exports.getPosts = catchAsync(async (req, res, next) => {
+exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = await paginate.paginate(postModel.find({}), 10, pageNumber);
+  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid}).exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -30,10 +30,12 @@ exports.getPosts = catchAsync(async (req, res, next) => {
 });
 
 exports.getPost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
+  post.numViews += 1;
+  await post.save();
   res.status(200).json({
     status: 'success',
     data: {
@@ -43,13 +45,13 @@ exports.getPost = catchAsync(async (req, res, next) => {
 });
 
 exports.editPost = catchAsync(async (req, res, next) => {
-  let post = await postModel.findById(req.params.id);
+  let post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
   req.body.lastEditedTime = Date.now();
   req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
-  post = await postModel.findByIdAndUpdate(req.params.id, {$set: req.body}, {
+  post = await postModel.findByIdAndUpdate(req.params.postid, {$set: req.body}, {
     new: true,
     runValidators: true});
   res.status(200).json({
@@ -61,7 +63,7 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -72,27 +74,36 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 });
 
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
-
+exports.lockPost = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.userID.toString() != req.user._id.toString()) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  post.locked = !post.locked;
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
 exports.savePost = catchAsync(async (req, res, next) => {
-  const post= await postModel.findById(req.params.id);
+  const post= await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
-  post.saved = !post.saved;
-  await post.save();
-  const update= post.saved ?
-    {$addToSet: {'savedPostsAndComments.posts': req.params.id}} :
-    {$pull: {'savedPostsAndComments.posts': req.params.id}};
-  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
+  const update= req.user.savedPostsAndComments.posts.includes(post.id) ?
+  {$pull: {'savedPostsAndComments.posts': req.params.postid}}:
+  {$addToSet: {'savedPostsAndComments.posts': req.params.postid}};
+
+  await userModel.findByIdAndUpdate(req.user.postid, update, {new: true});
   res.status(200).json({
     status: 'success',
-    data: {post,
-    },
   });
 });
-
 exports.hidePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -109,7 +120,7 @@ exports.hidePost = catchAsync(async (req, res, next) => {
 });
 
 exports.unhidePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
@@ -121,6 +132,55 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       post,
+    },
+  });
+});
+exports.markNSFW = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.userID.toString() != req.user._id.toString()) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  post.nsfw = !post.nsfw;
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+exports.markSpoiler = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.userID.toString() != req.user._id.toString()) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  post.spoiler = !post.spoiler;
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
+exports.getInsights = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  let upvotesRate=0;
+  if (post.votes.upvotes + post.votes.downvotes > 0) {
+    upvotesRate = post.votes.upvotes / (post.votes.upvotes + post.votes.downvotes) * 100;
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      postID: post.id,
+      numViews: post.numViews,
+      upvotesRate: upvotesRate,
+      numComments: post.commentsID.length,
+      numShares: 0,
     },
   });
 });
