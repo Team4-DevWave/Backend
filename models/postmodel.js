@@ -1,6 +1,6 @@
 const mongoose=require('mongoose');
 const postSchema = new mongoose.Schema({
-  commentsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
+  commentsCount: {type: Number, default: 0},
   userID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
@@ -23,6 +23,7 @@ const postSchema = new mongoose.Schema({
     upvotes: {type: Number, default: 0},
     downvotes: {type: Number, default: 0},
   },
+  parentPost: {type: mongoose.Schema.Types.ObjectId, ref: 'posts'},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},
 });
