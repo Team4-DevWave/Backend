@@ -166,7 +166,7 @@ exports.savePost = catchAsync(async (req, res, next) => {
   {$pull: {'savedPostsAndComments.posts': req.params.postid}}:
   {$addToSet: {'savedPostsAndComments.posts': req.params.postid}};
 
-  await userModel.findByIdAndUpdate(req.user.postid, update, {new: true});
+  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
   });
