@@ -208,10 +208,16 @@ exports.createPost = catchAsync(async (req, res, next) => {
       approved: true});
     const newPostID = newPost.id;
     if (req.body.type === 'image/video') {
-      if (!req.body.image_vid) {
+      if (!req.body.image || !req.body.video) {
         return next(new AppError('No file uploaded', 400));
       } else {
-        const result = await cloudinary.uploader.upload(`data:image/png;base64,${req.body.image_vid}`, {
+        let media = null;
+        if (!req.body.image) {
+          media = req.body.image;
+        } else {
+          media = req.body.video;
+        }
+        const result = await cloudinary.uploader.upload(`data:image/png;base64,${media}`, {
           resource_type: 'auto',
         });
         const url = result.secure_url;
