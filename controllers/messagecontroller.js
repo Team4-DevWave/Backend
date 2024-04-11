@@ -3,12 +3,52 @@ const AppError = require('../utils/apperror');
 const catchAsync = require('../utils/catchasync');
 const userModel = require('../models/usermodel');
 const paginate = require('../utils/paginate');
+const subredditModel = require('../models/subredditmodel');
 
 exports.createMessage = catchAsync(async (req, res, next) => {
-  req.body.from===''?req.body.from = req.user.id: req.body.from;
-  req.body.to = (await userModel.findOne({username: req.body.to}))._id;
-  if (!req.body.to) {
-    return next(new AppError('no user with that username', 404));
+  const from = req.body.from.split('/');
+  const to = req.body.to.split('/');
+  if (from[0]==='u' || from[0]==='r') {
+    if (from[0]==='u') {
+      if (from[1]!=req.user.username) {
+        return next(new AppError('you cannot send a message using other users name', 400));
+      }
+      req.body.from = req.user.id;
+    } else if (from[0]==='r') {
+      const subreddit=await subredditModel.findOne({name: from[1]});
+      console.log(req.user.joinedSubreddits);
+      console.log(subreddit.moderators);
+      console.log(req.user._id);
+      console.log(subreddit._id);
+      console.log(req.user.joinedSubreddits.includes(subreddit._id));
+      console.log(subreddit.moderators.includes(req.user.id));
+      if (req.user.joinedSubreddits.includes(subreddit._id)) {
+        if (!subreddit.moderators.includes(req.user.id)) {
+          return next(
+              new AppError('you cannot send a message using other subreddits name if you\'re not a moderator', 400));
+        }
+        req.body.from = subreddit._id;
+      } else {
+        return next(new AppError('you cannot send a message using other subreddits name if you\'re not a member', 400));
+      }
+    }
+  } else if (req.body.from==='') {
+    req.body.from=req.user.id;
+  }
+  if (to[0]==='u' || to[0]==='r') {
+    if (to[0]==='u') {
+      const user = await userModel.findOne({username: to[1]});
+      if (!user) {
+        return next(new AppError('no user with that username', 404));
+      }
+      req.body.to = user._id;
+    } else if (to[0]==='r') {
+      const subreddit=await subredditModel.findOne({name: to[1]});
+      if (!subreddit) {
+        return next(new AppError('no subreddit with that name', 404));
+      }
+      req.body.to = subreddit._id;
+    }
   }
   const newMessage = await messageModel.create(req.body);
   res.status(201).json({
