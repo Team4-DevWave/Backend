@@ -66,7 +66,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
   if (!req.body.content) {
     return next(new AppError('no content found', 404));
   }
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -97,7 +97,6 @@ exports.editComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  console.log(comment.user.toString(), req.user.id.toString());
   if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to edit this comment', 403));
   }

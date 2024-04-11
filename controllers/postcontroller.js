@@ -42,7 +42,6 @@ exports.sharePost= catchAsync(async (req, res, next) => {
   }
   if (destination==='') {
     const postsAsString = req.user.posts.map((post) => post.toString());
-    console.log(postsAsString, post.id);
     if (postsAsString.includes(post.id)) {
       return next(new AppError('Post already here', 400));
     }
@@ -162,11 +161,12 @@ exports.savePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
-  const update= req.user.savedPostsAndComments.posts.includes(post.id) ?
+  const postsAsString= req.user.savedPostsAndComments.posts.map((post) => post.toString());
+  const update= postsAsString.includes(post.id) ?
   {$pull: {'savedPostsAndComments.posts': req.params.postid}}:
   {$addToSet: {'savedPostsAndComments.posts': req.params.postid}};
 
-  await userModel.findByIdAndUpdate(req.user.postid, update, {new: true});
+  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
   });

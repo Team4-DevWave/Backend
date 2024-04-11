@@ -16,12 +16,6 @@ exports.createMessage = catchAsync(async (req, res, next) => {
       req.body.from = req.user.id;
     } else if (from[0]==='r') {
       const subreddit=await subredditModel.findOne({name: from[1]});
-      console.log(req.user.joinedSubreddits);
-      console.log(subreddit.moderators);
-      console.log(req.user._id);
-      console.log(subreddit._id);
-      console.log(req.user.joinedSubreddits.includes(subreddit._id));
-      console.log(subreddit.moderators.includes(req.user.id));
       if (req.user.joinedSubreddits.includes(subreddit._id)) {
         if (!subreddit.moderators.includes(req.user.id)) {
           return next(
