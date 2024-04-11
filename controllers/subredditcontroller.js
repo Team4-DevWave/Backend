@@ -52,22 +52,6 @@ exports.getSubreddit = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getPostsBySubreddit = catchAsync(async (req, res, next) => { // TODO check access
-  const pageNumber = req.query.page || 1;
-  const subreddit = await subredditModel.findOne({name: req.params.subreddit});
-  if (!subreddit) {
-    return next(new AppError('Subreddit does not exist', 404));
-  }
-  const posts = paginate.paginate(await postModel.find({subredditID: subreddit.id})
-      .populate('userID', 'username').populate('subredditID', 'name').exec(), 10, pageNumber);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      posts: posts,
-    },
-  });
-});
-
 exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
   const subreddit = await subredditModel.findOne({name: req.params.subreddit});
   if (!subreddit) {

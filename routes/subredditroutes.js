@@ -18,9 +18,6 @@ subredditRouter
     .route('/:subreddit')
     .get(subredditController.getSubreddit);
 subredditRouter
-    .route('/:subreddit/posts')
-    .get(subredditController.getPostsBySubreddit);
-subredditRouter
     .route('/:subreddit/subscribe')
     .post(subredditController.subscribeToSubreddit);
 subredditRouter
