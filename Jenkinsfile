@@ -23,12 +23,12 @@ pipeline {
         }
         stage('Test') {
         steps {
-            sh 'docker run -d --name api hassanhatem/back:latest'
+            sh 'docker run -d --name testing hassanhatem/back:latest'
             sh 'docker exec -it api npx jest /tests/routes/commentroutes.test.js'
             sh 'docker exec -it api npx jest /tests/routes/messageroutes.test.js'
             sh 'docker exec -it api npx jest /tests/routes/postroutes.test.js'
             sh 'docker exec -it api npx jest /tests/routes/subreddit.test.js'
-            sh 'docker rm -f api'
+            sh 'docker rm -f testing'
         }
         }
         stage('Push') {
