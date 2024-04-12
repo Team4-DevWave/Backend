@@ -37,10 +37,6 @@ const commentSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  parentComment: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'comments',
-  },
   mentioned: {
     type: [mongoose.Schema.ObjectId],
     ref: 'users',
