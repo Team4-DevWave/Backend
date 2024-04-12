@@ -173,10 +173,7 @@ exports.saveComment = catchAsync(async (req, res, next) => {
     {$pull: {'savedPostsAndComments.comments': req.params.id}};
   await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
-    status: 'success',
-    data: {
-      comment,
-    },
+    status: 'success',    
   });
 });
 
