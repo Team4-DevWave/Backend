@@ -8,7 +8,8 @@ const messageSchema = new mongoose.Schema({
   },
   fromType: {
     type: String,
-    enum: ['users', 'subreddits'], // Specify the possible collections here
+    enum: ['users', 'subreddits'],
+    default: 'users',
     required: true,
   },
   to: {
@@ -18,7 +19,8 @@ const messageSchema = new mongoose.Schema({
   },
   toType: {
     type: String,
-    enum: ['users', 'subreddits'], // Specify the possible collections here
+    enum: ['users', 'subreddits'],
+    default: 'users',
     required: true,
   },
   subject: {
@@ -57,12 +59,11 @@ const messageSchema = new mongoose.Schema({
 messageSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'from',
-    select: this.fromType === 'users' ? 'username' : 'name',
+    select: 'username' || 'name',
     model: this.fromType,
-  });
-  this.populate({
+  }).populate({
     path: 'to',
-    select: this.toType === 'users' ? 'username' : 'name',
+    select: 'username' || 'name',
     model: this.toType,
   });
   next();
