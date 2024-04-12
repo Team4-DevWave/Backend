@@ -5,6 +5,7 @@ const handlerFactory = require('./handlerfactory');
 const messageModel=require('../models/messagesmodel');
 const userModel = require('../models/usermodel');
 const postModel = require('../models/postmodel');
+const paginate = require('../utils/paginate');
 
 exports.getComment=catchAsync(async (req, res, next) => {
   const comment = await commentModel.findById(req.params.id);
@@ -20,7 +21,8 @@ exports.getComment=catchAsync(async (req, res, next) => {
 });
 
 exports.getAllComments = catchAsync(async (req, res, next) => {
-  const comments = await commentModel.find({post: req.params.postid});
+  const pageNumber = req.query.page || 1;
+  const comments = paginate.paginate(await commentModel.find({post: req.params.postid}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     results: comments.length,
