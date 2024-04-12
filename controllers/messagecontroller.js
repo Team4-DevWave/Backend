@@ -14,6 +14,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
         return next(new AppError('you cannot send a message using other users name', 400));
       }
       req.body.from = req.user.id;
+      req.body.fromType = 'users';
     } else if (from[0]==='r') {
       const subreddit=await subredditModel.findOne({name: from[1]});
       if (req.user.joinedSubreddits.includes(subreddit._id)) {
@@ -25,9 +26,11 @@ exports.createMessage = catchAsync(async (req, res, next) => {
       } else {
         return next(new AppError('you cannot send a message using other subreddits name if you\'re not a member', 400));
       }
+      req.body.fromType = 'subreddits';
     }
   } else if (req.body.from==='') {
     req.body.from=req.user.id;
+    req.body.fromType = 'users';
   }
   if (to[0]==='u' || to[0]==='r') {
     if (to[0]==='u') {
@@ -36,19 +39,21 @@ exports.createMessage = catchAsync(async (req, res, next) => {
         return next(new AppError('no user with that username', 404));
       }
       req.body.to = user._id;
+      req.body.toType = 'users';
     } else if (to[0]==='r') {
       const subreddit=await subredditModel.findOne({name: to[1]});
       if (!subreddit) {
         return next(new AppError('no subreddit with that name', 404));
       }
       req.body.to = subreddit._id;
+      req.body.toType = 'subreddits';
     }
   }
-  const newMessage = await messageModel.create(req.body);
+  const message = await messageModel.create(req.body);
   res.status(201).json({
     status: 'success',
     data: {
-      newMessage,
+      message,
     },
   });
 });
@@ -68,6 +73,7 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
     from: req.user.id,
+    fromType: 'users',
     subject: {$nin: ['username mention', 'post reply']}}).populate('from', 'username')
       .populate('to', 'username').sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
@@ -81,7 +87,9 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
 exports.getAllUnread = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
-    to: req.user.id, read: false}).sort({createdAt: -1}), 10, pageNumber);
+    to: req.user.id,
+    fromType: 'users',
+    read: false}).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -93,7 +101,12 @@ exports.getAllUnread = catchAsync(async (req, res, next) => {
 exports.getAllPostReply = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
-    to: req.user.id, subject: {$in: ['post reply']}}).sort({createdAt: -1}), 10, pageNumber);
+    to: req.user.id,
+    toType: 'users',
+    subject: {$in: ['post reply']},
+    comment: {$exists: true, $ne: null},
+    post: {$exists: true, $ne: null},
+  }).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -105,7 +118,28 @@ exports.getAllPostReply = catchAsync(async (req, res, next) => {
 exports.getAllMentions = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
-    to: req.user.id, subject: {$in: ['username mention']}}).sort({createdAt: -1}), 10, pageNumber);
+    to: req.user.id,
+    toType: 'users',
+    subject: {$in: ['username mention']},
+    comment: {$exists: true, $ne: null},
+    post: {$exists: true, $ne: null}}).sort({createdAt: -1}), 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      messages,
+    },
+  });
+});
+
+exports.getAllMessages = catchAsync(async (req, res, next) => {
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    to: req.user.id,
+    toType: 'users',
+    subject: {$nin: ['username mention', 'post reply']},
+    comment: {$exists: false},
+    post: {$exists: false}}).populate('from', 'username')
+      .populate('to', 'username').sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -115,7 +149,7 @@ exports.getAllMentions = catchAsync(async (req, res, next) => {
 });
 
 exports.markAllRead = catchAsync(async (req, res, next) => {
-  await messageModel.updateMany({to: req.user.id}, {read: true});
+  await messageModel.updateMany({to: req.user.id, toType: 'users'}, {read: true});
   res.status(200).json({
     status: 'success',
   });
@@ -126,7 +160,7 @@ exports.getMessage = catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
-  if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
+  if (message.to._id.toString() !== req.user.id.toString() && message.from._id.toString() !== req.user.id.toString()) {
     return next(new AppError('you are not allowed to access this message', 403));
   }
   res.status(200).json({
@@ -142,7 +176,7 @@ exports.deleteMessage =catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
-  if (message.to.toString() !== req.user.id.toString() && message.from.toString() !== req.user.id.toString()) {
+  if (message.to._id.toString() !== req.user.id.toString() && message.from._id.toString() !== req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this message', 403));
   }
   res.status(204).json({
