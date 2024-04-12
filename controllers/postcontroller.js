@@ -142,6 +142,9 @@ exports.editPost = catchAsync(async (req, res, next) => {
 
 exports.deletePost = catchAsync(async (req, res, next) => {
   const post = await postModel.findByIdAndDelete(req.params.postid);
+  if (post.userID.id != req.user.id) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
