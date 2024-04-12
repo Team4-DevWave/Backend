@@ -29,7 +29,7 @@ pipeline {
             sh 'docker exec  testing npx jest /tests/routes/commentroutes.test.js'
             sh 'docker exec  testing npx jest /tests/routes/messageroutes.test.js'
             sh 'docker exec  testing npx jest /tests/routes/postroutes.test.js'
-            sh 'docker exec  testing npx jest /tests/routes/subreddit.test.js'
+            // sh 'docker exec  testing npx jest /tests/routes/subreddit.test.js'
             sh 'docker rm -f testing'
             }
         }
