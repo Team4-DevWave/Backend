@@ -83,7 +83,8 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
 });
 exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
-  const posts=paginate.paginate(req.user.hiddenPosts, 10, pageNumber);
+  const hiddenPosts = await postModel.find({_id: {$in: req.user.hiddenPosts}});
+  const posts = paginate.paginate(hiddenPosts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
