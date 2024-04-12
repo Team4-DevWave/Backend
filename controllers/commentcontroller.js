@@ -23,6 +23,12 @@ exports.getComment=catchAsync(async (req, res, next) => {
 exports.getAllComments = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const comments = paginate.paginate(await commentModel.find({post: req.params.postid}), 10, pageNumber);
+  if (req.params.postid) {
+    const post = await postModel.findById(req.params.postid);
+    if (!post) {
+      return next(new AppError('no post with that id', 404));
+    }
+  }
   res.status(200).json({
     status: 'success',
     results: comments.length,
@@ -148,9 +154,6 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id,
       {$pull: {'comments': comment._id, 'savedPostsAndComments.comments': comment._id}}, {new: true});
   const post = await postModel.findById(comment.post);
-  if (!post) {
-    return next(new AppError('no post with that id', 404));
-  }
   post.commentsCount-=1;
   await post.save();
   res.status(204).json({
