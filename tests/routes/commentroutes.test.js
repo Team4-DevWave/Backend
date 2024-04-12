@@ -8,7 +8,6 @@ describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
       username: 'moaz',
-      email: 'moaz123@yopmail.com',
       password: 'pass1234',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
@@ -27,7 +26,7 @@ describe('POST /api/v1/posts/:postid/comments/', () => {
         .post(`/api/v1/posts/${postid}/comments/`)
         .set('Authorization', `Bearer ${token}`)
         .send(commentContent);
-    console.log(res.body.data.comment._id);
+    // console.log(res.body.data.comment._id);
     console.log(res.body);
     commentid=res.body.data.comment._id;
     expect(res.statusCode).toBe(201);
