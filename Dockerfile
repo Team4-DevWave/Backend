@@ -15,4 +15,5 @@ COPY . .
 EXPOSE 8000
 
 # Define the command to start your application
-CMD [ "npx", "nodemon", "server.js" ]
+# CMD [ "npx", "nodemon", "server.js" ]
+CMD [ "node", "server.js" ]
