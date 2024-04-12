@@ -15,7 +15,18 @@ cloudinary.config({
   api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
 });
 
+exports.getBestPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const posts = paginate.paginate(await postModel.find({subredditID: {$exists: true}}).sort({numViews: -1}).exec(),
+      10, pageNumber);
 
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts,
+    },
+  });
+});
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const posts = paginate.paginate(await postModel.find({
@@ -276,7 +287,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
       approved: true});
     const newPostID = newPost.id;
     if (req.body.type === 'image/video') {
-      if (!req.body.image || !req.body.video) {
+      if (!req.body.image && !req.body.video) {
         return next(new AppError('No file uploaded', 400));
       } else {
         let media = null;
@@ -289,7 +300,11 @@ exports.createPost = catchAsync(async (req, res, next) => {
           resource_type: 'auto',
         });
         const url = result.secure_url;
-        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+        if (req.body.image) {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {image: url}, {new: true});
+        } else {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {video: url}, {new: true});
+        }
       }
     }
     if (req.body.type === 'url') {
