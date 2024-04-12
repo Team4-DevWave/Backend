@@ -5,6 +5,7 @@ const handlerFactory = require('./handlerfactory');
 const messageModel=require('../models/messagesmodel');
 const userModel = require('../models/usermodel');
 const postModel = require('../models/postmodel');
+const paginate = require('../utils/paginate');
 
 exports.getComment=catchAsync(async (req, res, next) => {
   const comment = await commentModel.findById(req.params.id);
@@ -15,6 +16,18 @@ exports.getComment=catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       comment,
+    },
+  });
+});
+
+exports.getAllComments = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const comments = paginate.paginate(await commentModel.find({post: req.params.postid}), 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    results: comments.length,
+    data: {
+      comments,
     },
   });
 });
@@ -33,7 +46,9 @@ const createMessage = catchAsync(async (comment) => {
       }
       await messageModel.create({
         from: comment.user,
+        fromType: 'users',
         to: userId,
+        toType: 'users',
         subject: 'username mention',
         comment: comment._id,
         message: comment.content,
@@ -50,7 +65,9 @@ const createMessage = catchAsync(async (comment) => {
   if (comment.user.toString() !== post.userID.toString()) {
     await messageModel.create({
       from: comment.user,
+      fromType: 'users',
       to: post.userID,
+      toType: 'users',
       subject: 'post reply',
       comment: comment._id,
       message: comment.content,
@@ -66,7 +83,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
   if (!req.body.content) {
     return next(new AppError('no content found', 404));
   }
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
@@ -81,7 +98,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
   });
   await userModel.findByIdAndUpdate(req.user.id,
       {$addToSet: {'comments': comment._id}}, {new: true});
-  post.commentsID.push(comment._id);
+  post.commentsCount+=1;
   await post.save();
   createMessage(comment);
   res.status(201).json({
@@ -97,7 +114,6 @@ exports.editComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  console.log(comment.user.toString(), req.user.id.toString());
   if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to edit this comment', 403));
   }
@@ -129,6 +145,14 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   if (comment.user.toString() != req.user.id.toString()) {
     return next(new AppError('you are not allowed to delete this comment', 403));
   }
+  await userModel.findByIdAndUpdate(req.user.id,
+      {$pull: {'comments': comment._id, 'savedPostsAndComments.comments': comment._id}}, {new: true});
+  const post = await postModel.findById(comment.post);
+  if (!post) {
+    return next(new AppError('no post with that id', 404));
+  }
+  post.commentsCount-=1;
+  await post.save();
   res.status(204).json({
     status: 'success',
   });

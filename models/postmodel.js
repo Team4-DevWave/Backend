@@ -1,6 +1,6 @@
 const mongoose=require('mongoose');
 const postSchema = new mongoose.Schema({
-  commentsID: [{type: mongoose.Schema.Types.ObjectId, ref: 'comments'}],
+  commentsCount: {type: Number, default: 0},
   userID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
@@ -24,9 +24,36 @@ const postSchema = new mongoose.Schema({
     upvotes: {type: Number, default: 0},
     downvotes: {type: Number, default: 0},
   },
+  parentPost: {type: mongoose.Schema.Types.ObjectId, ref: 'posts'},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},
+},
+{
+  // second option is schema options (used to show virtual properties)
+  toJSON: {virtuals: true},
+  toObject: {virtuals: true}, // display virtual as object
 });
 
+// //query middle ware
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'userID',
+    select: 'username',
+  });
+  next();
+});
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'parentPost',
+  });
+  next();
+});
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'subredditID',
+    select: 'name',
+  });
+  next();
+});
 const postModel = mongoose.model('posts', postSchema);
 module.exports = postModel;

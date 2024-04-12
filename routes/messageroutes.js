@@ -24,6 +24,9 @@ router
     .route('/mentions')
     .get(messageController.getAllMentions);
 router
+    .route('/messages')
+    .get(messageController.getAllMessages);
+router
     .route('/markallread')
     .patch(messageController.markAllRead);
 router

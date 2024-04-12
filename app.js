@@ -9,13 +9,14 @@ const AppError = require('./utils/apperror.js');
 const globalErrorHandler = require('./controllers/errorcontroller.js');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-
+const cors = require('cors');
 
 const app = express();
 
 
 // app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(cors());
 app.use(bodyParser.json({limit: '50mb', extended: true}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit: 5000000}));
 app.use(bodyParser.text({limit: '200mb'}));
@@ -25,7 +26,6 @@ app.use('/api/v1/comments', commentRouter);
 app.use('/api/v1/r', subredditRouter);
 app.use('/api/v1/messages', messageRouter);
 app.use('/api/v1/homepage', homepageRouter);
-
 
 app.all('*', (req, res, next) => {
   next(new AppError(`cant find ${req.originalUrl} on this server!`, 400));

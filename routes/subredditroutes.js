@@ -21,9 +21,6 @@ subredditRouter
     .route('/:subreddit')
     .get(subredditController.getSubreddit);
 subredditRouter
-    .route('/:subreddit/posts')
-    .get(subredditController.getPostsBySubreddit);
-subredditRouter
     .route('/:subreddit/subscribe')
     .post(subredditController.subscribeToSubreddit);
 subredditRouter
@@ -33,5 +30,8 @@ subredditRouter
     .route('/:subreddit/rules')
     .get(subredditController.getSubredditRules);
 subredditRouter.get('/:subreddit/top', subredditController.getTopPostsBySubreddit);
+subredditRouter.get('/:subreddit/hot', subredditController.getHotPostsBySubreddit);
+subredditRouter.get('/:subreddit/new', subredditController.getNewPostsBySubreddit);
+subredditRouter.get('/:subreddit/random', subredditController.getRandomPostsBySubreddit);
 
 module.exports = subredditRouter;
