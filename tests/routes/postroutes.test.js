@@ -112,7 +112,7 @@ describe('PATCH /api/v1/posts/:id/hide', () => {
       
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should hide a post the user selected successfully', async () => {
-        const postid = '65ff1fec2116981dac3bd5c2';
+        const postid = '661840c8a2912d5162d8ca96';
         const response = await request(app).patch(`/api/v1/posts/${postid}/hide`).send().set('Authorization', `Bearer ${token}`);;
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toHaveProperty('post');
@@ -131,7 +131,7 @@ describe('PATCH /api/v1/posts/:id/hide', () => {
         
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should hide a post the user selected successfully', async () => {
-    const postid = '65ff1fec2116981dac3bd5c2';
+    const postid = '661840c8a2912d5162d8ca96';
     const response = await request(app).delete(`/api/v1/posts/${postid}/unhide`).send().set('Authorization', `Bearer ${token}`);;
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveProperty('post');
@@ -159,7 +159,7 @@ describe('GET /api/v1/posts/submit', () => {
           
     
     it('should toggle the nsfw status of the post', async () => {
-      const response = await request(app).patch(`/api/v1/posts/65ff1fec2116981dac6bd5c2/nsfw`).send().set('Authorization', `Bearer ${token}`);
+      const response = await request(app).patch(`/api/v1/posts/661840c8a2912d5162d8ca96/nsfw`).send().set('Authorization', `Bearer ${token}`);
       expect(response.statusCode).toBe(200);
     });
     })
@@ -167,7 +167,7 @@ describe('GET /api/v1/posts/submit', () => {
           
     
       it('should toggle the spoiler status of the post', async () => {
-        const response = await request(app).patch(`/api/v1/posts/65ff1fec2116981dac6bd5c2/spoiler`).send().set('Authorization', `Bearer ${token}`);
+        const response = await request(app).patch(`/api/v1/posts/661840c8a2912d5162d8ca96/spoiler`).send().set('Authorization', `Bearer ${token}`);
         expect(response.statusCode).toBe(200);
       });
       })
@@ -175,7 +175,7 @@ describe('GET /api/v1/posts/submit', () => {
           
     
         it('should toggle the lock status of the post', async () => {
-          const response = await request(app).patch(`/api/v1/posts/65ff1fec2116981dac6bd5c2/lock`).send().set('Authorization', `Bearer ${token}`);
+          const response = await request(app).patch(`/api/v1/posts/661840c8a2912d5162d8ca96/lock`).send().set('Authorization', `Bearer ${token}`);
           expect(response.statusCode).toBe(200);
         });
         })
