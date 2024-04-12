@@ -49,9 +49,9 @@ const subredditSchema =new mongoose.Schema({
     welcomeMessage: {type: String},
   },
   srLooks: {
-    banner: {type: String, default: null},
-    icon: {type: String, default: null},
-    color: {type: String, default: null},
+    banner: {type: String, default: ''},
+    icon: {type: String, default: ''},
+    color: {type: String, default: ''},
     darkMode: {type: Boolean, default: false},
   },
   rules: [{type: String}],

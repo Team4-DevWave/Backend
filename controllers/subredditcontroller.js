@@ -238,7 +238,12 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
     });
   }
   for (let i = 0; i < req.user.joinedSubreddits.length; i++) {
-    subreddits.push(await subredditModel.findById(req.user.joinedSubreddits[i]).select('name srLooks'));
+    const subreddit = await subredditModel.findById(req.user.joinedSubreddits[i]).select('name srLooks.icon');
+    const {srLooks, ...otherProps} = subreddit._doc;
+    subreddits.push({
+      ...otherProps,
+      icon: srLooks.icon,
+    });
   }
   res.status(200).json({
     status: 'success',
