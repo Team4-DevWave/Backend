@@ -287,7 +287,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
       approved: true});
     const newPostID = newPost.id;
     if (req.body.type === 'image/video') {
-      if (!req.body.image || !req.body.video) {
+      if (!req.body.image && !req.body.video) {
         return next(new AppError('No file uploaded', 400));
       } else {
         let media = null;
@@ -300,7 +300,11 @@ exports.createPost = catchAsync(async (req, res, next) => {
           resource_type: 'auto',
         });
         const url = result.secure_url;
-        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+        if (req.body.image) {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {image: url}, {new: true});
+        } else {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {video: url}, {new: true});
+        }
       }
     }
     if (req.body.type === 'url') {
