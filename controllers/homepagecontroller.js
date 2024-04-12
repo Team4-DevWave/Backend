@@ -58,15 +58,29 @@ exports.trending = catchasync(async (req, res, next) => {
 
   const today = new Date(); // Get today's date
   const options = {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'};
-  const formattedDate = today.toLocaleDateString('en-US', options);
+  let formattedDate = today.toLocaleDateString('en-US', options);
 
   getGoogleTrendsDailyResults().then((result) => {
     const todayTrends = result[0];
     const allTrends = todayTrends[formattedDate];
-    const trends = allTrends.slice(0, 6).map((trend) => ({
+    let trends = allTrends.slice(0, 6).map((trend) => ({
       title: trend.title,
       subtitle: trend.subtitle,
     }));
+    if (trends.length < 6) {
+      const remaining = 6 - trends.length;
+      const yesterdayTrends = result[1];
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+      const options = {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'};
+      formattedDate = yesterday.toLocaleDateString('en-US', options);
+      const remainingTrends = yesterdayTrends[formattedDate];
+      const restOfTrends = remainingTrends.slice(0, remaining).map((trend) => ({
+        title: trend.title,
+        subtitle: trend.subtitle,
+      }));
+      trends = [...trends, ...restOfTrends]; // Merge the two arrays
+    }
     res.status(200).json({
       status: 'success',
       data: {
