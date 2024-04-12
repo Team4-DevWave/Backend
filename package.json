@@ -1,4 +1,5 @@
 {
+  "name": "threadit",
   "main": "app.js",
   "scripts": {
     "test": "jest",

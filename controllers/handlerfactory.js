@@ -130,7 +130,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
   await req.user.save();
   res.status(200).json({
     status: 'success',
-    data: doc,
+    data: doc.votes,
   });
 });
 
