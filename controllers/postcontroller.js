@@ -141,11 +141,10 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.postid);
+  const post = await postModel.findByIdAndDelete(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
-  await post.remove();
   res.status(204).json({
     status: 'success',
   });
