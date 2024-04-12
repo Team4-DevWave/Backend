@@ -2,7 +2,7 @@
 
 const request = require('supertest');
 const app = 'http://localhost:8000';
-const postid='6601d6df1d808d929704c564';
+const postid='6617f3328ae9d1cadf035a39';
 
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
@@ -19,7 +19,7 @@ describe('POST /api/v1/users/login', () => {
   });
 });
 describe('POST /api/v1/posts/:postid/comments/', () => {
-  it('should create a new comment', async () => {
+  it('should create a new comment including mentions', async () => {
     const commentContent={
           content: 'this is a comment test u/mohamed and u/mariam u/moaz',
         }
@@ -27,9 +27,21 @@ describe('POST /api/v1/posts/:postid/comments/', () => {
         .post(`/api/v1/posts/${postid}/comments/`)
         .set('Authorization', `Bearer ${token}`)
         .send(commentContent);
+    console.log(res.body.data.comment._id);
+    console.log(res.body);
     commentid=res.body.data.comment._id;
     expect(res.statusCode).toBe(201);
     expect(res.body.data).toHaveProperty('comment');
+  });
+});
+
+describe('GET /api/v1/posts/:postid/comments/', () => {
+  it('should get all comments of a post', async () => {
+    const res = await request(app)
+        .get(`/api/v1/posts/${postid}/comments/`)
+        .set('Authorization', `Bearer ${token}`)
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data).toHaveProperty('comments');
   });
 });
 describe('PATCH /api/v1/posts/:postid/comments/:commentid/save', () => {

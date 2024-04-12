@@ -6,10 +6,22 @@ const messageSchema = new mongoose.Schema({
     ref: 'users',
     required: [true, 'please enter a sender username'],
   },
+  fromType: {
+    type: String,
+    enum: ['users', 'subreddits'],
+    default: 'users',
+    required: true,
+  },
   to: {
     type: mongoose.Schema.ObjectId,
     ref: 'users',
     required: [true, 'please enter a reciever username'],
+  },
+  toType: {
+    type: String,
+    enum: ['users', 'subreddits'],
+    default: 'users',
+    required: true,
   },
   subject: {
     type: String,
@@ -44,7 +56,18 @@ const messageSchema = new mongoose.Schema({
     ref: 'posts',
   },
 });
-
+messageSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'from',
+    select: 'username' || 'name',
+    model: this.fromType,
+  }).populate({
+    path: 'to',
+    select: 'username' || 'name',
+    model: this.toType,
+  });
+  next();
+});
 const messageModel = mongoose.model('messages', messageSchema);
 
 module.exports = messageModel;

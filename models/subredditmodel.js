@@ -4,8 +4,6 @@ const subredditSchema =new mongoose.Schema({
   moderators: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   status: {type: String, default: 'Active', required: true},
   members: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
-  postsToBeApproved: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
-  posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'posts'}],
   description: {type: String},
   category: {type: String},
   srSettings: {
@@ -51,10 +49,10 @@ const subredditSchema =new mongoose.Schema({
     welcomeMessage: {type: String},
   },
   srLooks: {
-    banner: {type: String},
-    icon: {type: String},
-    color: {type: String},
-    darkMode: {type: Boolean},
+    banner: {type: String, default: ''},
+    icon: {type: String, default: ''},
+    color: {type: String, default: ''},
+    darkMode: {type: Boolean, default: false},
   },
   rules: [{type: String}],
   userManagement: {
@@ -65,5 +63,17 @@ const subredditSchema =new mongoose.Schema({
   invitedUsers: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
 });
 
+// // //query middle ware
+// subredditSchema.pre(/^find/, function(next) {
+//   // anything that starts with find ex: findanddelete/findandupdate
+//   this.populate({
+//     // this points to the current query (used to populate all ur docs)
+//     path: 'moderators',
+//     select: '-__v -passwordChangedAt', // - means remove the selected fields from showing in the population
+//   });
+//   // using populate a lot might affect performance as it creates new query
+//   // we used populate in here instead of tourcontroller to prevent code repetition (to populate all of ur documents)
+//   next();
+// });
 const subredditModel = mongoose.model('subreddits', subredditSchema);
 module.exports = subredditModel;

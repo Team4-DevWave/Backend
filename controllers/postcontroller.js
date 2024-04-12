@@ -6,8 +6,7 @@ const catchAsync = require('../utils/catchasync');
 const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
-const multer = require('multer');
+const mongoose = require('mongoose');
 
 
 cloudinary.config({
@@ -16,11 +15,11 @@ cloudinary.config({
   api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
 });
 
-const upload = multer({dest: 'uploads/'});
-
-exports.getSubredditPosts = catchAsync(async (req, res, next) => {
+exports.getBestPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = paginate.paginate(await postModel.find({subredditID: req.params.subredditid}).exec(), 10, pageNumber);
+  const posts = paginate.paginate(await postModel.find({subredditID: {$exists: true}}).sort({numViews: -1}).exec(),
+      10, pageNumber);
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -28,7 +27,86 @@ exports.getSubredditPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
-
+exports.getSubredditPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const posts = paginate.paginate(await postModel.find({
+    subredditID: req.params.subredditid})
+  , 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts,
+    },
+  });
+});
+exports.sharePost= catchAsync(async (req, res, next) => {
+  const destination = req.body.destination;
+  if (!req.body.postid) {
+    return next(new AppError('No Post', 400));
+  }
+  const post = await postModel.findById(req.body.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.parentPost) {
+    return next(new AppError('Cannot share a shared post', 400));
+  }
+  if (destination==='') {
+    const postsAsString = req.user.posts.map((post) => post.toString());
+    if (postsAsString.includes(post.id)) {
+      return next(new AppError('Post already here', 400));
+    }
+    const newPostData = {
+      // eslint-disable-next-line
+      ...post._doc,
+      // eslint-disable-next-line
+      _id: new mongoose.Types.ObjectId(), 
+      __v: 0,
+      parentPost: post._id,
+    };
+    newPostData.title= req.body.title? req.body.title: post.title;
+    newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
+    newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+    newPostData.vote= {upvotes: 0, downvotes: 0};
+    newPostData.subredditID=null;
+    newPostData.numViews=0;
+    newPostData.commentsCount=0;
+    const newPost = await postModel.create(newPostData);
+    newPost.save();
+    req.user.posts.push(newPost.id);
+    req.user.save();
+  } else {
+    const subreddit = await subredditModel.findOne({name: destination});
+    if (!subreddit) {
+      return next(new AppError('No subreddit found with that name', 404));
+    }
+    const posts = await postModel.find({subredditID: subreddit.id}).exec();
+    const postsAsString = posts.map((post) => post.id);
+    if (postsAsString.includes(post.id)) {
+      return next(new AppError('Post already here', 400));
+    }
+    const newPostData = {
+      // eslint-disable-next-line
+      ...post._doc,
+      // eslint-disable-next-line
+      _id: new mongoose.Types.ObjectId(), 
+      __v: 0,
+      parentPost: post._id,
+    };
+    newPostData.title= req.body.title? req.body.title: post.title;
+    newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
+    newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+    newPostData.vote= {upvotes: 0, downvotes: 0};
+    newPostData.subredditID=subreddit.id;
+    newPostData.numViews=0;
+    newPostData.commentsCount=0;
+    const newPost = await postModel.create(newPostData);
+    newPost.save();
+  }
+  res.status(200).json({
+    status: 'success',
+  });
+});
 exports.getPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -63,11 +141,13 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findById(req.params.postid);
+  const post = await postModel.findByIdAndDelete(req.params.postid);
+  if (post.userID.id != req.user.id) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
-  await post.remove();
   res.status(204).json({
     status: 'success',
   });
@@ -79,7 +159,7 @@ exports.lockPost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  if (post.userID.toString() != req.user._id.toString()) {
+  if (post.userID.id != req.user.id) {
     return next(new AppError('You are not the owner of the post', 400));
   }
   post.locked = !post.locked;
@@ -93,11 +173,12 @@ exports.savePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
-  const update= req.user.savedPostsAndComments.posts.includes(post.id) ?
+  const postsAsString= req.user.savedPostsAndComments.posts.map((post) => post.toString());
+  const update= postsAsString.includes(post.id) ?
   {$pull: {'savedPostsAndComments.posts': req.params.postid}}:
   {$addToSet: {'savedPostsAndComments.posts': req.params.postid}};
 
-  await userModel.findByIdAndUpdate(req.user.postid, update, {new: true});
+  await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
   });
@@ -140,7 +221,7 @@ exports.markNSFW = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  if (post.userID.toString() != req.user._id.toString()) {
+  if (post.userID.id != req.user.id) {
     return next(new AppError('You are not the owner of the post', 400));
   }
   post.nsfw = !post.nsfw;
@@ -154,7 +235,7 @@ exports.markSpoiler = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
-  if (post.userID.toString() != req.user._id.toString()) {
+  if (post.userID.id != req.user.id) {
     return next(new AppError('You are not the owner of the post', 400));
   }
   post.spoiler = !post.spoiler;
@@ -179,7 +260,7 @@ exports.getInsights = catchAsync(async (req, res, next) => {
       postID: post.id,
       numViews: post.numViews,
       upvotesRate: upvotesRate,
-      numComments: post.commentsID.length,
+      numComments: post.commentsCount,
       numShares: 0,
     },
   });
@@ -208,14 +289,24 @@ exports.createPost = catchAsync(async (req, res, next) => {
       approved: true});
     const newPostID = newPost.id;
     if (req.body.type === 'image/video') {
-      if (!req.body.image_vid) {
+      if (!req.body.image && !req.body.video) {
         return next(new AppError('No file uploaded', 400));
       } else {
-        const result = await cloudinary.uploader.upload(`data:image/png;base64,${req.body.image_vid}`, {
+        let media = null;
+        if (req.body.image) {
+          media = req.body.image;
+        } else {
+          media = req.body.video;
+        }
+        const result = await cloudinary.uploader.upload(`data:image/png;base64,${media}`, {
           resource_type: 'auto',
         });
         const url = result.secure_url;
-        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+        if (req.body.image) {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {image: url}, {new: true});
+        } else {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {video: url}, {new: true});
+        }
       }
     }
     if (req.body.type === 'url') {

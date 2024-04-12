@@ -27,6 +27,9 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  profilePicture: {
+    type: String,
+  },
   verificationToken: {
     type: String,
     default: '',
@@ -110,10 +113,6 @@ const userSchema = new mongoose.Schema({
   hiddenPosts: {
     type: [mongoose.Schema.ObjectId],
     ref: 'posts',
-  },
-  comments: {
-    type: [mongoose.Schema.ObjectId],
-    ref: 'comments',
   },
   posts: {
     type: [mongoose.Schema.ObjectId],

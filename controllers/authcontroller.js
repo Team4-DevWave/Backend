@@ -130,10 +130,16 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const username = req.body.username;
   const email = req.body.email;
-  if (!email || !username) {
+  if (!email && !username) {
     return next(new AppError('Please provide email/username', 400));
   }
-  const user = await userModel.findOne({email: email, username: username});
+  let user;
+  if (email) {
+    user = await userModel.findOne({email: email});
+  } else {
+    user = await userModel.findOne({username: username});
+  }
+
   if (!user) {
     return next(new AppError('User not found', 400));
   }
@@ -143,10 +149,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({validateBeforeSave: false});
   mailControl.sendEmail(
-      email,
-      `Hello ${username}`,
-      'If you forgot your password please click the link if not please ignore' +
-      +'http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
+      user.email,
+      'Hello',
+      'If you forgot your password please click the link http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
   );
   res.status(200).json({
     status: 'success',
@@ -154,7 +159,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   });
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  const token = req.params.token;
+  const token = req.body.token;
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
   if (!password || !passwordConfirm) {
@@ -203,7 +208,6 @@ exports.forgotUsername=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  console.log(user);
   mailControl.sendEmail(email, 'Hello', 'Your username is '+user.username);
   res.status(200).json({
     status: 'success',
@@ -295,7 +299,6 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   });
 });
 // ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
-// ADD MIDDLEWARE FOR VALIDATING COMMENT AND POST SUBREDDITS
 exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
   const model = type === 'post' ? subredditModel : commentModel;
   // Get the post or comment
@@ -313,4 +316,22 @@ exports.checkSubredditAccess =(type)=> catchAsync(async (req, res, next) => {
     return next(new AppError('You are not authorized to access this subreddit', 403));
   }
   next();
+});
+
+exports.changeEmail = catchAsync(async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  if (user.email===req.body.email) {
+    return next(new AppError('You\'re using the same email ', 401));
+  }
+  user.email = req.body.email;
+  user.verified=false;
+  const token=sendVerificationEmail(user);
+  user.verficationToken=token;
+  await user.save();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
 });

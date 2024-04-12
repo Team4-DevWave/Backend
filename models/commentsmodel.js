@@ -37,16 +37,18 @@ const commentSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  parentComment: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'comments',
-  },
   mentioned: {
     type: [mongoose.Schema.ObjectId],
     ref: 'users',
   },
 });
-
+commentSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'user',
+    select: 'username',
+  });
+  next();
+});
 const commentModel = mongoose.model('comments', commentSchema);
 
 module.exports = commentModel;

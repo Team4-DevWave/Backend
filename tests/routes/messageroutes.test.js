@@ -22,7 +22,7 @@ describe('POST /api/v1/messages/compose', () => {
   it('should create a new message', async () => {
     const messageData = {
       from: '',
-      to: 'mariam',
+      to: 'u/mariam',
       subject: 'message composed',
       message: 'hello from the other world ',
     };
@@ -30,9 +30,9 @@ describe('POST /api/v1/messages/compose', () => {
         .post('/api/v1/messages/compose')
         .set('Authorization', `Bearer ${token}`)
         .send(messageData);
-    messageid=res.body.data.newMessage._id;
+    messageid=res.body.data.message._id;
     expect(res.statusCode).toBe(201);
-    expect(res.body.data).toHaveProperty('newMessage');
+    expect(res.body.data).toHaveProperty('message');
   });
   describe('GET /api/v1/messages/inbox', () => {
     it('should get all inbox messages', async () => {
@@ -109,7 +109,6 @@ describe('PATCH /api/v1/messages/:id/markread', () => {
 });
 describe('DELETE /api/v1/messages/:id/delete', () => {
   it('should delete a message', async () => {
-    // const id=0;
     const res = await request(app)
     .delete(`/api/v1/messages/${messageid}/delete`)
     .set('Authorization', `Bearer ${token}`);

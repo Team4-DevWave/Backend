@@ -41,7 +41,7 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id}), 10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -71,7 +71,7 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 400));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}), 10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}).exec(), 10, pageNumber);
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -83,7 +83,8 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
 });
 exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
-  const posts=paginate.paginate(req.user.hiddenPosts, 10, pageNumber);
+  const hiddenPosts = await postModel.find({_id: {$in: req.user.hiddenPosts}});
+  const posts = paginate.paginate(hiddenPosts, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -190,11 +191,12 @@ exports.addFriend = handleUserAction('follow', 'add');
 exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
-exports.getCurrentUser = catchAsync(async (req, res, next) => {
+exports.getCurrentUser = catchAsync(async (req, res, next) => { // TODO moderate output
+  const output=await req.user.populate('blockedUsers', 'username');
   res.status(200).json({
     status: 'success',
     data: {
-      user: req.user,
+      user: output,
     },
   });
 });
@@ -260,5 +262,17 @@ exports.deleteUser = catchAsync(async (req, res, next) => { // for admin
   res.status(204).json({
     status: 'success',
     data: null,
+  });
+});
+
+exports.changeCountry = catchAsync(async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  user.country = req.body.country;
+  await user.save();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
   });
 });

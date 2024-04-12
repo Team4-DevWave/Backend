@@ -79,7 +79,8 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
   if (voteType!==1 && voteType!==-1) {
     return next(new AppError('invalid vote type', 400));
   }
-  const doc= await model.findById(req.params.id);
+  const id = (voteOn == 'posts') ? req.params.postid : req.params.id;
+  const doc= await model.findById(id);
   if (!doc) {
     return next(new AppError('no document with that id', 404));
   }
@@ -129,7 +130,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
   await req.user.save();
   res.status(200).json({
     status: 'success',
-    data: doc,
+    data: doc.votes,
   });
 });
 
