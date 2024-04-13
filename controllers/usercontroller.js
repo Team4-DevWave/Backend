@@ -35,15 +35,7 @@ exports.emailAvailable=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getPosts=catchAsync(async (req, res, next)=>{
-  let username;
-  if (req.params.username === 'me') {
-    if (!req.user) {
-      return next(new AppError('User not authenticated', 401));
-    }
-    username = req.user.username;
-  } else {
-    username = req.params.username;
-  }
+  const username = req.params.username;
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
@@ -58,15 +50,7 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getComments=catchAsync(async (req, res, next)=>{
-  let username;
-  if (req.params.username === 'me') {
-    if (!req.user) {
-      return next(new AppError('User not authenticated', 401));
-    }
-    username = req.user.username;
-  } else {
-    username = req.params.username;
-  }
+  const username = req.params.username;
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
@@ -81,15 +65,7 @@ exports.getComments=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getOverview=catchAsync(async (req, res, next)=>{
-  let username;
-  if (req.params.username === 'me') {
-    if (!req.user) {
-      return next(new AppError('User not authenticated', 401));
-    }
-    username = req.user.username;
-  } else {
-    username = req.params.username;
-  }
+  const username = req.params.username;
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
@@ -131,15 +107,7 @@ exports.getSaved=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getAbout=catchAsync(async (req, res, next)=>{
-  let username;
-  if (req.params.username === 'me') {
-    if (!req.user) {
-      return next(new AppError('User not authenticated', 401));
-    }
-    username = req.user.username;
-  } else {
-    username = req.params.username;
-  }
+  const username = req.params.username;
   const user=await userModel.findOne({username: username});
   if (!user) {
     return next(new AppError('User not found', 400));
