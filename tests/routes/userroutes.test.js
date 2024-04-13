@@ -32,9 +32,8 @@ describe('POST /api/v1/users/signup', () => {
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
-      username: 'moaz',
-      email: 'moaz123@yopmail.com',
-      password: 'pass1234',
+      username: 'testuser',
+      password: 'password',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
     token = response.body.token;
@@ -62,13 +61,13 @@ describe('POST /api/v1/users/login', () => {
 
 describe('GET /api/v1/users/check/:username', () => {
   it('should check if a username is available', async () => {
-    const username = 'newww';
+    const username = 'anonexisteduser';
     const response = await request(app).get(`/api/v1/users/check/${username}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('message', 'Username available');
   });
   it('should check if a username is not available', async () => {
-    const username = 'mohamed';
+    const username = 'testuser';
     const response = await request(app).get(`/api/v1/users/check/${username}`);
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('message', 'Username not available');
@@ -76,7 +75,7 @@ describe('GET /api/v1/users/check/:username', () => {
 });
 describe('GET /api/v1/users/:username/posts', () => {
   it('should get a user\'s posts', async () => {
-    const username = 'moaz';
+    const username = 'mohamed';
     const response = await request(app).get(`/api/v1/users/${username}/posts`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -85,7 +84,7 @@ describe('GET /api/v1/users/:username/posts', () => {
 });
 describe('GET /api/v1/users/:username/comments', () => {
   it('should get a user\'s comments', async () => {
-    const username = 'moaz';
+    const username = 'mohamed';
     const response = await request(app).get(`/api/v1/users/${username}/comments`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -94,7 +93,7 @@ describe('GET /api/v1/users/:username/comments', () => {
 });
 describe('GET /api/v1/users/:username/overview', () => {
   it('should get a user\'s overview', async () => {
-    const username = 'moaz';
+    const username = 'mohamed';
     const response = await request(app).get(`/api/v1/users/${username}/overview`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -114,7 +113,6 @@ describe('GET /api/v1/users/me/saved', () => {
 });
 describe('GET /api/v1/users/me/hidden', () => {
   it('should get a user\'s hidden posts', async () => {
-    const username = 'moaz';
     const response = await request(app).get(`/api/v1/users/me/hidden`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -123,8 +121,6 @@ describe('GET /api/v1/users/me/hidden', () => {
 });
 describe('GET /api/v1/users/me/upvoted', () => {
   it('should get a user\'s upvoted posts and comments', async () => {
-    const username = 'moaz';
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/me/upvoted`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -134,8 +130,6 @@ describe('GET /api/v1/users/me/upvoted', () => {
 });
 describe('GET /api/v1/users/me/downvoted', () => {
   it('should get a user\'s downvoted posts and comments', async () => {
-    const username = 'moaz';
-    const pageNumber = 1;
     const response = await request(app).get(`/api/v1/users/me/downvoted`).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -145,7 +139,7 @@ describe('GET /api/v1/users/me/downvoted', () => {
 });
 describe('GET /api/v1/users/:username', () => {
   it('should get a user by username', async () => {
-    const username = 'moaz';
+    const username = 'mohamed';
     const response = await request(app).get(`/api/v1/users/${username}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
@@ -169,7 +163,7 @@ describe('GET /api/v1/users/me/current', () => {
 describe('PATCH /api/v1/users/me/settings/changepassword', () => {
   it('should update a user password', async () => {
     // Assuming the user is already logged in and you have their token
-    const currentPassword = 'pass1234';
+    const currentPassword = 'password';
     const newPassword = 'mariambackend';
     const passwordConfirm = 'mariambackend';
 
@@ -188,8 +182,8 @@ describe('PATCH /api/v1/users/me/settings/changepassword', () => {
   it('should update a user password to his old password', async () => {
     // Assuming the user is already logged in and you have their token
     const currentPassword = 'mariambackend';
-    const newPassword = 'pass1234';
-    const passwordConfirm = 'pass1234';
+    const newPassword = 'password';
+    const passwordConfirm = 'password';
 
     const response = await request(app)
       .patch(`/api/v1/users/me/settings/changepassword`)
@@ -312,23 +306,27 @@ describe('DELETE /api/v1/users/me/current', () => {
   });
 });
 describe('post /api/v1/users/forgetUsername', () => {
-  it('should get the logged in user\'s settings', async () => {
+  it('should get the username to email', async () => {
+    const reqData = {
+      email: 'modyben43@gmail.com',
+    };
     const response = await request(app)
-      .post('/api/v1/users/forgetUsername').send({email: 'modyben43@gmail.com'});
+      .post('/api/v1/users/forgotUsername').send(reqData);
+    console.log(response.body);
     expect(response.statusCode).toBe(200);
   });
 });
 describe('post /api/v1/users/forgetUsername', () => {
   it('should get the logged in user\'s settings', async () => {
     const response = await request(app)
-      .post('/api/v1/users/forgetUsername').send({email: 'modyben4@gmail.com'});
+      .post('/api/v1/users/forgotUsername').send({email: 'modyben4@gmail.com'});
     expect(response.statusCode).toBe(404);
   });
 });
 describe('post /api/v1/users/forgetUsername', () => {
   it('should get the logged in user\'s settings', async () => {
     const response = await request(app)
-      .post('/api/v1/users/forgetUsername').send({});
+      .post('/api/v1/users/forgotUsername').send({});
     expect(response.statusCode).toBe(400);
   });
 });
