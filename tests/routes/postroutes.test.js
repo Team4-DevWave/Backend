@@ -1,9 +1,9 @@
 /* eslint-disable */
 
 const request = require('supertest');
-const userModel = require('../../models/usermodel');
 const app = "http://localhost:8000";
-
+const postTitle = 'postTitle' + Math.floor(Math.random() * 10000);
+const postContent = 'postContent' + Math.floor(Math.random() * 10000);
 
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
@@ -24,16 +24,14 @@ describe('POST /api/v1/users/login', () => {
       email: 'test@example.com',
       password: 'wrongpassword',
     };
-
     const response = await request(app)
-      .post('/api/v1/users/login')
-      .send(userCredentials);
+                    .post('/api/v1/users/login')
+                    .send(userCredentials);
     expect(response.statusCode).toBe(401);
     expect(response.body).not.toHaveProperty('token');
     expect(response.body).toHaveProperty('status', 'fail');
     expect(response.body).toHaveProperty('message', 'Incorrect email or password');
   });
-  
 });
 
 
@@ -42,15 +40,19 @@ describe('POST /api/v1/posts/submit/u/:subreddtnam_or_username', () => {
 //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
 it('should create a new post on the user profile successfully', async () => {
       const post = {
-        title: "Test",
+        title: postTitle,
         type: "text",
         spoiler: false,
         nsfw: false,
-        content: "ho ho ho",
+        content: postContent,
         locked: false
       };
       const username = 'moaz';
-      const response = await request(app).post(`/api/v1/posts/submit/u/${username}`).send(post).set('Authorization', `Bearer ${token}`);;
+      const response = await request(app)
+                      .post(`/api/v1/posts/submit/u/${username}`)
+                      .send(post)
+                      .set('Authorization', `Bearer ${token}`);
+      postid=response.body.data.post._id;
       expect(response.statusCode).toBe(201);
       expect(response.body.data).toHaveProperty('post');
   });
@@ -61,30 +63,36 @@ describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should create a new post on a subreddit successfully', async () => {
         const post = {
-          title: "Test",
+          title: postTitle,
           type: "text",
           spoiler: false,
           nsfw: false,
-          content: "ho ho ho",
+          content: postContent,
           locked: false
         };
         const subreddit = 'sabaken_el_testing';
-        const response = await request(app).post(`/api/v1/posts/submit/r/${subreddit}`).send(post).set('Authorization', `Bearer ${token}`);;
+        const response = await request(app)
+                        .post(`/api/v1/posts/submit/r/${subreddit}`)
+                        .send(post)
+                        .set('Authorization', `Bearer ${token}`);;
         expect(response.statusCode).toBe(201);
         expect(response.body.data).toHaveProperty('post');
     });
   
   it('should not create a new post on a subreddit due to subreddit not found', async () => {
     const post = {
-      title: "Test",
+      title: postTitle,
       type: "text",
       spoiler: false,
       nsfw: false,
-      content: "ho ho ho",
+      content: postContent,
       locked: false
     };
     const subreddit = 'elmod7ekfen';
-    const response = await request(app).post(`/api/v1/posts/submit/r/${subreddit}`).send(post).set('Authorization', `Bearer ${token}`);;
+    const response = await request(app)
+                    .post(`/api/v1/posts/submit/r/${subreddit}`)
+                    .send(post)
+                    .set('Authorization', `Bearer ${token}`);;
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('status', 'fail');
     expect(response.body).toHaveProperty('message', 'Subreddit not found');
@@ -93,15 +101,18 @@ describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
 
 it('should not create a new post on a subreddit due to user is not authorized to post in a private subreddit', async () => {
   const post = {
-    title: "Test",
+    title: postTitle,
     type: "text",
     spoiler: false,
     nsfw: false,
-    content: "ho ho ho",
+    content: postContent,
     locked: false
   };
   const subreddit = 'elemod7eken';
-  const response = await request(app).post(`/api/v1/posts/submit/r/${subreddit}`).send(post).set('Authorization', `Bearer ${token}`);;
+  const response = await request(app)
+                  .post(`/api/v1/posts/submit/r/${subreddit}`)
+                  .send(post)
+                  .set('Authorization', `Bearer ${token}`);;
   expect(response.statusCode).toBe(403);
   expect(response.body).toHaveProperty('status', 'fail');
   expect(response.body).toHaveProperty('message', 'You are not authorized to access this subreddit');
@@ -112,7 +123,7 @@ describe('PATCH /api/v1/posts/:id/hide', () => {
       
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should hide a post the user selected successfully', async () => {
-        const postid = '661840c8a2912d5162d8ca96';
+        // const postid = '661840c8a2912d5162d8ca96';
         const response = await request(app).patch(`/api/v1/posts/${postid}/hide`).send().set('Authorization', `Bearer ${token}`);;
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toHaveProperty('post');
@@ -120,7 +131,9 @@ describe('PATCH /api/v1/posts/:id/hide', () => {
 
   it('should not hide a post the user selected as post doesn not exist', async () => {
     const postid = '65ff1fec2116981dac6bd5c2';
-    const response = await request(app).patch(`/api/v1/posts/${postid}/hide`).send().set('Authorization', `Bearer ${token}`);;
+    const response = await request(app)
+                    .patch(`/api/v1/posts/${postid}/hide`)
+                    .set('Authorization', `Bearer ${token}`);;
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('status', 'fail');
     expect(response.body).toHaveProperty('message', 'No post found with that ID');
@@ -131,15 +144,19 @@ describe('PATCH /api/v1/posts/:id/hide', () => {
         
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should hide a post the user selected successfully', async () => {
-    const postid = '661840c8a2912d5162d8ca96';
-    const response = await request(app).delete(`/api/v1/posts/${postid}/unhide`).send().set('Authorization', `Bearer ${token}`);;
+    // const postid = '661840c8a2912d5162d8ca96';
+    const response = await request(app)
+                    .delete(`/api/v1/posts/${postid}/unhide`)
+                    .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveProperty('post');
   });
   
   it('should not hide a post the user selected as post doesn not exist', async () => {
     const postid = '65ff1fec2116981dac6bd5c2';
-    const response = await request(app).delete(`/api/v1/posts/${postid}/unhide`).send().set('Authorization', `Bearer ${token}`);;
+    const response = await request(app)
+                    .delete(`/api/v1/posts/${postid}/unhide`)
+                    .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('status', 'fail');
     expect(response.body).toHaveProperty('message', 'No post found with that ID');
@@ -150,7 +167,9 @@ describe('GET /api/v1/posts/submit', () => {
           
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should get communities and user joined communities successfully', async () => {
-    const response = await request(app).get(`/api/v1/r/all`).send().set('Authorization', `Bearer ${token}`);;
+    const response = await request(app)
+                    .get(`/api/v1/r/all`)
+                    .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveProperty('subreddits');
   });
@@ -159,23 +178,27 @@ describe('GET /api/v1/posts/submit', () => {
           
     
     it('should toggle the nsfw status of the post', async () => {
-      const response = await request(app).patch(`/api/v1/posts/661840c8a2912d5162d8ca96/nsfw`).send().set('Authorization', `Bearer ${token}`);
+      const response = await request(app)
+                      .patch(`/api/v1/posts/${postid}/nsfw`)
+                      .set('Authorization', `Bearer ${token}`);
       expect(response.statusCode).toBe(200);
     });
     })
     describe('GET /api/v1/posts/[id]/spoiler', () => {
           
-    
       it('should toggle the spoiler status of the post', async () => {
-        const response = await request(app).patch(`/api/v1/posts/661840c8a2912d5162d8ca96/spoiler`).send().set('Authorization', `Bearer ${token}`);
+        const response = await request(app)
+                        .patch(`/api/v1/posts/${postid}/spoiler`)
+                        .set('Authorization', `Bearer ${token}`);
         expect(response.statusCode).toBe(200);
       });
       })
       describe('GET /api/v1/posts/[id]/lock', () => {
           
-    
         it('should toggle the lock status of the post', async () => {
-          const response = await request(app).patch(`/api/v1/posts/661840c8a2912d5162d8ca96/lock`).send().set('Authorization', `Bearer ${token}`);
+          const response = await request(app)
+                          .patch(`/api/v1/posts/${postid}/lock`)
+                          .set('Authorization', `Bearer ${token}`);
           expect(response.statusCode).toBe(200);
         });
         })
