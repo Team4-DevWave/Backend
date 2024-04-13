@@ -27,6 +27,7 @@ exports.getBestPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const posts = paginate.paginate(await postModel.find({
@@ -39,6 +40,7 @@ exports.getSubredditPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.sharePost= catchAsync(async (req, res, next) => {
   const destination = req.body.destination;
   if (!req.body.postid) {
@@ -105,6 +107,7 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     });
   }
 });
+
 exports.getPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -152,6 +155,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 });
 
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
+
 exports.lockPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -166,6 +170,7 @@ exports.lockPost = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
 exports.savePost = catchAsync(async (req, res, next) => {
   const post= await postModel.findById(req.params.postid);
   if (!post) {
@@ -181,6 +186,7 @@ exports.savePost = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
 exports.hidePost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -214,6 +220,7 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.markNSFW = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -228,6 +235,7 @@ exports.markNSFW = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
 exports.markSpoiler = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -388,5 +396,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.reportPost = catchAsync(async (req, res, next) => {}); // TODO NEED MODERATION
 exports.crosspost = catchAsync(async (req, res, next) => {});
