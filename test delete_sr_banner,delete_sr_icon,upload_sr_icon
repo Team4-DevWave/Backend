@@ -1,0 +1,44 @@
+const { deleteSrBanner, deleteSrIcon, uploadSrIcon } = require('./subredditFunctions');
+
+describe('Subreddit Functions', () => {
+    describe('deleteSrBanner', () => {
+        it('should delete the subreddit banner', async () => {
+            const subredditName = 'example_subreddit';
+            const result = await deleteSrBanner(subredditName);
+            expect(result).toEqual({ message: 'Subreddit banner deleted successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(deleteSrBanner(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+
+    describe('deleteSrIcon', () => {
+        it('should delete the subreddit icon', async () => {
+            const subredditName = 'example_subreddit';
+            const result = await deleteSrIcon(subredditName);
+            expect(result).toEqual({ message: 'Subreddit icon deleted successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(deleteSrIcon(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+
+    describe('uploadSrIcon', () => {
+        it('should upload the subreddit icon', async () => {
+            const subredditName = 'example_subreddit';
+            const iconData = 'example_icon_data';
+            const result = await uploadSrIcon(subredditName, iconData);
+            expect(result).toEqual({ message: 'Subreddit icon uploaded successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidSubredditName = 'invalid_subreddit';
+            const iconData = 'example_icon_data';
+            await expect(uploadSrIcon(invalidSubredditName, iconData)).rejects.toThrow();
+        });
+    });
+});
