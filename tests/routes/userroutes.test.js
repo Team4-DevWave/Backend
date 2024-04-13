@@ -4,9 +4,6 @@ const request = require('supertest');
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/signup', () => {
-// beforeEach(async () => {
-//     await userModel.deleteOne({ username: 'testuser' });
-// },300000);
 
 //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should create a new user successfully', async () => {
@@ -294,17 +291,17 @@ describe('DELETE /api/v1/users/me/block/:username', () => {
   });
 });
 
-//REVERSE ACTIVE BACK IN POSTMAN TO BE ABLE TO TEST AGAIN
-describe('DELETE /api/v1/users/me/current', () => {
-  it('should deactivate a user', async () => {
-    // Assuming the user is already logged in and you have their token
-    const response = await request(app)
-      .delete(`/api/v1/users/me/current`)
-      .set('Authorization', `Bearer ${token}`);
+// //REVERSE ACTIVE BACK IN POSTMAN TO BE ABLE TO TEST AGAIN
+// describe('DELETE /api/v1/users/me/current', () => {
+//   it('should deactivate a user', async () => {
+//     // Assuming the user is already logged in and you have their token
+//     const response = await request(app)
+//       .delete(`/api/v1/users/me/current`)
+//       .set('Authorization', `Bearer ${token}`);
 
-    expect(response.statusCode).toBe(204);
-  });
-});
+//     expect(response.statusCode).toBe(204);
+//   });
+// });
 describe('post /api/v1/users/forgetUsername', () => {
   it('should get the username to email', async () => {
     const reqData = {
@@ -312,7 +309,6 @@ describe('post /api/v1/users/forgetUsername', () => {
     };
     const response = await request(app)
       .post('/api/v1/users/forgotUsername').send(reqData);
-    console.log(response.body);
     expect(response.statusCode).toBe(200);
   });
 });
@@ -329,4 +325,14 @@ describe('post /api/v1/users/forgetUsername', () => {
       .post('/api/v1/users/forgotUsername').send({});
     expect(response.statusCode).toBe(400);
   });
+});
+
+describe('DELETE /api/v1/users/:username/delete', () => {
+  it('should delete a user', async () => {
+    username='testuser';
+    const response = await request(app)
+                    .delete(`/api/v1/users/${username}/delete`)
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(204);
+  })
 });

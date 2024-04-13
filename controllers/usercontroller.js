@@ -257,11 +257,10 @@ exports.deleteUser = catchAsync(async (req, res, next) => { // for admin
   if (!user) {
     return next(new AppError('No user with that username', 404));
   }
-  await settingsModel.deleteOne(user.settings);
-  await userModel.deleteOne(user.id);
+  await settingsModel.deleteOne({settings: user.settings});
+  await userModel.deleteOne({_id: user.id});
   res.status(204).json({
     status: 'success',
-    data: null,
   });
 });
 
