@@ -1,6 +1,8 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const catchasync = require('../utils/catchasync');
+const subredditModel = require('../models/subredditmodel');
+const AppError = require('../utils/apperror');
 
 exports.trending = catchasync(async (req, res, next) => {
   puppeteer.use(StealthPlugin());
@@ -113,5 +115,49 @@ exports.trending = catchasync(async (req, res, next) => {
         trends,
       },
     });
+  });
+});
+
+exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
+  let subreddits = [];
+  const result = [];
+  if (req.body.random === false) {
+    subreddits = await subredditModel.find({$and: [{category: req.body.category}, {category: {$exists: true}}]});
+    if (subreddits.length !== 0) {
+      for (let i = 0; i < subreddits.length; i++) {
+        const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+        const {srLooks, ...otherProps} = subreddit._doc;
+        result.push({
+          ...otherProps,
+          icon: srLooks.icon,
+        });
+      }
+    } else {
+      next(new AppError('No subreddits found with that category', 404));
+      return;
+    }
+  } else {
+    while (subreddits === null || subreddits.length === 0) {
+      const categories = Object.values(subredditModel.schema.path('category').enumValues);
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+      console.log(randomCategory);
+      subreddits = await subredditModel.find({category: randomCategory});
+      if (subreddits !== null || subreddits.length !== 0) {
+        for (let i = 0; i < subreddits.length; i++) {
+          const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+          const {srLooks, ...otherProps} = subreddit._doc;
+          result.push({
+            ...otherProps,
+            icon: srLooks.icon,
+          });
+        }
+      }
+    }
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      result,
+    },
   });
 });
