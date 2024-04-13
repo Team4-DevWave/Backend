@@ -21,7 +21,7 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
   if (subreddit) {
     return next(new AppError('Subreddit already exists', 409));
   }
-  const newCommunity = await subredditModel.create(
+  let newCommunity = await subredditModel.create(
       {
         name: req.body.name,
         moderators: [req.user._id],
@@ -31,6 +31,9 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
           nsfw: req.body.nsfw,
         },
       });
+  if (req.body.category) {
+    newCommunity = await subredditModel.findByIdAndUpdate(newCommunity.id, {category: req.body.category}, {new: true});
+  }
   res.status(201).json({
     status: 'success',
     data: {

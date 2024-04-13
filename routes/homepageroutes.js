@@ -6,5 +6,8 @@ const homepageRouter = express.Router();
 homepageRouter
     .route('/trending')
     .get(homepageController.trending);
+homepageRouter
+    .route('/subreddits_by_category')
+    .get(homepageController.getSubredditsWithCategory);
 
 module.exports = homepageRouter;
