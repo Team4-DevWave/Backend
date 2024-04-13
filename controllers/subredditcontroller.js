@@ -252,3 +252,17 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.deleteSubreddit = catchAsync(async (req, res, next) => {
+  const subreddit = await subredditModel.findOne({name: req.params.subreddit});
+  if (!subreddit) {
+    return next(new AppError('Subreddit does not exist', 404));
+  }
+  if (!subreddit.moderators.includes(req.user.id)) {
+    return next(new AppError('You are not a moderator of this subreddit', 403));
+  }
+  await subredditModel.findByIdAndDelete(subreddit.id);
+  res.status(204).json({
+    status: 'success',
+  });
+});

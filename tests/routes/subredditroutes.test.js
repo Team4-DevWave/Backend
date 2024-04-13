@@ -118,3 +118,19 @@ it('should not join a user in a community as the user is already in the communit
   expect(response.body).toHaveProperty('message', 'You are already a member of this subreddit');
 });
 })
+
+describe('DELETE /api/v1/r/:subreddit/delete', () => {
+  it('should delete a community successfully', async () => {
+    const response = await request(app)
+                    .delete(`/api/v1/r/${subredditName}/delete`)
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(204);
+  });
+  it('should not delete a community that does not exist', async () => {
+    const subreddit = 'sabaken_elfd_testing';
+    const response = await request(app)
+                    .delete(`/api/v1/r/${subreddit}/delete`)
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(404);
+  });
+});
