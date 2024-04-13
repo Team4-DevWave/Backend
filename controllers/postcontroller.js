@@ -27,6 +27,7 @@ exports.getBestPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const posts = paginate.paginate(await postModel.find({
@@ -39,6 +40,7 @@ exports.getSubredditPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.sharePost= catchAsync(async (req, res, next) => {
   const destination = req.body.destination;
   if (!req.body.postid) {
@@ -51,30 +53,39 @@ exports.sharePost= catchAsync(async (req, res, next) => {
   if (post.parentPost) {
     return next(new AppError('Cannot share a shared post', 400));
   }
+  const newPostData= {
+    // eslint-disable-next-line
+    ...post._doc,
+    // eslint-disable-next-line
+    _id: new mongoose.Types.ObjectId(), 
+    __v: 0,
+    parentPost: post._id,
+  };
+  newPostData.numViews=0;
+  newPostData.commentsCount=0;
+  newPostData.userID=req.user._id;
+  newPostData.postedTime=Date.now();
+  newPostData.lastEditedTime=Date.now();
+  newPostData.title= req.body.title? req.body.title: post.title;
+  newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
+  newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
+  newPostData.vote= {upvotes: 0, downvotes: 0};
   if (destination==='') {
     const postsAsString = req.user.posts.map((post) => post.toString());
     if (postsAsString.includes(post.id)) {
       return next(new AppError('Post already here', 400));
     }
-    const newPostData = {
-      // eslint-disable-next-line
-      ...post._doc,
-      // eslint-disable-next-line
-      _id: new mongoose.Types.ObjectId(), 
-      __v: 0,
-      parentPost: post._id,
-    };
-    newPostData.title= req.body.title? req.body.title: post.title;
-    newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
-    newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
-    newPostData.vote= {upvotes: 0, downvotes: 0};
     newPostData.subredditID=null;
-    newPostData.numViews=0;
-    newPostData.commentsCount=0;
     const newPost = await postModel.create(newPostData);
     newPost.save();
     req.user.posts.push(newPost.id);
     req.user.save();
+    res.status(200).json({
+      status: 'success',
+      data: {
+        post: newPost,
+      },
+    });
   } else {
     const subreddit = await subredditModel.findOne({name: destination});
     if (!subreddit) {
@@ -85,28 +96,18 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     if (postsAsString.includes(post.id)) {
       return next(new AppError('Post already here', 400));
     }
-    const newPostData = {
-      // eslint-disable-next-line
-      ...post._doc,
-      // eslint-disable-next-line
-      _id: new mongoose.Types.ObjectId(), 
-      __v: 0,
-      parentPost: post._id,
-    };
-    newPostData.title= req.body.title? req.body.title: post.title;
-    newPostData.nsfw= req.body.nsfw? req.body.nsfw: post.nsfw;
-    newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
-    newPostData.vote= {upvotes: 0, downvotes: 0};
     newPostData.subredditID=subreddit.id;
-    newPostData.numViews=0;
-    newPostData.commentsCount=0;
     const newPost = await postModel.create(newPostData);
     newPost.save();
+    res.status(200).json({
+      status: 'success',
+      data: {
+        post: newPost,
+      },
+    });
   }
-  res.status(200).json({
-    status: 'success',
-  });
 });
+
 exports.getPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -154,6 +155,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 });
 
 exports.vote = handlerFactory.voteOne(postModel, 'posts');
+
 exports.lockPost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -168,6 +170,7 @@ exports.lockPost = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
 exports.savePost = catchAsync(async (req, res, next) => {
   const post= await postModel.findById(req.params.postid);
   if (!post) {
@@ -183,6 +186,7 @@ exports.savePost = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
 exports.hidePost = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -216,6 +220,7 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.markNSFW = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -230,6 +235,7 @@ exports.markNSFW = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
 exports.markSpoiler = catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -342,14 +348,24 @@ exports.createPost = catchAsync(async (req, res, next) => {
       subredditID: subreddit.id});
     const newPostID = newPost.id;
     if (req.body.type === 'image/video') {
-      if (!req.body.image_vid) {
+      if (!req.body.image && !req.body.video) {
         return next(new AppError('No file uploaded', 400));
       } else {
-        const result = await cloudinary.uploader.upload(`data:image/png;base64,${req.body.image_vid}`, {
+        let media = null;
+        if (req.body.image) {
+          media = req.body.image;
+        } else {
+          media = req.body.video;
+        }
+        const result = await cloudinary.uploader.upload(`data:image/png;base64,${media}`, {
           resource_type: 'auto',
         });
         const url = result.secure_url;
-        newPost = await postModel.findByIdAndUpdate(newPostID, {image_vid: url}, {new: true});
+        if (req.body.image) {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {image: url}, {new: true});
+        } else {
+          newPost = await postModel.findByIdAndUpdate(newPostID, {video: url}, {new: true});
+        }
       }
     }
     if (req.body.type === 'url') {
@@ -380,5 +396,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.reportPost = catchAsync(async (req, res, next) => {}); // TODO NEED MODERATION
 exports.crosspost = catchAsync(async (req, res, next) => {});

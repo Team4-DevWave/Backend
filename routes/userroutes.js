@@ -21,6 +21,7 @@ userRouter.get('/checkEmail/:email', userController.emailAvailable);// TESTED
 
 userRouter.use(authController.protect);
 userRouter.delete('/:username/delete', userController.deleteUser);// TESTED
+userRouter.patch('/me/changeGender', userController.changeGender);
 userRouter
     .route('/me/current')
     .get(userController.getCurrentUser)// TESTED

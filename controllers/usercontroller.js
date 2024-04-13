@@ -178,6 +178,14 @@ exports.unfollowBlockedUser=catchAsync(async (req, res, next) => {
   }
   next();
 });
+exports.changeGender = catchAsync(async (req, res, next) => {
+  const gender=req.body.gender;
+  req.user.gender=gender;
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
 
 exports.checkBlocked=catchAsync(async (req, res, next) => {
   const user =await userModel.findById(req.user.id);

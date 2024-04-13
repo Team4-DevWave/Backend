@@ -1,6 +1,8 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const catchasync = require('../utils/catchasync');
+const subredditModel = require('../models/subredditmodel');
+const AppError = require('../utils/apperror');
 
 exports.trending = catchasync(async (req, res, next) => {
   puppeteer.use(StealthPlugin());
@@ -62,8 +64,34 @@ exports.trending = catchasync(async (req, res, next) => {
 
   getGoogleTrendsDailyResults().then((result) => {
     const todayTrends = result[0];
-    const allTrends = todayTrends[formattedDate];
-    let trends = allTrends.slice(0, 6).map((trend) => ({
+    let trends = [];
+    let allTrends = [];
+    if (Object.prototype.hasOwnProperty.call(todayTrends, formattedDate)) {
+      allTrends = todayTrends[formattedDate];
+      trends = allTrends.slice(0, 6).map((trend) => ({
+        title: trend.title,
+        subtitle: trend.subtitle,
+      }));
+    } else {
+      const yesterdayTrends = result[0];
+      today.setDate(today.getDate() - 1);
+      const options = {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'};
+      formattedDate = today.toLocaleDateString('en-US', options);
+      const remainingTrends = yesterdayTrends[formattedDate];
+      const restOfTrends = remainingTrends.slice(0, 6).map((trend) => ({
+        title: trend.title,
+        subtitle: trend.subtitle,
+      }));
+      res.status(200).json({
+        status: 'success',
+        data: {
+          restOfTrends,
+        },
+      });
+      return;
+    }
+    allTrends = todayTrends[formattedDate];
+    trends = allTrends.slice(0, 6).map((trend) => ({
       title: trend.title,
       subtitle: trend.subtitle,
     }));
@@ -87,5 +115,49 @@ exports.trending = catchasync(async (req, res, next) => {
         trends,
       },
     });
+  });
+});
+
+exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
+  let subreddits = [];
+  const result = [];
+  if (req.body.random === false) {
+    subreddits = await subredditModel.find({$and: [{category: req.body.category}, {category: {$exists: true}}]});
+    if (subreddits.length !== 0) {
+      for (let i = 0; i < subreddits.length; i++) {
+        const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+        const {srLooks, ...otherProps} = subreddit._doc;
+        result.push({
+          ...otherProps,
+          icon: srLooks.icon,
+        });
+      }
+    } else {
+      next(new AppError('No subreddits found with that category', 404));
+      return;
+    }
+  } else {
+    while (subreddits === null || subreddits.length === 0) {
+      const categories = Object.values(subredditModel.schema.path('category').enumValues);
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+      console.log(randomCategory);
+      subreddits = await subredditModel.find({category: randomCategory});
+      if (subreddits !== null || subreddits.length !== 0) {
+        for (let i = 0; i < subreddits.length; i++) {
+          const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+          const {srLooks, ...otherProps} = subreddit._doc;
+          result.push({
+            ...otherProps,
+            icon: srLooks.icon,
+          });
+        }
+      }
+    }
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      result,
+    },
   });
 });

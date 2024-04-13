@@ -5,7 +5,9 @@ const subredditSchema =new mongoose.Schema({
   status: {type: String, default: 'Active', required: true},
   members: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   description: {type: String},
-  category: {type: String},
+  category: {type: String, enum: ['General', 'News', 'Discussion', 'Media', 'Hobbies', 'Meta',
+    'Other', 'Sports', 'Gaming', 'Movies', 'Books', 'Music', 'Fitness', 'Health', 'Travelling',
+    'Science', 'Technology', 'Programming', 'Art', 'DIY', 'Education', 'Vegan', 'Parenting']},
   srSettings: {
     srType: {
       type: String,
