@@ -19,7 +19,7 @@ userRouter.get('/:username/about', userController.getAbout); // might not need /
 userRouter.get('/:username', userController.getUserByUsername);// TESTED
 userRouter.get('/checkEmail/:email', userController.emailAvailable);// TESTED
 userRouter.use(authController.protect);
-
+userRouter.patch('/me/changeGender', userController.changeGender);
 userRouter
     .route('/me/current')
     .get(userController.getCurrentUser)// TESTED
