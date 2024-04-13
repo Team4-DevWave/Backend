@@ -250,7 +250,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 exports.signup = catchAsync(async (req, res, next) => {
   let user=await userModel.findOne({username: req.body.username});
-  if (user) {
+  if (user || req.body.username==='me') {
     return next(new AppError('username is taken', 401));
   }
   user = await userModel.findOne({email: req.body.email});

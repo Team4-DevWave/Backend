@@ -18,12 +18,13 @@ userRouter.get('/:username/overview', userController.getOverview);// TESTED
 userRouter.get('/:username/about', userController.getAbout); // might not need // TESTED
 userRouter.get('/:username', userController.getUserByUsername);// TESTED
 userRouter.get('/checkEmail/:email', userController.emailAvailable);// TESTED
+
 userRouter.use(authController.protect);
-userRouter.patch('/me/changeGender', userController.changeGender);
+userRouter.delete('/:username/delete', userController.deleteUser);// TESTED
 userRouter
     .route('/me/current')
     .get(userController.getCurrentUser)// TESTED
-    .delete(userController.deleteMe); // TESTED
+    .delete(userController.deleteMe);// TESTED
 userRouter.get('/me/saved', userController.getSaved);// TESTED
 userRouter.get('/me/hidden', userController.gethiddenPosts);// TESTED
 userRouter.get('/me/upvoted', userController.getUpvoted);// TESTED
