@@ -59,7 +59,7 @@ it('should create a new post on the user profile successfully', async () => {
 
 it('should create a new post with image on the user profile successfully', async () => {
   const post = {
-    title: "el7ala",
+    title: postTitle,
     type: "image/video",
     spoiler: true,
     nsfw: false,
@@ -76,7 +76,7 @@ it('should create a new post with image on the user profile successfully', async
 
 it('should create a new post with url on the user profile successfully', async () => {
   const post = {
-    title: "el7ala",
+    title: postTitle,
     type: "url",
     spoiler: true,
     nsfw: false,
@@ -92,7 +92,7 @@ it('should create a new post with url on the user profile successfully', async (
 
 it('should create a new post with poll on the user profile successfully', async () => {
   const post = {
-    title: "el7ala",
+    title: postTitle,
     type: "poll",
     spoiler: true,
     nsfw: false,
@@ -111,9 +111,6 @@ it('should create a new post with poll on the user profile successfully', async 
   expect(response.body.data).toHaveProperty('post');
 });
 });
-
-
-
 
 describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
       
@@ -135,7 +132,7 @@ describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
 
     it('should create a new post with image on a subreddit successfully', async () => {
       const post = {
-        title: "el7ala",
+        title: postTitle,
         type: "image/video",
         spoiler: true,
         nsfw: false,
@@ -152,7 +149,7 @@ describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
     
     it('should create a new post with url on a subreddit successfully', async () => {
       const post = {
-        title: "el7ala",
+        title: postTitle,
         type: "url",
         spoiler: true,
         nsfw: false,
