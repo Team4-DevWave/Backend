@@ -62,8 +62,34 @@ exports.trending = catchasync(async (req, res, next) => {
 
   getGoogleTrendsDailyResults().then((result) => {
     const todayTrends = result[0];
-    const allTrends = todayTrends[formattedDate];
-    let trends = allTrends.slice(0, 6).map((trend) => ({
+    let trends = [];
+    let allTrends = [];
+    if (Object.prototype.hasOwnProperty.call(todayTrends, formattedDate)) {
+      allTrends = todayTrends[formattedDate];
+      trends = allTrends.slice(0, 6).map((trend) => ({
+        title: trend.title,
+        subtitle: trend.subtitle,
+      }));
+    } else {
+      const yesterdayTrends = result[0];
+      today.setDate(today.getDate() - 1);
+      const options = {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'};
+      formattedDate = today.toLocaleDateString('en-US', options);
+      const remainingTrends = yesterdayTrends[formattedDate];
+      const restOfTrends = remainingTrends.slice(0, 6).map((trend) => ({
+        title: trend.title,
+        subtitle: trend.subtitle,
+      }));
+      res.status(200).json({
+        status: 'success',
+        data: {
+          restOfTrends,
+        },
+      });
+      return;
+    }
+    allTrends = todayTrends[formattedDate];
+    trends = allTrends.slice(0, 6).map((trend) => ({
       title: trend.title,
       subtitle: trend.subtitle,
     }));
