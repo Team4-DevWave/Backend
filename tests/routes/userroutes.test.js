@@ -4,10 +4,6 @@ const request = require('supertest');
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/signup', () => {
-// beforeEach(async () => {
-//     await userModel.deleteOne({ username: 'testuser' });
-// },300000);
-
 //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should create a new user successfully', async () => {
     const user = {
