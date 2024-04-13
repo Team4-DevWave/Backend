@@ -23,6 +23,12 @@ exports.getComment=catchAsync(async (req, res, next) => {
 exports.getAllComments = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   const comments = paginate.paginate(await commentModel.find({post: req.params.postid}), 10, pageNumber);
+  if (req.params.postid) {
+    const post = await postModel.findById(req.params.postid);
+    if (!post) {
+      return next(new AppError('no post with that id', 404));
+    }
+  }
   res.status(200).json({
     status: 'success',
     results: comments.length,
@@ -37,7 +43,7 @@ const createMessage = catchAsync(async (comment) => {
   if (comment.mentioned && comment.mentioned.length > 0) {
     comment.mentioned.forEach(async (userId) => {
       // If the user is the one who created the comment, skip sending the message
-      if (userId.toString() === comment.user.toString()) {
+      if (userId.toString() === comment.user.id) {
         return;
       }
       const user = await userModel.findById(userId);
@@ -45,7 +51,7 @@ const createMessage = catchAsync(async (comment) => {
         throw new AppError('User not found', 404);
       }
       await messageModel.create({
-        from: comment.user,
+        from: comment.user._id,
         fromType: 'users',
         to: userId,
         toType: 'users',
@@ -62,9 +68,9 @@ const createMessage = catchAsync(async (comment) => {
     throw new AppError('Post not found', 404);
   }
   // Check if the comment's user is not the post's owner
-  if (comment.user.toString() !== post.userID.toString()) {
+  if (comment.user.id !== post.userID) {
     await messageModel.create({
-      from: comment.user,
+      from: comment.user._id,
       fromType: 'users',
       to: post.userID,
       toType: 'users',
@@ -114,7 +120,7 @@ exports.editComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  if (comment.user.toString() != req.user.id.toString()) {
+  if (comment.user.id != req.user.id) {
     return next(new AppError('you are not allowed to edit this comment', 403));
   }
   const oldMentions = comment.mentioned;
@@ -142,15 +148,12 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  if (comment.user.toString() != req.user.id.toString()) {
+  if (comment.user.id != req.user.id) {
     return next(new AppError('you are not allowed to delete this comment', 403));
   }
   await userModel.findByIdAndUpdate(req.user.id,
       {$pull: {'comments': comment._id, 'savedPostsAndComments.comments': comment._id}}, {new: true});
   const post = await postModel.findById(comment.post);
-  if (!post) {
-    return next(new AppError('no post with that id', 404));
-  }
   post.commentsCount-=1;
   await post.save();
   res.status(204).json({
@@ -171,9 +174,6 @@ exports.saveComment = catchAsync(async (req, res, next) => {
   await userModel.findByIdAndUpdate(req.user.id, update, {new: true});
   res.status(200).json({
     status: 'success',
-    data: {
-      comment,
-    },
   });
 });
 

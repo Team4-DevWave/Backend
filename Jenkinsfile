@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout') {
             steps {
@@ -23,10 +22,18 @@ pipeline {
             }
         }
         // stage('Test') {
-        //     steps {
-        //             sh 'docker run --name test hassanhatem/back:latest npm test'
-        //         sh 'docker rm test'
+        // steps {
+        //     withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+        //             sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+        //     sh 'docker run -d --name testing hassanhatem/back:latest'
+        //     sh 'docker exec  testing npx jest /tests/routes/commentroutes.test.js'
+        //     sh 'docker exec  testing npx jest /tests/routes/messageroutes.test.js'
+        //     sh 'docker exec  testing npx jest /tests/routes/postroutes.test.js'
+        //     // sh 'docker exec  testing npx jest /tests/routes/subreddit.test.js'
+        //     // sh 'docker exec  testing npx jest /tests/routes/userroutes.test.js'
+        //     sh 'docker rm -f testing'
         //     }
+        // }
         // }
         stage('Push') {
             steps {
@@ -36,13 +43,6 @@ pipeline {
                 }
             }
 }
-        // stage('Deploy') {
-        //     steps {
-        //         withCredentials([sshUserPrivateKey(credentialsId: 'azureuser', keyFileVariable: 'SSH_KEY')]) {
-        //             sh 'ssh -i $SSH_KEY azureuser@40.120.97.44 "docker pull hassanhatem/front:latest && docker rm -f front || true && docker run -d --name front -p 3000:3000 hassanhatem/front:latest"'
-        //         }
-        //     }
-        // }
         
     }
 }
