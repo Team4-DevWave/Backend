@@ -12,7 +12,7 @@ exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   }
   const username=req.params.username;
   const user=await userModel.findOne({username: username});
-  if (user) {
+  if (user || username==='me') {
     return next(new AppError('Username not available', 404));
   }
   res.status(200).json({
@@ -35,7 +35,15 @@ exports.emailAvailable=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getPosts=catchAsync(async (req, res, next)=>{
-  const username=req.params.username;
+  let username;
+  if (req.params.username === 'me') {
+    if (!req.user) {
+      return next(new AppError('User not authenticated', 401));
+    }
+    username = req.user.username;
+  } else {
+    username = req.params.username;
+  }
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
@@ -50,7 +58,15 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getComments=catchAsync(async (req, res, next)=>{
-  const username=req.params.username;
+  let username;
+  if (req.params.username === 'me') {
+    if (!req.user) {
+      return next(new AppError('User not authenticated', 401));
+    }
+    username = req.user.username;
+  } else {
+    username = req.params.username;
+  }
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
@@ -65,7 +81,15 @@ exports.getComments=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getOverview=catchAsync(async (req, res, next)=>{
-  const username=req.params.username;
+  let username;
+  if (req.params.username === 'me') {
+    if (!req.user) {
+      return next(new AppError('User not authenticated', 401));
+    }
+    username = req.user.username;
+  } else {
+    username = req.params.username;
+  }
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
@@ -107,7 +131,15 @@ exports.getSaved=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getAbout=catchAsync(async (req, res, next)=>{
-  const username=req.params.username;
+  let username;
+  if (req.params.username === 'me') {
+    if (!req.user) {
+      return next(new AppError('User not authenticated', 401));
+    }
+    username = req.user.username;
+  } else {
+    username = req.params.username;
+  }
   const user=await userModel.findOne({username: username});
   if (!user) {
     return next(new AppError('User not found', 400));
