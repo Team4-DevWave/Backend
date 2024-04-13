@@ -80,10 +80,11 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     newPost.save();
     req.user.posts.push(newPost.id);
     req.user.save();
+    const out=await postModel.findById(post.id);
     res.status(200).json({
       status: 'success',
       data: {
-        post: newPost,
+        post: out,
       },
     });
   } else {
@@ -99,10 +100,11 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     newPostData.subredditID=subreddit.id;
     const newPost = await postModel.create(newPostData);
     newPost.save();
+    const out=await postModel.findById(post.id);
     res.status(200).json({
       status: 'success',
       data: {
-        post: newPost,
+        post: out,
       },
     });
   }
