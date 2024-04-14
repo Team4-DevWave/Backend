@@ -85,9 +85,9 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
     return next(new AppError('no document with that id', 404));
   }
   let uservote;
-  if (req.user.upvotes[voteOn].includes(req.params.id)) {
+  if (req.user.upvotes[voteOn].includes(id)) {
     uservote=1;
-  } else if (req.user.downvotes[voteOn].includes(req.params.id)) {
+  } else if (req.user.downvotes[voteOn].includes(id)) {
     uservote=-1;
   } else {
     uservote=0;
@@ -95,34 +95,34 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
   if (uservote===0) {
     if (voteType==1) {
       doc.votes.upvotes+=1;
-      req.user.upvotes[voteOn].push(req.params.id);
+      req.user.upvotes[voteOn].push(id);
     }
     if (voteType==-1) {
       doc.votes.downvotes+=1;
-      req.user.downvotes[voteOn].push(req.params.id);
+      req.user.downvotes[voteOn].push(id);
     }
   } else {
     if (voteType==uservote) {
       if (voteType==1) {
         doc.votes.upvotes-=1;
-        req.user.upvotes[voteOn].pull(req.params.id);
+        req.user.upvotes[voteOn].pull(id);
       }
       if (voteType==-1) {
         doc.votes.downvotes-=1;
-        req.user.downvotes[voteOn].pull(req.params.id);
+        req.user.downvotes[voteOn].pull(id);
       }
     } else {
       if (voteType==1) {
         doc.votes.upvotes+=1;
         doc.votes.downvotes-=1;
-        req.user.upvotes[voteOn].push(req.params.id);
-        req.user.downvotes[voteOn].pull(req.params.id);
+        req.user.upvotes[voteOn].push(id);
+        req.user.downvotes[voteOn].pull(id);
       }
       if (voteType==-1) {
         doc.votes.downvotes+=1;
         doc.votes.upvotes-=1;
-        req.user.downvotes[voteOn].push(req.params.id);
-        req.user.upvotes[voteOn].pull(req.params.id);
+        req.user.downvotes[voteOn].push(id);
+        req.user.upvotes[voteOn].pull(id);
       }
     }
   }
