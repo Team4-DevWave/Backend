@@ -1,0 +1,35 @@
+const {
+    site_admin,
+    edit_about
+} = require('./subredditFunctions');
+
+describe('Subreddit Functions', () => {
+    describe('site_admin', () => {
+        it('should retrieve site admin information', async () => {
+            const adminInfo = await site_admin();
+            expect(adminInfo).toBeDefined();
+            
+        });
+
+        it('should handle errors gracefully', async () => {
+            await expect(site_admin()).rejects.toThrow();
+            
+        });
+    });
+
+    describe('edit_about', () => {
+        it('should edit the about section of a subreddit', async () => {
+            const subredditName = 'example_subreddit';
+            const aboutText = 'New about text for the subreddit.';
+            const result = await edit_about(subredditName, aboutText);
+            expect(result).toEqual({ message: 'About section edited successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const subredditName = 'invalid_subreddit';
+            const aboutText = 'New about text for the subreddit.';
+            await expect(edit_about(subredditName, aboutText)).rejects.toThrow();
+            
+        });
+    });
+});
