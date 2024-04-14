@@ -39,6 +39,10 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
 });
 
 const createMessage = catchAsync(async (comment) => {
+  const post = await postModel.findById(comment.post);
+  if (!post) {
+    throw new AppError('Post not found', 404);
+  }
   // Send a message to each mentioned user
   if (comment.mentioned && comment.mentioned.length > 0) {
     comment.mentioned.forEach(async (userId) => {
@@ -55,7 +59,7 @@ const createMessage = catchAsync(async (comment) => {
         fromType: 'users',
         to: userId,
         toType: 'users',
-        subject: 'username mention',
+        subject: 'username mention: '+ post.title,
         comment: comment._id,
         message: comment.content,
         post: comment.post,
@@ -63,10 +67,6 @@ const createMessage = catchAsync(async (comment) => {
     });
   }
   // Send a message to the post owner
-  const post = await postModel.findById(comment.post);
-  if (!post) {
-    throw new AppError('Post not found', 404);
-  }
   // Check if the comment's user is not the post's owner
   if (comment.user.id !== post.userID) {
     await messageModel.create({
@@ -74,7 +74,7 @@ const createMessage = catchAsync(async (comment) => {
       fromType: 'users',
       to: post.userID,
       toType: 'users',
-      subject: 'post reply',
+      subject: 'post reply: '+ post.title,
       comment: comment._id,
       message: comment.content,
       post: comment.post,
