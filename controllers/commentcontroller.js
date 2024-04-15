@@ -63,7 +63,6 @@ const createMessage = catchAsync(async (comment) => {
         message: comment.content,
         post: comment.post,
       });
-      console.log('yo');
       const notificationParameters = {
         recipient: userId,
         content: 'u/' + username + ' mentioned you in a comment',
