@@ -74,7 +74,15 @@ exports.getAllSent = catchAsync(async (req, res, next) => {
   const messages = paginate.paginate(await messageModel.find({
     from: req.user.id,
     fromType: 'users',
-    subject: {$nin: ['username mention', 'post reply']}}).populate('from', 'username')
+    subject: {
+      $not: {
+        $in: [/^username mention/, /^post reply/],
+      },
+    },
+    comment: {$exists: false},
+    post: {$exists: false},
+  })
+      .populate('from', 'username')
       .populate('to', 'username').sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
@@ -89,7 +97,8 @@ exports.getAllUnread = catchAsync(async (req, res, next) => {
   const messages = paginate.paginate(await messageModel.find({
     to: req.user.id,
     fromType: 'users',
-    read: false}).sort({createdAt: -1}), 10, pageNumber);
+    read: false,
+  }).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -103,7 +112,7 @@ exports.getAllPostReply = catchAsync(async (req, res, next) => {
   const messages = paginate.paginate(await messageModel.find({
     to: req.user.id,
     toType: 'users',
-    subject: {$in: ['post reply']},
+    subject: {$regex: /^post reply/},
     comment: {$exists: true, $ne: null},
     post: {$exists: true, $ne: null},
   }).sort({createdAt: -1}), 10, pageNumber);
@@ -120,9 +129,10 @@ exports.getAllMentions = catchAsync(async (req, res, next) => {
   const messages = paginate.paginate(await messageModel.find({
     to: req.user.id,
     toType: 'users',
-    subject: {$in: ['username mention']},
+    subject: {$regex: /^username mention/},
     comment: {$exists: true, $ne: null},
-    post: {$exists: true, $ne: null}}).sort({createdAt: -1}), 10, pageNumber);
+    post: {$exists: true, $ne: null},
+  }).sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
@@ -136,9 +146,14 @@ exports.getAllMessages = catchAsync(async (req, res, next) => {
   const messages = paginate.paginate(await messageModel.find({
     to: req.user.id,
     toType: 'users',
-    subject: {$nin: ['username mention', 'post reply']},
+    subject: {
+      $not: {
+        $in: [/^username mention/, /^post reply/],
+      },
+    },
     comment: {$exists: false},
-    post: {$exists: false}}).populate('from', 'username')
+    post: {$exists: false},
+  }).populate('from', 'username')
       .populate('to', 'username').sort({createdAt: -1}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
