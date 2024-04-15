@@ -33,5 +33,6 @@ subredditRouter.get('/:subreddit/top', subredditController.getTopPostsBySubreddi
 subredditRouter.get('/:subreddit/hot', subredditController.getHotPostsBySubreddit);
 subredditRouter.get('/:subreddit/new', subredditController.getNewPostsBySubreddit);
 subredditRouter.get('/:subreddit/random', subredditController.getRandomPostsBySubreddit);
+subredditRouter.delete('/:subreddit/delete', subredditController.deleteSubreddit);
 
 module.exports = subredditRouter;

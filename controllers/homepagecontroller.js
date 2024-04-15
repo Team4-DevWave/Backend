@@ -140,7 +140,6 @@ exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
     while (subreddits === null || subreddits.length === 0) {
       const categories = Object.values(subredditModel.schema.path('category').enumValues);
       const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-      console.log(randomCategory);
       subreddits = await subredditModel.find({category: randomCategory});
       if (subreddits !== null || subreddits.length !== 0) {
         for (let i = 0; i < subreddits.length; i++) {
