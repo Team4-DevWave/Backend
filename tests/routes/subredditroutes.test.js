@@ -1,14 +1,12 @@
 /* eslint-disable */
 
 const request = require('supertest');
-const userModel = require('../../models/usermodel');
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
       username: 'moaz',
-      email: 'moaz123@yopmail.com',
       password: 'pass1234',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
@@ -39,10 +37,11 @@ describe('POST /api/v1/r/create', () => {
            
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should create a community successfully', async () => {
+    subredditName = 'community' + Math.floor(Math.random() * 10000);
     const communityData = {
-      "name": "Empire Bay",
-      "srType": "public",
-      "nsfw": false
+      name: subredditName,
+      srType: "public",
+      nsfw: false
   };
     const response = await request(app).post(`/api/v1/r/create`).send(communityData).set('Authorization', `Bearer ${token}`);;
    expect(response.statusCode).toBe(201);
@@ -51,9 +50,9 @@ describe('POST /api/v1/r/create', () => {
 
  it('should not create a community due to community already exists', async () => {
   const communityData = {
-    "name": "planetOfTheApes",
-    "srType": "public",
-    "nsfw": false
+    name : "planetOfTheApes",
+    srType : "public",
+    nsfw : false
 };
 const response = await request(app).post(`/api/v1/r/create`).send(communityData).set('Authorization', `Bearer ${token}`);;
 expect(response.statusCode).toBe(409);
@@ -66,30 +65,34 @@ expect(response.body).toHaveProperty('message', 'Subreddit already exists');
            
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should get communities successfully', async () => {
-    const response = await request(app).get(`/api/v1/r/all`).send().set('Authorization', `Bearer ${token}`);;
+    const response = await request(app)
+                    .get(`/api/v1/r/all`)
+                    .set('Authorization', `Bearer ${token}`);;
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveProperty('subreddits');
  });
  })
 
- describe('POST /api/v1/r/:subreddit/unsubscribe', () => {
-  it('should unsubscribe a user from a community successfully', async () => {
-    const subreddit = 'sabaken_el_testing';
-    const response = await request(app).delete(`/api/v1/r/${subreddit}/unsubscribe`).send().set('Authorization', `Bearer ${token}`);
-    expect(response.statusCode).toBe(200);
-    // expect(response.body.data).toHaveProperty('subreddit');
-  });
-});
-
  describe('POST /api/v1/r/:subreddit/subscribe', () => {
            
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
-  it('should join a user in a community successfully', async () => {
-    const subreddit = 'sabaken_el_testing';
-    const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${token}`);;
+
+ describe('POST /api/v1/r/:subreddit/unsubscribe', () => {
+  it('should unsubscribe a user from a community successfully', async () => {
+    const subreddit = subredditName;
+    const response = await request(app)
+                    .delete(`/api/v1/r/${subreddit}/unsubscribe`)
+                    .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
-    // expect(response.body.data).toHaveProperty('subreddit');
+  });
+    it('should join a user in a community successfully', async () => {
+    const subreddit = subredditName;
+    const response = await request(app)
+                    .post(`/api/v1/r/${subreddit}/subscribe`)
+                    .set('Authorization', `Bearer ${token}`);;
+    expect(response.statusCode).toBe(200);
  });
+});
 
  it('should not join a user in a community that does not exist', async () => {
   const subreddit = 'sabaken_elfd_testing';
@@ -110,8 +113,24 @@ it('should not join a user in a private community that does not have an invite',
 it('should not join a user in a community as the user is already in the community', async () => {
   const subreddit = 'planetOfTheApes';
   const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${token}`);;
-  expect(response.statusCode).toBe(404);
+  expect(response.statusCode).toBe(409);
   expect(response.body).toHaveProperty('status', 'fail');
   expect(response.body).toHaveProperty('message', 'You are already a member of this subreddit');
 });
 })
+
+describe('DELETE /api/v1/r/:subreddit/delete', () => {
+  it('should delete a community successfully', async () => {
+    const response = await request(app)
+                    .delete(`/api/v1/r/${subredditName}/delete`)
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(204);
+  });
+  it('should not delete a community that does not exist', async () => {
+    const subreddit = 'sabaken_elfd_testing';
+    const response = await request(app)
+                    .delete(`/api/v1/r/${subreddit}/delete`)
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(404);
+  });
+});

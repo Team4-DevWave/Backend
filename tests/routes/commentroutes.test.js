@@ -26,8 +26,6 @@ describe('POST /api/v1/posts/:postid/comments/', () => {
         .post(`/api/v1/posts/${postid}/comments/`)
         .set('Authorization', `Bearer ${token}`)
         .send(commentContent);
-    // console.log(res.body.data.comment._id);
-    console.log(res.body);
     commentid=res.body.data.comment._id;
     expect(res.statusCode).toBe(201);
     expect(res.body.data).toHaveProperty('comment');
