@@ -6,6 +6,8 @@ const commentModel = require('../models/commentsmodel');
 // const handlerFactory = require('./handlerfactory');
 const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
+const notificationController = require('./notificationcontroller');
+
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
     return next(new AppError('Please provide a username', 404));
@@ -161,6 +163,17 @@ const handleUserAction = (action, subaction) =>
     updatedUser.save();
     let statusCode;
     subaction === 'add' ? statusCode=200 : statusCode=204;
+    if (subaction === 'add' && action === 'follow') {
+      const notificationParameters = {
+        recipient: targetUser._id,
+        content: 'u/' + req.user.username + ' started following you',
+        sender: req.user.id,
+        type: 'follow',
+        contentID: req.user.id,
+      };
+      notificationController.createNotification(notificationParameters);
+      await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
+    }
     res.status(statusCode).json({
       status: 'success',
       data: {

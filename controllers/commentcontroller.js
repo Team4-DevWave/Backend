@@ -6,6 +6,7 @@ const messageModel=require('../models/messagesmodel');
 const userModel = require('../models/usermodel');
 const postModel = require('../models/postmodel');
 const paginate = require('../utils/paginate');
+const notificationController = require('./notificationcontroller');
 
 exports.getComment=catchAsync(async (req, res, next) => {
   const comment = await commentModel.findById(req.params.id);
@@ -40,6 +41,8 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
 
 const createMessage = catchAsync(async (comment) => {
   // Send a message to each mentioned user
+  const user = await userModel.findById(comment.user);
+  const username = user.username;
   if (comment.mentioned && comment.mentioned.length > 0) {
     comment.mentioned.forEach(async (userId) => {
       // If the user is the one who created the comment, skip sending the message
@@ -60,6 +63,16 @@ const createMessage = catchAsync(async (comment) => {
         message: comment.content,
         post: comment.post,
       });
+      console.log('yo');
+      const notificationParameters = {
+        recipient: userId,
+        content: 'u/' + username + ' mentioned you in a comment',
+        sender: comment.user._id,
+        type: 'comment',
+        contentID: comment._id,
+      };
+      notificationController.createNotification(notificationParameters);
+      await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
     });
   }
   // Send a message to the post owner
@@ -79,6 +92,15 @@ const createMessage = catchAsync(async (comment) => {
       message: comment.content,
       post: comment.post,
     });
+    const notificationParameters = {
+      recipient: post.userID,
+      content: 'u/' + username + ' commented on your post',
+      sender: comment.user._id,
+      type: 'comment',
+      contentID: comment._id,
+    };
+    notificationController.createNotification(notificationParameters);
+    await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
   }
 });
 // CREATING A MESSAGE NOT TESTED YET IN CREATE AND EDIT COMMENT
