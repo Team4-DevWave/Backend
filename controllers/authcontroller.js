@@ -159,7 +159,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   });
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  const token = req.body.token;
+  const token = req.params.token;
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
   if (!password || !passwordConfirm) {

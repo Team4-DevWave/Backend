@@ -11,7 +11,7 @@ userRouter.post('/googleSignup', authController.googleSignup);
 userRouter.get('/verify/:username/:token', authController.verifyEmail);
 userRouter.get('/check/:username', userController.usernameAvailable);// TESTED
 userRouter.post('/forgotPassword', authController.forgotPassword);
-userRouter.post('/resetPassword/', authController.resetPassword);
+userRouter.post('/resetPassword/:token', authController.resetPassword);
 userRouter.get('/:username/posts', userController.getPosts);// TESTED
 userRouter.get('/:username/comments', userController.getComments);// TESTED
 userRouter.get('/:username/overview', userController.getOverview);// TESTED
