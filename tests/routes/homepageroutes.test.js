@@ -8,8 +8,7 @@ const app = "http://localhost:8000";
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
-      username: 'moaz',
-      email: 'moaz123@yopmail.com',
+      username: 'mariam',
       password: 'pass1234',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
