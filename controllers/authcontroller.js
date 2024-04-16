@@ -151,15 +151,31 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   mailControl.sendEmail(
       user.email,
       'Hello',
-      'If you forgot your password please click the link http://localhost:8000/api/v1/users/resetpassword/'+ resetToken,
+      'If you forgot your password please click the link http://localhost:8000/api/v1/users/resetPassword/'+ resetToken,
   );
   res.status(200).json({
     status: 'success',
     message: 'Token sent to email',
   });
 });
+exports.validateResetToken = catchAsync(async (req, res, next) => {
+  const token = req.params.token;
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await userModel.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: {$gt: Date.now()},
+  });
+  if (!user) {
+    return next(new AppError('Token is invalid or has expired', 400));
+  }
+  // If the token is valid, respond with a success status
+  res.status(200).json({
+    status: 'success',
+    message: 'Token is valid, user can proceed to reset password',
+  });
+});
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  const token = req.body.token;
+  const token = req.params.token;
   const password = req.body.password;
   const passwordConfirm = req.body.passwordConfirm;
   if (!password || !passwordConfirm) {
