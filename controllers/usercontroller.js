@@ -274,3 +274,12 @@ exports.changeCountry = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.changeGender = catchAsync(async (req, res, next) => {
+  const gender=req.body.gender;
+  req.user.gender=gender;
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});

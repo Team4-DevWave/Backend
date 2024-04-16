@@ -36,6 +36,7 @@ userRouter
 userRouter.patch('/me/settings/changepassword', authController.updatePassword); // TESTED
 userRouter.patch('/me/settings/changeemail', authController.changeEmail);
 userRouter.patch('/me/settings/changecountry', userController.changeCountry);
+userRouter.patch('/me/changeGender', userController.changeGender);
 userRouter
     .route('/me/friend/:username')
     .post(userController.checkBlocked, userController.addFriend)// TESTED
