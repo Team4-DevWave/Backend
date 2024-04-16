@@ -156,6 +156,14 @@ const userSchema = new mongoose.Schema({
       default: 0,
     },
   },
+
+  disabledSubredditNotifications: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'subreddits',
+    },
+  ],
+  notificationCount: {type: Number, default: 0},
 });
 // password encryption
 userSchema.pre('save', async function(next) {

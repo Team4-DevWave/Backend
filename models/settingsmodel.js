@@ -121,6 +121,123 @@ const settingsSchema = new mongoose.Schema({
       default: 'everyone',
     },
   },
+  notificationSettings: {
+    privateMessages: {
+      type: Boolean,
+      default: true,
+    },
+    chatMessages: {
+      type: Boolean,
+      default: true,
+    },
+    chatRequests: {
+      type: Boolean,
+      default: true,
+    },
+    poll: {
+      type: Map,
+      of: String,
+    },
+    mentionsOfUsername: {
+      type: Boolean,
+      default: true,
+    },
+    commentsOnYourPost: {
+      type: Boolean,
+      default: true,
+    },
+    upvotesOnYourPost: {
+      type: Boolean,
+      default: true,
+    },
+    repliesToYourComments: {
+      type: Boolean,
+      default: true,
+    },
+    newFollowers: {
+      type: Boolean,
+      default: true,
+    },
+    modNotifications: {
+      type: Boolean,
+      default: true,
+    },
+    subredditsUserMods: {
+      type: Map,
+      of: {
+        allowModNotifications: {
+          type: Boolean,
+          default: true,
+        },
+        activity: {
+          activity: {
+            newPosts: {
+              type: Boolean,
+              default: false,
+            },
+            postsWithUpvotes: {
+              allowNotification: {
+                type: Boolean,
+                default: false,
+              },
+              advancedSetup: {
+                type: Boolean,
+                default: false,
+              },
+              numberOfUpvotes: {
+                type: Number,
+                default: 5,
+              },
+            },
+            postsWithCommetns: {
+              allowNotification: {
+                type: Boolean,
+                default: true,
+              },
+              advancedSetup: {
+                type: Boolean,
+                default: false,
+              },
+              numberOfComments: {
+                type: Number,
+                default: 3,
+              },
+            },
+          },
+        },
+        reports: {
+          posts: {
+            allowNotification: {
+              type: Boolean,
+              default: true,
+            },
+            advancedSetup: {
+              type: Boolean,
+              default: false,
+            },
+            numberOfReports: {
+              type: Number,
+              default: 2,
+            },
+          },
+          comments: {
+            allowNotification: {
+              type: Boolean,
+              default: true,
+            },
+            advancedSetup: {
+              type: Boolean,
+              default: false,
+            },
+            numberOfReports: {
+              type: Number,
+              default: 2,
+            },
+          },
+        },
+      },
+    },
+  },
 });
 const settingsModel = mongoose.model('settings', settingsSchema);
 module.exports = settingsModel;

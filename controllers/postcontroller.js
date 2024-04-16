@@ -336,7 +336,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
     }
     post = newPost;
     const user = req.user;
-    await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}});
+    await userModel.findByIdAndUpdate(user.id, {$push: {posts: newPost.id}}, {new: true});
   } else if (req.url.startsWith('/submit/r/')) {
     const subreddit = await subredditModel.findOne({name: req.params.subreddit});
     let newPost = await postModel.create({
@@ -388,8 +388,8 @@ exports.createPost = catchAsync(async (req, res, next) => {
       newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
     }
     post = newPost;
-    await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}});
-    await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}});
+    await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}}, {new: true});
+    await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}}, {new: true});
   }
   res.status(201).json({
     status: 'success',
