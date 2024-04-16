@@ -71,7 +71,7 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 400));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}).exec(), 10, pageNumber);
+  const posts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
