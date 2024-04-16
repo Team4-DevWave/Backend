@@ -49,6 +49,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
       req.body.toType = 'subreddits';
     }
   }
+  req.body.createdAt = Date.now();
   const message= await messageModel.create(req.body);
   res.status(201).json({
     status: 'success',
