@@ -1,31 +1,60 @@
-const { getSubredditInfo, getReportReasons } = require('./subredditFunctions'); 
+const { getSubredditInfo, reportSubredditInfo } = require('./subredditController');
+const SubredditModel = require('../models/SubredditModel');
 
-describe('Subreddit Functions', () = > {
-    describe('getSubredditInfo', () = > {
-        it('should retrieve subreddit information', async() = > {
-            const subredditName = 'example_subreddit';
-            const subredditInfo = await getSubredditInfo(subredditName);
-            expect(subredditInfo).toBeDefined();
-            expect(subredditInfo.display_name).toBe(subredditName);
+describe('Subreddit Controller', () => {
+    describe('getSubredditInfo', () => {
+        it('should retrieve subreddit information', async () => {
+            const req = { params: { subredditName: 'example_subreddit' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            const subredditInfo = { name: 'example_subreddit', description: 'Sample subreddit description' };
+            jest.spyOn(SubredditModel, 'getSubredditInfo').mockResolvedValue(subredditInfo);
+
+            await getSubredditInfo(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(subredditInfo);
         });
 
-        it('should handle errors gracefully', async() = > {
-            const invalidSubredditName = 'invalid_subreddit';
-            await expect(getSubredditInfo(invalidSubredditName)).rejects.toThrow();
+        it('should handle errors gracefully', async () => {
+            const req = { params: { subredditName: 'invalid_subreddit' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(SubredditModel, 'getSubredditInfo').mockRejectedValue(new Error('Subreddit not found'));
+
+            await getSubredditInfo(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Subreddit not found' });
         });
     });
 
-    describe('getReportReasons', () = > {
-        it('should retrieve report reasons for a subreddit', async() = > {
-            const subredditName = 'example_subreddit';
-            const reportReasons = await getReportReasons(subredditName);
-            expect(reportReasons).toBeDefined();
-            
+    describe('reportSubredditInfo', () => {
+        it('should report subreddit information', async () => {
+            const req = { params: { subredditName: 'example_subreddit' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(SubredditModel, 'reportSubredditInfo').mockResolvedValue();
+
+            await reportSubredditInfo(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Subreddit information reported successfully.' });
         });
 
-        it('should handle errors gracefully', async() = > {
-            const invalidSubredditName = 'invalid_subreddit';
-            await expect(getReportReasons(invalidSubredditName)).rejects.toThrow();
+        it('should handle errors gracefully', async () => {
+            const req = { params: { subredditName: 'invalid_subreddit' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(SubredditModel, 'reportSubredditInfo').mockRejectedValue(new Error('Subreddit not found'));
+
+            await reportSubredditInfo(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Subreddit not found' });
         });
     });
+
+    
 });
+
