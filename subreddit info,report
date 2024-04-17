@@ -1,23 +1,21 @@
-const Subreddit = require('../models/subredditModel');
+const SubredditModel = require('../models/SubredditModel');
 
-exports.getSubredditInfo = async(req, res, next) = > {
+exports.getSubredditInfo = async (req, res, next) => {
     try {
         const subredditName = req.params.subredditName;
-        const subredditInfo = await Subreddit.getSubredditInfo(subredditName);
+        const subredditInfo = await SubredditModel.getSubredditInfo(subredditName);
         res.status(200).json(subredditInfo);
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-exports.reportSubredditInfo = async(req, res, next) = > {
+exports.reportSubredditInfo = async (req, res, next) => {
     try {
         const subredditName = req.params.subredditName;
-        await Subreddit.reportSubredditInfo(subredditName);
+        await SubredditModel.reportSubredditInfo(subredditName);
         res.status(200).json({ message: 'Subreddit information reported successfully.' });
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
