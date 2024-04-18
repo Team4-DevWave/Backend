@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchasync');
 const paginate = require('../utils/paginate');
 const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
+const userModel = require('../models/usermodel');
 // TODO exclude all not approved posts
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -34,6 +35,7 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
   if (req.body.category) {
     newCommunity = await subredditModel.findByIdAndUpdate(newCommunity.id, {category: req.body.category}, {new: true});
   }
+  await userModel.findByIdAndUpdate(req.user.id, {$push: {joinedSubreddits: newCommunity.id}}, {new: true});
   res.status(201).json({
     status: 'success',
     data: {
