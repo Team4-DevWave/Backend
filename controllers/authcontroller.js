@@ -9,9 +9,7 @@ const AppError = require('./../utils/apperror');
 const mailControl = require('./../nodemailer-gmail/mailcontrols');
 const commentModel = require('../models/commentsmodel');
 const subredditModel = require('../models/subredditmodel');
-const {OAuth2Client} = require('google-auth-library');
-const clientID='500020411396-l7soq48qpasrds9ipgo5nff5656i0ial.apps.googleusercontent.com';
-
+const axios = require('axios');
 const signToken = (id) => {
   return jwt.sign(
       {
@@ -53,43 +51,38 @@ const createSendToken = (user, statusCode, res) => {
     },
   });
 };
-const verify=async (client, token) => {
-  const ticket = await client.verifyIdToken({
-    idToken: token,
-    audience: clientID,
-  });
-  return ticket.getPayload();
-};
+
 exports.googleLogin = catchAsync(async (req, res, next) => {
   const googleToken = req.query.token;
-  const client = new OAuth2Client(clientID);
-  const payload = await verify(client, googleToken);
-  if (!payload.email_verified) {
-    return next(new AppError('Email not verified', 400));
+  if (!googleToken) {
+    return next(new AppError('Please provide a token', 400));
   }
-  const user = await userModel.findOne({email: payload.email});
+  const response=await axios.get('https://www.googleapis.com/oauth2/v1/userinfo?access_token='+googleToken);
+  if (response.data.error) {
+    return next(new AppError('Invalid token / unauthorized', 400));
+  }
+  const user = await userModel.findOne({email: response.data.email});
   if (!user) {
     return next(new AppError('User not found', 400));
   }
   createSendToken(user, 200, res);
 });
 exports.googleSignup = catchAsync(async (req, res, next) => {
-  const googleToken = req.body.token;
-  const client = new OAuth2Client(clientID);
-  const payload = await verify(client, googleToken);
-  if (!payload.email_verified) {
-    return next(new AppError('Email not verified', 400));
+  const googleToken = req.query.token;
+  const response= await axios.get('https://www.googleapis.com/oauth2/v1/userinfo?access_token='+googleToken);
+  if (response.data.error) {
+    return next(new AppError('Invalid token / unauthorized', 400));
   }
-  const user = await userModel.findOne({email: payload.email});
+  const user = await userModel.findOne({email: response.data.email});
   if (user) {
     return next(new AppError('User already exists', 400));
   }
   const interests = req.body.interests;
   const country = req.body.country;
-  const email = payload.email;
+  const email = response.data.email;
   const username = req.body.username;
-  const password = payload.at_hash;
-  const passwordConfirm = payload.at_hash;
+  const password = response.data.id;
+  const passwordConfirm = response.data.id;
   const gender= req.body.gender;
   if (!interests || !username || !password || !passwordConfirm) {
     return next(new AppError('Please provide all fields', 400));
