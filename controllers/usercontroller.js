@@ -7,6 +7,7 @@ const commentModel = require('../models/commentsmodel');
 const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
+const postutil = require('../utils/postutil');
 
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
@@ -43,11 +44,12 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: posts,
+      posts: alteredPosts,
     },
   });
 });
@@ -73,24 +75,26 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 400));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
       comments: comments,
-      posts: posts,
+      posts: alteredPosts,
     },
   });
 });
 exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const hiddenPosts = await postModel.find({_id: {$in: req.user.hiddenPosts}});
-  const posts = paginate.paginate(hiddenPosts, 10, pageNumber);
+  const paginatedPosts = paginate.paginate(hiddenPosts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: posts,
+      posts: alteredPosts,
     },
   });
 });
@@ -98,12 +102,13 @@ exports.getSaved=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const comments=paginate.paginate(await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}}),
       10, pageNumber);
-  const posts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
       10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: posts,
+      posts: alteredPosts,
       comments: comments,
     },
   });

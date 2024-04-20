@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchasync');
 const paginate = require('../utils/paginate');
 const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
+const postutil = require('../utils/postutil');
 // TODO exclude all not approved posts
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -99,10 +100,11 @@ exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
   }
   const posts = await postModel.find({subredditID: subreddit.id}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -125,10 +127,11 @@ exports.getRandomPostsBySubreddit = catchAsync(async (req, res, next) => {
     [posts[i], posts[j]] = [posts[j], posts[i]];
   }
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -176,10 +179,11 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     {$unwind: '$userID'},
   ]);
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -198,10 +202,11 @@ exports.getNewPostsBySubreddit = catchAsync(async (req, res, next) => {
   }
   const posts = await postModel.find({subredditID: subreddit.id}).sort({'lastEditedTime': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -242,8 +247,10 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
   }
   for (let i = 0; i < req.user.joinedSubreddits.length; i++) {
     const subreddit = await subredditModel.findById(req.user.joinedSubreddits[i]).select('name srLooks.icon');
+    // eslint-disable-next-line
     const {srLooks, ...otherProps} = subreddit._doc;
     subreddits.push({
+    // eslint-disable-next-line
       ...otherProps,
       icon: srLooks.icon,
     });
