@@ -43,10 +43,15 @@ const settingsSchema = new mongoose.Schema({
             'pinterest',
             'tumblr',
             'reddit',
+            'spotify',
+            'discord',
             'other',
           ],
         },
         socialURL: {
+          type: String,
+        },
+        username: {
           type: String,
         },
       },
