@@ -296,3 +296,11 @@ exports.changeGender = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
+exports.addSocialLink = catchAsync(async (req, res, next) => {
+  const socialLink = req.body.socialLink;
+  await settingsModel.findOneAndUpdate({_id: req.user.settings}, {$push: {socialLinks: socialLink}});
+  res.status(200).json({
+    status: 'success',
+  });
+});
