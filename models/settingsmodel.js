@@ -44,7 +44,7 @@ const settingsSchema = new mongoose.Schema({
             'other',
           ],
         },
-        socialURL: {
+        url: {
           type: String,
         },
         username: {

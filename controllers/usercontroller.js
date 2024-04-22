@@ -298,17 +298,32 @@ exports.changeGender = catchAsync(async (req, res, next) => {
 });
 
 exports.addSocialLink = catchAsync(async (req, res, next) => {
-  const socialLink = req.body.socialLink;
-  await settingsModel.findOneAndUpdate({_id: req.user.settings}, {$push: {socialLinks: socialLink}});
+  const socialLink = req.body;
+  const settings= await settingsModel.findOneAndUpdate({_id: req.user.settings},
+      {$push: {'userProfile.socialLinks': socialLink}}, {
+        new: true,
+      });
   res.status(200).json({
     status: 'success',
+    data: {
+      socialLinks: settings.userProfile.socialLinks,
+    },
   });
 });
 
 exports.removeSocialLink = catchAsync(async (req, res, next) => {
-  const socialType = req.params.socialType;
-  await settingsModel.findOneAndUpdate({_id: req.user.settings}, {$pull: {socialLinks: {type: socialType}}});
-  res.status(204).json({
+  let settings=await settingsModel.findOne({_id: req.user.settings});
+  if (!settings.userProfile.socialLinks.some((link) => link._id.toString() === req.params.sociallinkid)) {
+    return next(new AppError('No social link with that id', 404));
+  }
+  settings = await settingsModel.findOneAndUpdate(
+      {_id: req.user.settings},
+      {$pull: {'userProfile.socialLinks': {_id: req.params.sociallinkid}}},
+      {new: true});
+  res.status(200).json({
     status: 'success',
+    data: {
+      socialLinks: settings.userProfile.socialLinks,
+    },
   });
 });
