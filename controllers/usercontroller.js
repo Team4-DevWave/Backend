@@ -304,3 +304,11 @@ exports.addSocialLink = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
+exports.removeSocialLink = catchAsync(async (req, res, next) => {
+  const socialType = req.params.socialType;
+  await settingsModel.findOneAndUpdate({_id: req.user.settings}, {$pull: {socialLinks: {type: socialType}}});
+  res.status(204).json({
+    status: 'success',
+  });
+});
