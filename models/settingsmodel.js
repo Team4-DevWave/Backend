@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const settingsSchema = new mongoose.Schema({
   userProfile: {
-    profilePicture: {
-      type: String,
-      default: '',
-    },
     displayName: {
       type: String,
       default: '',
