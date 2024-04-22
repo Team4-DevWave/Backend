@@ -29,6 +29,7 @@ const settingsSchema = new mongoose.Schema({
       {
         socialType: {
           type: String,
+          unique: true,
           enum: [
             'facebook',
             'instagram',
