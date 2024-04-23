@@ -246,16 +246,15 @@ exports.getUserByUsername = catchAsync(async (req, res, next) => {
   if (!username) {
     return next(new AppError('Please provide a username', 400));
   }
-  const user=await userModel.findOne({username: username});
+  const user=await userModel.findOne({username: username})
+      .populate('settings', '-notificationSettings -chatAndMessagingSettings -emailSettings -__v');
   if (!user) {
     return next(new AppError('No user with that username', 404));
-  } // TODO continue this
+  }
   res.status(200).json({
     status: 'success',
     data: {
-      postKarma: user.karma.posts,
-      commentKarma: user.karma.comments,
-      cakeDay: user.dateJoined,
+      user,
     },
   });
 });
