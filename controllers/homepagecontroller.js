@@ -3,6 +3,9 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const catchAsync = require('../utils/catchasync');
 const subredditModel = require('../models/subredditmodel');
 const AppError = require('../utils/apperror');
+const postModel = require('../models/postmodel');
+const commentModel = require('../models/commentsmodel');
+const paginate = require('../utils/paginate');
 
 exports.trending = catchAsync(async (req, res, next) => {
   // eslint-disable-next-line
@@ -163,6 +166,36 @@ exports.getSubredditsWithCategory = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       result,
+    },
+  });
+});
+exports.search=catchAsync(async (req, res, next)=>{
+  const query='.*'+req.query.q+'.*';
+  const sort= req.query.sort || 'Top';
+  const pageNumber= req.query.page || 1;
+  console.log(query, sort, pageNumber);
+  if (!query) {
+    next(new AppError('Please provide a search query', 400));
+    return;
+  }
+  const posts=await postModel.find({title: {$regex: query, $options: 'i'}}).exec();
+  const media=await postModel.find({title: {$regex: query, $options: 'i'}, type: 'image/video'}).exec();
+  const comments=await commentModel.find({content: {$regex: query, $options: 'i'}}).exec();
+  const subreddits=await subredditModel.find({name: {$regex: query, $options: 'i'}}).exec();
+  // handling posts
+  // handling comments
+  // handling subreddits
+  const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const paginatedSubreddits=paginate.paginate(subreddits, 10, pageNumber);
+  const paginatedMedia=paginate.paginate(media, 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: paginatedPosts,
+      comments: paginatedComments,
+      subreddits: paginatedSubreddits,
+      media: paginatedMedia,
     },
   });
 });
