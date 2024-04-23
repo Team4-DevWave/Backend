@@ -6,6 +6,7 @@ const paginate = require('../utils/paginate');
 const subredditModel = require('../models/subredditmodel');
 const notificationController = require('./notificationcontroller');
 const webPush = require('web-push');
+const settingsModel = require('../models/settingsmodel');
 const vapidKeys = webPush.generateVAPIDKeys();
 webPush.setVapidDetails(
     'mailto:moaaz.m.hashem@gmail.com',
@@ -58,15 +59,18 @@ exports.createMessage = catchAsync(async (req, res, next) => {
     }
   }
   const message= await messageModel.create(req.body);
-  const notificationParameters = {
-    recipient: req.body.to,
-    content: 'u/' + req.user.username + ' sent you a message',
-    sender: req.body.from,
-    type: 'message',
-    contentID: message._id,
-  };
-  notificationController.createNotification(notificationParameters);
-  await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
+  const userSettings = await settingsModel.findById(await userModel.findById(req.body.to).settings);
+  if (userSettings.notificationSettings.privateMessages) {
+    const notificationParameters = {
+      recipient: req.body.to,
+      content: 'u/' + req.user.username + ' sent you a message',
+      sender: req.body.from,
+      type: 'message',
+      contentID: message._id,
+    };
+    notificationController.createNotification(notificationParameters);
+    await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
+  }
   res.status(201).json({
     status: 'success',
     data: {

@@ -7,6 +7,8 @@ const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+const settingsModel = require('../models/settingsmodel');
+const notificationController = require('./notificationcontroller');
 
 
 cloudinary.config({
@@ -390,6 +392,34 @@ exports.createPost = catchAsync(async (req, res, next) => {
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}}, {new: true});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}}, {new: true});
+    for (let i = 0; i < subreddit.members.length; i++) {
+      const user = await userModel.findById(subreddit.members[i]);
+      const notificationsSettings = await settingsModel.findById(user.settings);
+      if (notificationsSettings.communityAlerts.get(subreddit.name) === 'frequent') {
+        const notificationParameters = {
+          recipient: user.id,
+          content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
+          sender: subreddit.id,
+          type: 'post',
+          contentID: post.id,
+        };
+        notificationController.createNotification(notificationParameters);
+        await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
+      } else if (notificationsSettings.communityAlerts.get(subreddit.name) === 'low') {
+        const number = Math.floor(Math.random() * (5 - 0 + 1)) + 0;
+        if (number === 4) {
+          const notificationParameters = {
+            recipient: user.id,
+            content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
+            sender: subreddit.id,
+            type: 'post',
+            contentID: post.id,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
+        }
+      }
+    }
   }
   res.status(201).json({
     status: 'success',

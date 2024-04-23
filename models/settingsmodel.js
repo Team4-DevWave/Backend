@@ -134,7 +134,7 @@ const settingsSchema = new mongoose.Schema({
       type: Boolean,
       default: true,
     },
-    poll: {
+    communityAlerts: {
       type: Map,
       of: String,
     },

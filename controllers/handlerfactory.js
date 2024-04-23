@@ -1,5 +1,10 @@
 const catchAsync = require('../utils/catchasync');
 const AppError = require('../utils/apperror');
+const settingsmodel = require('../models/settingsmodel');
+const notificationController = require('./notificationcontroller');
+const postModel = require('../models/postmodel');
+const commentModel = require('../models/commentsmodel');
+const userModel = require('../models/usermodel');
 
 exports.deleteOne = (model) =>
   catchAsync(async (req, res, next) => {
@@ -96,6 +101,21 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
     if (voteType==1) {
       doc.votes.upvotes+=1;
       req.user.upvotes[voteOn].push(id);
+      if (voteOn === 'posts') {
+        const user = await postModel.findById(doc.userID);
+        const settings = await settingsmodel.findById(user.settings);
+        if (settings.notificationSettings.upvotesOnYourPost) {
+          const notificationParameters = {
+            recipient: doc.userID,
+            content: 'u/' + user.username + ' upvoted your post',
+            sender: req.user.id,
+            type: 'upvote on post',
+            contentID: doc._id,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
+        }
+      }
     }
     if (voteType==-1) {
       doc.votes.downvotes+=1;

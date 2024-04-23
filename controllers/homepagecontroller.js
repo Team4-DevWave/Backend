@@ -5,7 +5,7 @@ const subredditModel = require('../models/subredditmodel');
 const AppError = require('../utils/apperror');
 
 exports.trending = catchasync(async (req, res, next) => {
-  puppeteer.use(StealthPlugin());
+  puppeteer.use(StealthPlugin());   // eslint-disable-line
 
   const baseURL = `https://trends.google.com`;
   const countryCode = 'US';
@@ -17,8 +17,8 @@ exports.trending = catchasync(async (req, res, next) => {
       await page.waitForTimeout(2000);
     }
     const dataFromPage = await page.evaluate((baseURL) => {
-      return Array.from(document.querySelectorAll('.feed-list-wrapper')).map((el) => ({
-        [el.querySelector('.content-header-title').textContent.trim()]: Array.from(el.querySelectorAll('feed-item')).map((el) => ({
+      return Array.from(document.querySelectorAll('.feed-list-wrapper')).map((el) => ({   // eslint-disable-line
+        [el.querySelector('.content-header-title').textContent.trim()]: Array.from(el.querySelectorAll('feed-item')).map((el) => ({   // eslint-disable-line
           index: el.querySelector('.index')?.textContent.trim(),
           title: el.querySelector('.title a')?.textContent.trim(),
           titleLink: `${baseURL}${el.querySelector('.title a')?.getAttribute('href')}`,
@@ -126,9 +126,9 @@ exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
     if (subreddits.length !== 0) {
       for (let i = 0; i < subreddits.length; i++) {
         const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
-        const {srLooks, ...otherProps} = subreddit._doc;
+        const {srLooks, ...otherProps} = subreddit._doc;      // eslint-disable-line
         result.push({
-          ...otherProps,
+          ...otherProps,       // eslint-disable-line
           icon: srLooks.icon,
         });
       }
@@ -144,9 +144,9 @@ exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
       if (subreddits !== null || subreddits.length !== 0) {
         for (let i = 0; i < subreddits.length; i++) {
           const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
-          const {srLooks, ...otherProps} = subreddit._doc;
+          const {srLooks, ...otherProps} = subreddit._doc;         // eslint-disable-line
           result.push({
-            ...otherProps,
+            ...otherProps,       // eslint-disable-line
             icon: srLooks.icon,
           });
         }
