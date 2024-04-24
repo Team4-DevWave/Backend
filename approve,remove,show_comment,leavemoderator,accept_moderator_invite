@@ -1,0 +1,51 @@
+const CommentModel = require('../models/CommentModel');
+
+exports.approve = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        await CommentModel.approve(id);
+        res.status(200).json({ message: 'Item approved successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.remove = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        await CommentModel.remove(id);
+        res.status(200).json({ message: 'Item removed successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.showComment = async (req, res, next) => {
+    try {
+        const { commentId } = req.params;
+        await CommentModel.show(commentId);
+        res.status(200).json({ message: 'Comment shown successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.leaveModerator = async (req, res, next) => {
+    try {
+        const { subredditName } = req.params;
+        await CommentModel.leaveModerator(subredditName);
+        res.status(200).json({ message: 'Left moderatorship successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.acceptModeratorInvite = async (req, res, next) => {
+    try {
+        const { subredditName } = req.params;
+        await CommentModel.acceptModeratorInvite(subredditName);
+        res.status(200).json({ message: 'Moderator invitation accepted successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
