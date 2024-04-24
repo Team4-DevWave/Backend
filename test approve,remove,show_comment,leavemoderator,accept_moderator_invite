@@ -1,0 +1,74 @@
+const {
+    approve,
+    remove,
+    show_comment,
+    leave_moderator,
+    accept_moderator_invite
+} = require('./subredditFunctions');
+
+describe('Subreddit Functions', () => {
+    describe('approve', () => {
+        it('should approve a comment or submission', async () => {
+            const id = 'example_id';
+            const result = await approve(id);
+            expect(result).toEqual({ message: 'Item approved successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidId = 'invalid_id';
+            await expect(approve(invalidId)).rejects.toThrow();
+        });
+    });
+
+    describe('remove', () => {
+        it('should remove a comment or submission', async () => {
+            const id = 'example_id';
+            const result = await remove(id);
+            expect(result).toEqual({ message: 'Item removed successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidId = 'invalid_id';
+            await expect(remove(invalidId)).rejects.toThrow();
+        });
+    });
+
+    describe('show_comment', () => {
+        it('should show a comment', async () => {
+            const commentId = 'example_comment_id';
+            const result = await show_comment(commentId);
+            expect(result).toEqual({ message: 'Comment shown successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidCommentId = 'invalid_comment_id';
+            await expect(show_comment(invalidCommentId)).rejects.toThrow();
+        });
+    });
+
+    describe('leave_moderator', () => {
+        it('should leave moderatorship of a subreddit', async () => {
+            const subredditName = 'example_subreddit';
+            const result = await leave_moderator(subredditName);
+            expect(result).toEqual({ message: 'Moderatorship left successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(leave_moderator(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+
+    describe('accept_moderator_invite', () => {
+        it('should accept a moderator invitation', async () => {
+            const subredditName = 'example_subreddit';
+            const result = await accept_moderator_invite(subredditName);
+            expect(result).toEqual({ message: 'Moderator invitation accepted successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const invalidSubredditName = 'invalid_subreddit';
+            await expect(accept_moderator_invite(invalidSubredditName)).rejects.toThrow();
+        });
+    });
+});
