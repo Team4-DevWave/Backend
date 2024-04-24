@@ -1,0 +1,20 @@
+const AdminModel = require('../models/AdminModel');
+
+exports.siteAdmin = async (req, res, next) => {
+    try {
+        const adminInfo = await AdminModel.getAdminInfo();
+        res.status(200).json(adminInfo);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.editAbout = async (req, res, next) => {
+    try {
+        const { subredditName, aboutText } = req.body;
+        await AdminModel.editAbout(subredditName, aboutText);
+        res.status(200).json({ message: 'Subreddit about section edited successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
