@@ -1,0 +1,32 @@
+const SubredditModel = require('../models/SubredditModel');
+
+exports.deleteSrBanner = async (req, res, next) => {
+    try {
+        const subredditName = req.params.subredditName;
+        await SubredditModel.deleteBanner(subredditName);
+        res.status(200).json({ message: 'Subreddit banner deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.deleteSrIcon = async (req, res, next) => {
+    try {
+        const subredditName = req.params.subredditName;
+        await SubredditModel.deleteIcon(subredditName);
+        res.status(200).json({ message: 'Subreddit icon deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.uploadSrIcon = async (req, res, next) => {
+    try {
+        const subredditName = req.params.subredditName;
+        const { iconFile } = req.body;
+        await SubredditModel.uploadIcon(subredditName, iconFile);
+        res.status(200).json({ message: 'Subreddit icon uploaded successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
