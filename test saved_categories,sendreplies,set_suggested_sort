@@ -1,0 +1,83 @@
+const { getSavedCategories, setSendReplies, setSuggestedSort } = require('./savedCategoriesController');
+const UserModel = require('../models/UserModel');
+
+describe('Saved Categories Controller', () => {
+    describe('getSavedCategories', () => {
+        it('should retrieve saved categories for a user', async () => {
+            const req = { params: { username: 'example_user' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            const savedCategories = ['category1', 'category2'];
+            jest.spyOn(UserModel, 'getSavedCategories').mockResolvedValue(savedCategories);
+
+            await getSavedCategories(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(savedCategories);
+        });
+
+        it('should handle errors gracefully', async () => {
+            const req = { params: { username: 'invalid_user' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(UserModel, 'getSavedCategories').mockRejectedValue(new Error('User not found'));
+
+            await getSavedCategories(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'User not found' });
+        });
+    });
+
+    describe('setSendReplies', () => {
+        it('should set send replies status for a user', async () => {
+            const req = { params: { username: 'example_user' }, body: { enable: true } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(UserModel, 'setSendReplies').mockResolvedValue();
+
+            await setSendReplies(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Send replies status set successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const req = { params: { username: 'invalid_user' }, body: { enable: true } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(UserModel, 'setSendReplies').mockRejectedValue(new Error('User not found'));
+
+            await setSendReplies(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'User not found' });
+        });
+    });
+
+    describe('setSuggestedSort', () => {
+        it('should set suggested sort for a subreddit', async () => {
+            const req = { params: { subredditName: 'example_subreddit' }, body: { suggestedSort: 'new' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(UserModel, 'setSuggestedSort').mockResolvedValue();
+
+            await setSuggestedSort(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Suggested sort set successfully.' });
+        });
+
+        it('should handle errors gracefully', async () => {
+            const req = { params: { subredditName: 'invalid_subreddit' }, body: { suggestedSort: 'new' } };
+            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+            jest.spyOn(UserModel, 'setSuggestedSort').mockRejectedValue(new Error('Subreddit not found'));
+
+            await setSuggestedSort(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Subreddit not found' });
+        });
+    });
+});
