@@ -2,7 +2,7 @@ const authcontroller = require('../controllers/authcontroller');
 const chatMessageController = require('../controllers/chatmessagecontroller');
 const express = require('express');
 // eslint-disable-next-line new-cap
-const chatMessageRouter = express.Router();
+const chatMessageRouter = express.Router({mergeParams: true});
 
 chatMessageRouter.use(authcontroller.protect);
 chatMessageRouter.route('/')
