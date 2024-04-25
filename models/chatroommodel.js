@@ -15,12 +15,6 @@ const chatroomSchema = new mongoose.Schema({
       ref: 'users',
     },
   ],
-  chatroomMessages: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'chatmessages',
-    },
-  ],
   chatroomAdmin:
         {
           type: mongoose.Schema.ObjectId,
@@ -34,20 +28,27 @@ const chatroomSchema = new mongoose.Schema({
   latestMessage: {
     type: mongoose.Schema.ObjectId,
     ref: 'chatmessages',
+    default: null,
   },
 });
-const populateFields = function(next) {
+
+chatroomSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'chatroomMembers',
     select: 'username displayName profilePicture',
-    model: 'users'});
+    model: 'users',
+  });
+  next();
+} );
+chatroomSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'chatroomAdmin',
     select: 'username displayName profilePicture',
-    model: 'users'});
-};
-chatroomSchema.pre(/^find/, populateFields );
-chatroomSchema.pre('save', populateFields );
+    model: 'users',
+  });
+  next();
+} );
+// chatroomSchema.post('save', populateFields );
 
 const chatroomModel = mongoose.model('chatrooms', chatroomSchema);
 
