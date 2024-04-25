@@ -5,12 +5,14 @@ const catchAsync = require('../utils/catchasync');
 const AppError = require('../utils/apperror');
 
 exports.createChatroom = catchAsync(async (req, res, next) => {
-  const {chatroomName, chatroomMembers} = req.body;
-  if (!chatroomName || !chatroomMembers) {
-    return next(new AppError('Chatroom name and members are required', 400));
+  const chatroomMembers=req.body.chatroomMembers;
+  if (!chatroomMembers) {
+    return next(new AppError('Chatroom members are required', 400));
   }
-  const members = await userModel.find({
-    username: {$in: chatroomMembers}}, '_id');
+  const defaultChatname = chatroomMembers.length > 1 ? 'New Group Chat' : 'New Chat';
+  const chatroomName = req.body.chatroomName || defaultChatname;
+  const members = (await userModel.find({
+    username: {$in: chatroomMembers}}, 'id')).map((doc) => doc._id);
   if (members.length !== chatroomMembers.length) {
     return next(new AppError('Some members do not exist', 400));
   }
@@ -18,10 +20,11 @@ exports.createChatroom = catchAsync(async (req, res, next) => {
   members.push(req.user._id);
   const chatroom = await chatroomModel.create({
     chatroomAdmin: req.user._id,
-    chatroomName,
-    members,
+    chatroomName: chatroomName,
+    chatroomMembers: members,
     isGroup: isGroup,
   });
+  console.log(chatroom);
   res.status(201).json({
     status: 'success',
     data: {
@@ -57,12 +60,12 @@ exports.getChatroom = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteChatroom = catchAsync(async (req, res, next) => {
-  const chatroom = await chatroomModel.findByIdAndDelete({
-    _id: req.params.chatroomId,
-    chatroomAdmin: req.user._id});
+  const chatroom = await chatroomModel.findOne({_id: req.params.chatroomid, chatroomAdmin: req.user._id});
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
   }
+  await chatroomModel.deleteOne({
+    _id: req.params.chatroomid});
   res.status(204).json({
     status: 'success',
   });
@@ -70,7 +73,7 @@ exports.deleteChatroom = catchAsync(async (req, res, next) => {
 
 exports.renameChatroom = catchAsync(async (req, res, next) => {
   const chatroom = await chatroomModel.findOneAndUpdate(
-      {_id: req.params.chatroomId, chatroomAdmin: req.user._id},
+      {_id: req.params.chatroomid, chatroomAdmin: req.user._id},
       {chatroomName: req.body.chatroomName},
       {new: true});
   if (!chatroom) {
@@ -87,11 +90,11 @@ exports.renameChatroom = catchAsync(async (req, res, next) => {
 exports.addMember = catchAsync(async (req, res, next) => {
   const member = await userModel.find({username: {$in: req.body.member}}, '_id');
   if (!member) {
-    return next(new AppError('Some members do not exist', 400));
+    return next(new AppError('member does not exist', 400));
   }
   const chatroom = await chatroomModel.findOneAndUpdate(
-      {_id: req.params.chatroomId, chatroomAdmin: req.user._id},
-      {$addToSet: {chatroomMembers: member}},
+      {_id: req.params.chatroomid, chatroomAdmin: req.user._id},
+      {$addToSet: {chatroomMembers: member[0]._id}},
       {new: true});
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
@@ -110,12 +113,13 @@ exports.addMember = catchAsync(async (req, res, next) => {
 exports.removeMember = catchAsync(async (req, res, next) => {
   const member = await userModel.find({username: req.body.member}, '_id');
   if (!member) {
-    return next(new AppError('Some members do not exist', 400));
+    return next(new AppError('member does not exist', 400));
   }
   const chatroom = await chatroomModel.findOneAndUpdate(
-      {_id: req.params.chatroomId, chatroomAdmin: req.user._id},
-      {$pull: {chatroomMembers: member}},
+      {_id: req.params.chatroomid, chatroomAdmin: req.user._id},
+      {$pull: {chatroomMembers: member[0]._id}},
       {new: true});
+  console.log(chatroom);
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
   }
