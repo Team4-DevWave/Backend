@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const settingsSchema = new mongoose.Schema({
   userProfile: {
-    displayName: {
-      type: String,
-      default: '',
-    },
     about: {
       type: String,
       default: '',
