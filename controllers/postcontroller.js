@@ -25,7 +25,7 @@ exports.getBestPosts = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      alteredPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -39,7 +39,7 @@ exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      alteredPosts,
+      posts: alteredPosts,
     },
   });
 });
