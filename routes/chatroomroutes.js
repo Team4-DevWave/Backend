@@ -17,3 +17,4 @@ chatroomRouter.route('/:chatroomid')
 chatroomRouter.patch('/:chatroomid/rename', chatroomcontroller.renameChatroom);
 chatroomRouter.post('/:chatroomid/addmember', chatroomcontroller.addMember);
 chatroomRouter.delete('/:chatroomid/removemember', chatroomcontroller.removeMember);
+module.exports = chatroomRouter;
