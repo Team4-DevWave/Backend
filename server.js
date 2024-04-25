@@ -43,8 +43,8 @@ io.on('connection', (socket) => {
 
   socket.on('new message', (newMessageRecieve) => {
     const chat = newMessageRecieve.chatID;
-    if (!chat.users) console.log('chats.users is not defined');
-    chat.users.forEach((user) => {
+    if (!chat.chatroomMembers) console.log('chats.chatroomMembers is not defined');
+    chat.chatroomMembers.forEach((user) => {
       if (user._id == newMessageRecieve.sender._id) return;
       socket.in(user._id).emit('message recieved', newMessageRecieve);
     });
