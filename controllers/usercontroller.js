@@ -296,6 +296,15 @@ exports.changeGender = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.changeDisplayName = catchAsync(async (req, res, next) => {
+  const displayName=req.body.displayName;
+  req.user.displayName=displayName;
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
 exports.addSocialLink = catchAsync(async (req, res, next) => {
   const socialLink = req.body;
   const settings= await settingsModel.findOneAndUpdate({_id: req.user.settings},
