@@ -19,10 +19,10 @@ const latencyHistogram = new client.Histogram({
 });
 
 // Create a new counter metric for tracking error rates
-const errorCounter = new client.Counter({
-  name: 'errors_total',
-  help: 'Total number of errors',
-});
+// const errorCounter = new client.Counter({
+//   name: 'errors_total',
+//   help: 'Total number of errors',
+// });
 
 // A middleware for counting requests and measuring latency
 router.use((req, res, next) => {
@@ -37,15 +37,15 @@ router.use((req, res, next) => {
   next();
 });
 
-// An example route that sometimes errors
-router.get('/example', (req, res) => {
-  if (Math.random() < 0.1) {  // 10% of requests will result in an error
-    errorCounter.inc();
-    res.status(500).send('An error occurred');
-  } else {
-    res.send('Success');
-  }
-});
+// // An example route that sometimes errors
+// router.get('/example', (req, res) => {
+//   if (Math.random() < 0.1) {  // 10% of requests will result in an error
+//     errorCounter.inc();
+//     res.status(500).send('An error occurred');
+//   } else {
+//     res.send('Success');
+//   }
+// });
 
 // Create a metrics endpoint
 router.get('/metrics', (req, res) => {
