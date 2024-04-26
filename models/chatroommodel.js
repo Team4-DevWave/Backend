@@ -48,7 +48,6 @@ chatroomSchema.pre(/^find/, function(next) {
   });
   next();
 } );
-// chatroomSchema.post('save', populateFields );
 
 const chatroomModel = mongoose.model('chatrooms', chatroomSchema);
 
