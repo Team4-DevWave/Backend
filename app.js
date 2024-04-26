@@ -6,6 +6,7 @@ const subredditRouter = require('./routes/subredditroutes.js');
 const messageRouter = require('./routes/messageroutes.js');
 const homepageRouter = require('./routes/homepageroutes.js');
 const notificationRouter = require('./routes/notificationsroutes.js');
+const metricsRouter = require('./routes/metrics.js');  // DevOps Metrics
 const AppError = require('./utils/apperror.js');
 const globalErrorHandler = require('./controllers/errorcontroller.js');
 const bodyParser = require('body-parser');
@@ -29,6 +30,7 @@ app.use('/api/v1/r', subredditRouter);
 app.use('/api/v1/messages', messageRouter);
 app.use('/api/v1/homepage', homepageRouter);
 app.use('/api/v1/notifications', notificationRouter);
+app.use('/api/v1/metrics', metricsRouter);  // DevOps Metrics
 
 app.all('*', (req, res, next) => {
   next(new AppError(`cant find ${req.originalUrl} on this server!`, 400));
