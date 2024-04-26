@@ -50,10 +50,6 @@ const settingsSchema = new mongoose.Schema({
     ],
   },
   safetyAndPrivacy: {
-    blockedPeople: {
-      type: [mongoose.Schema.ObjectId],
-      ref: 'users',
-    },
     blockedCommunities: {
       type: [mongoose.Schema.ObjectId],
       ref: 'subreddits',
