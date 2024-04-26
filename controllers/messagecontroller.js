@@ -159,7 +159,7 @@ exports.getAllMentions = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAllMessages = catchAsync(async (req, res, next) => {
+exports.getMessages = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
     to: req.user.id,
@@ -179,6 +179,10 @@ exports.getAllMessages = catchAsync(async (req, res, next) => {
       messages,
     },
   });
+});
+
+exports.getAllMessages = catchAsync(async (req, res, next) => {
+// TODO FOR CROSSPLATFORM GET ALL RECIEVED AND SENT MESSAGES
 });
 
 exports.markAllRead = catchAsync(async (req, res, next) => {
