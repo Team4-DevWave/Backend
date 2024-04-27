@@ -209,7 +209,10 @@ exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
 exports.getCurrentUser = catchAsync(async (req, res, next) => { // TODO moderate output
-  const output=await req.user.populate('blockedUsers', 'username');
+  const output = await req.user.populate([
+    {path: 'blockedUsers', select: 'username'},
+    {path: 'followedUsers', select: 'username'},
+  ]);
   res.status(200).json({
     status: 'success',
     data: {
@@ -252,7 +255,9 @@ exports.getUserByUsername = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide a username', 400));
   }
   const user=await userModel.findOne({username: username})
-      .populate('settings', '-notificationSettings -chatAndMessagingSettings -emailSettings -__v');
+      .populate('settings', '-notificationSettings -chatAndMessagingSettings -emailSettings -__v')
+      .populate('blockedUsers', 'username')
+      .populate('followedUsers', 'username');
   if (!user) {
     return next(new AppError('No user with that username', 404));
   }
