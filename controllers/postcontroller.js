@@ -130,6 +130,9 @@ exports.editPost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
+  if (post.userID.id != req.user.id) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
   req.body.lastEditedTime = Date.now();
   req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
   post = await postModel.findByIdAndUpdate(req.params.postid, {$set: req.body}, {
