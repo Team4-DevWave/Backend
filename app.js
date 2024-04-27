@@ -8,7 +8,7 @@ const homepageRouter = require('./routes/homepageroutes.js');
 const notificationRouter = require('./routes/notificationsroutes.js');
 const chatroomRouter = require('./routes/chatroomroutes.js');
 const chatMessageRouter = require('./routes/chatmessageroutes.js');
-const metricsRouter = require('./routes/metrics.js');  // DevOps Metrics
+const metricsRouter = require('./routes/metrics.js'); // DevOps Metrics
 const AppError = require('./utils/apperror.js');
 const globalErrorHandler = require('./controllers/errorcontroller.js');
 const bodyParser = require('body-parser');
@@ -34,7 +34,7 @@ app.use('/api/v1/homepage', homepageRouter);
 app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/chatrooms', chatroomRouter);
 app.use('/api/v1/chatmessages', chatMessageRouter);
-app.use('/api/v1/metrics', metricsRouter);  // DevOps Metrics
+app.use('/api/v1/metrics', metricsRouter); // DevOps Metrics
 
 app.all('*', (req, res, next) => {
   next(new AppError(`cant find ${req.originalUrl} on this server!`, 400));
