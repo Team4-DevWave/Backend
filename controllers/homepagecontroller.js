@@ -1,10 +1,14 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const catchasync = require('../utils/catchasync');
+const catchAsync = require('../utils/catchasync');
 const subredditModel = require('../models/subredditmodel');
 const AppError = require('../utils/apperror');
+const postModel = require('../models/postmodel');
+const commentModel = require('../models/commentsmodel');
+const paginate = require('../utils/paginate');
 
-exports.trending = catchasync(async (req, res, next) => {
+exports.trending = catchAsync(async (req, res, next) => {
+  // eslint-disable-next-line
   puppeteer.use(StealthPlugin());
 
   const baseURL = `https://trends.google.com`;
@@ -18,17 +22,18 @@ exports.trending = catchasync(async (req, res, next) => {
     }
     const dataFromPage = await page.evaluate((baseURL) => {
       return Array.from(document.querySelectorAll('.feed-list-wrapper')).map((el) => ({
-        [el.querySelector('.content-header-title').textContent.trim()]: Array.from(el.querySelectorAll('feed-item')).map((el) => ({
-          index: el.querySelector('.index')?.textContent.trim(),
-          title: el.querySelector('.title a')?.textContent.trim(),
-          titleLink: `${baseURL}${el.querySelector('.title a')?.getAttribute('href')}`,
-          subtitle: el.querySelector('.summary-text a')?.textContent.trim(),
-          subtitleLink: el.querySelector('.summary-text a')?.getAttribute('href'),
-          source: el.querySelector('.source-and-time span:first-child')?.textContent.trim(),
-          published: el.querySelector('.source-and-time span:last-child')?.textContent.trim(),
-          searches: el.querySelector('.search-count-title')?.textContent.trim(),
-          thumbnail: el.getAttribute('image-url'),
-        })),
+        [el.querySelector('.content-header-title').textContent.trim()]: Array.from(el.querySelectorAll('feed-item'))
+            .map((el) => ({
+              index: el.querySelector('.index')?.textContent.trim(),
+              title: el.querySelector('.title a')?.textContent.trim(),
+              titleLink: `${baseURL}${el.querySelector('.title a')?.getAttribute('href')}`,
+              subtitle: el.querySelector('.summary-text a')?.textContent.trim(),
+              subtitleLink: el.querySelector('.summary-text a')?.getAttribute('href'),
+              source: el.querySelector('.source-and-time span:first-child')?.textContent.trim(),
+              published: el.querySelector('.source-and-time span:last-child')?.textContent.trim(),
+              searches: el.querySelector('.search-count-title')?.textContent.trim(),
+              thumbnail: el.getAttribute('image-url'),
+            })),
       }));
     }, baseURL);
     return dataFromPage;
@@ -118,7 +123,7 @@ exports.trending = catchasync(async (req, res, next) => {
   });
 });
 
-exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
+exports.getSubredditsWithCategory = catchAsync(async (req, res, next) => {
   let subreddits = [];
   const result = [];
   if (req.body.random === false) {
@@ -126,8 +131,10 @@ exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
     if (subreddits.length !== 0) {
       for (let i = 0; i < subreddits.length; i++) {
         const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+        // eslint-disable-next-line
         const {srLooks, ...otherProps} = subreddit._doc;
         result.push({
+          // eslint-disable-next-line
           ...otherProps,
           icon: srLooks.icon,
         });
@@ -144,8 +151,10 @@ exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
       if (subreddits !== null || subreddits.length !== 0) {
         for (let i = 0; i < subreddits.length; i++) {
           const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+          // eslint-disable-next-line
           const {srLooks, ...otherProps} = subreddit._doc;
           result.push({
+            // eslint-disable-next-line
             ...otherProps,
             icon: srLooks.icon,
           });
@@ -157,6 +166,36 @@ exports.getSubredditsWithCategory = catchasync(async (req, res, next) => {
     status: 'success',
     data: {
       result,
+    },
+  });
+});
+exports.search=catchAsync(async (req, res, next)=>{
+  const query='.*'+req.query.q+'.*';
+  const sort= req.query.sort || 'Top';
+  const pageNumber= req.query.page || 1;
+  console.log(query, sort, pageNumber);
+  if (!query) {
+    next(new AppError('Please provide a search query', 400));
+    return;
+  }
+  const posts=await postModel.find({title: {$regex: query, $options: 'i'}}).exec();
+  const media=await postModel.find({title: {$regex: query, $options: 'i'}, type: 'image/video'}).exec();
+  const comments=await commentModel.find({content: {$regex: query, $options: 'i'}}).exec();
+  const subreddits=await subredditModel.find({name: {$regex: query, $options: 'i'}}).exec();
+  // handling posts
+  // handling comments
+  // handling subreddits
+  const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const paginatedSubreddits=paginate.paginate(subreddits, 10, pageNumber);
+  const paginatedMedia=paginate.paginate(media, 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: paginatedPosts,
+      comments: paginatedComments,
+      subreddits: paginatedSubreddits,
+      media: paginatedMedia,
     },
   });
 });

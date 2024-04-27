@@ -7,6 +7,7 @@ const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+const postutil = require('../utils/postutil');
 
 
 cloudinary.config({
@@ -17,26 +18,28 @@ cloudinary.config({
 
 exports.getBestPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = paginate.paginate(await postModel.find({subredditID: {$exists: true}}).sort({numViews: -1}).exec(),
-      10, pageNumber);
-
+  const paginatedPosts = paginate.paginate(await postModel.find({subredditID: {$exists: true}})
+      .sort({numViews: -1}).exec(),
+  10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts,
+      posts: alteredPosts,
     },
   });
 });
 
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const posts = paginate.paginate(await postModel.find({
+  const paginatedPosts = paginate.paginate(await postModel.find({
     subredditID: req.params.subredditid})
   , 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts,
+      posts: alteredPosts,
     },
   });
 });
@@ -118,10 +121,11 @@ exports.getPost = catchAsync(async (req, res, next) => {
   }
   post.numViews += 1;
   await post.save();
+  const alteredPosts = await postutil.alterPosts(req, [post]);
   res.status(200).json({
     status: 'success',
     data: {
-      post,
+      post: alteredPosts[0],
     },
   });
 });

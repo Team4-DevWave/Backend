@@ -3,7 +3,7 @@ exports.paginate=(arr, pageSize, pageNumber)=>{
     pageNumber=1;
   }
   if (pageNumber>Math.ceil(arr.length/pageSize)) {
-    pageNumber=Math.ceil(arr.length/pageSize);
+    return [];
   }
   return arr.slice((pageNumber-1)*pageSize, Math.min(pageNumber*pageSize, arr.length));
 };
