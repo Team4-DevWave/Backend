@@ -8,6 +8,7 @@ const postSchema = new mongoose.Schema({
   },
   postedTime: {type: Date, required: true},
   numViews: {type: Number, default: 0, required: true},
+  numShares: {type: Number, default: 0},
   subredditID: {type: mongoose.Schema.Types.ObjectId, ref: 'subreddits', default: null},
   title: {type: String, required: true},
   type: {type: String, enum: ['poll', 'image/video', 'text', 'url'], required: true},
