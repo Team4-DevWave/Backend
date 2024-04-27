@@ -99,6 +99,9 @@ exports.addMember = catchAsync(async (req, res, next) => {
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
   }
+  if (chatroom.chatroomAdmin._id.toString() !== req.user._id.toString()) {
+    return next(new AppError('You cannot add member to this chat', 401));
+  }
   const isGroup=chatroom.chatroomMembers.length>2? true:false;
   chatroom.isGroup=isGroup;
   chatroom.save();
@@ -119,9 +122,11 @@ exports.removeMember = catchAsync(async (req, res, next) => {
       {_id: req.params.chatroomid, chatroomAdmin: req.user._id},
       {$pull: {chatroomMembers: member[0]._id}},
       {new: true});
-  console.log(chatroom);
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
+  }
+  if (chatroom.chatroomAdmin._id.toString() !== req.user._id.toString()) {
+    return next(new AppError('You cannot add member to this chat', 401));
   }
   const isGroup=chatroom.chatroomMembers.length>2? true:false;
   chatroom.isGroup=isGroup;
