@@ -28,10 +28,12 @@ const latencyHistogram = new client.Histogram({
 router.use((req, res, next) => {
   const start = Date.now();
 
-  res.on('finish', () => {  // The 'finish' event is emitted when the response is sent
+  res.on('finish', () => {
     const duration = Date.now() - start;
-    requestsCounter.inc();
-    latencyHistogram.observe(duration);
+    if (req.headers.host === 'www.threadit.tech') {
+      requestsCounter.inc();
+      latencyHistogram.observe(duration);
+    }
   });
 
   next();
