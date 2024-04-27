@@ -28,7 +28,7 @@ router
     .get(messageController.getMessages);
 router
     .route('/allmessages')
-    .get(messageController.getAllMessages);// TODO FOR CROSSPLATFORM
+    .get(messageController.getAllMessages);// FOR CROSSPLATFORM
 router
     .route('/markallread')
     .patch(messageController.markAllRead);
