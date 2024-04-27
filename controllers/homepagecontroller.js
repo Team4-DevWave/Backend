@@ -6,6 +6,7 @@ const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const commentModel = require('../models/commentsmodel');
 const paginate = require('../utils/paginate');
+const userModel = require('../models/usermodel');
 
 exports.trending = catchAsync(async (req, res, next) => {
   // eslint-disable-next-line
@@ -180,8 +181,9 @@ exports.search=catchAsync(async (req, res, next)=>{
   }
   const posts=await postModel.find({title: {$regex: query, $options: 'i'}}).exec();
   const media=await postModel.find({title: {$regex: query, $options: 'i'}, type: 'image/video'}).exec();
-  const comments=await commentModel.find({content: {$regex: query, $options: 'i'}}).exec();
+  const comments=await commentModel.find({content: {$regex: query, $options: 'i'}}).populate('post').exec();
   const subreddits=await subredditModel.find({name: {$regex: query, $options: 'i'}}).exec();
+  const users=await userModel.find({username: {$regex: query, $options: 'i'}}).exec();
   // handling posts
   // handling comments
   // handling subreddits
@@ -196,6 +198,7 @@ exports.search=catchAsync(async (req, res, next)=>{
       comments: paginatedComments,
       subreddits: paginatedSubreddits,
       media: paginatedMedia,
+      users,
     },
   });
 });

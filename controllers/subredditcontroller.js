@@ -4,6 +4,7 @@ const paginate = require('../utils/paginate');
 const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const postutil = require('../utils/postutil');
+const commentModel = require('../models/commentsmodel');
 // TODO exclude all not approved posts
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -259,6 +260,62 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       userSubreddits: subreddits,
+    },
+  });
+});
+exports.searchSubreddit=catchAsync(async (req, res, next) => {
+  const query='.*'+req.query.q+'.*';
+  const subredditID=req.params.subreddit;
+  const sort= req.query.sort || 'Top';
+  const pageNumber= req.query.page || 1;
+  console.log(query, sort, pageNumber);
+  if (!query || !subredditID) {
+    next(new AppError('Please provide a search query', 400));
+    return;
+  }
+  const subreddit=await subredditModel.findById(subredditID);
+  if (!subreddit) {
+    next(new AppError('Subreddit does not exist', 404));
+    return;
+  }
+  const posts=await postModel.find({title: {$regex: query, $options: 'i'}, subredditID: subredditID}).exec();
+  const media=posts.filter((post) => post.type === 'image/video');
+  const comments=await commentModel.aggregate([
+    {
+      $match: {
+        content: {$regex: query, $options: 'i'},
+      },
+    },
+    {
+      $lookup: {
+        from: 'posts',
+        localField: 'post',
+        foreignField: '_id',
+        as: 'post',
+      },
+    },
+    {
+      $unwind: '$post',
+    },
+    {
+      $match: {
+        'post.subredditID': subreddit._id,
+      },
+    },
+  ]);
+
+  // handling posts
+  // handling comments
+  // handling subreddits
+  const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const paginatedMedia=paginate.paginate(media, 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: paginatedPosts,
+      comments: paginatedComments,
+      media: paginatedMedia,
     },
   });
 });
