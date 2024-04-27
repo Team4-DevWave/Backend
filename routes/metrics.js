@@ -48,7 +48,7 @@ router.use((req, res, next) => {
 // });
 
 // Create a metrics endpoint
-router.get('/metrics', (req, res) => {
+router.get('/', (req, res) => {
   res.set('Content-Type', client.register.contentType);
   res.end(client.register.metrics());
 });
