@@ -30,7 +30,7 @@ router.use((req, res, next) => {
 
   res.on('finish', () => {
     const duration = Date.now() - start;
-    if (req.headers.host === 'www.threadit.tech' && req.path !== '/metrics') {
+    if (req.headers.host === 'www.threadit.tech' && req.path !== '/api/v1/metrics') {
       requestsCounter.inc();
       latencyHistogram.observe(duration);
     }
