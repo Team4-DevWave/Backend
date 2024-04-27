@@ -75,6 +75,7 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     if (postsAsString.includes(post.id)) {
       return next(new AppError('Post already here', 400));
     }
+    await postModel.findByIdAndUpdate(req.body.postid, {$inc: {numShares: 1}});
     newPostData.subredditID=null;
     const newPost = await postModel.create(newPostData);
     newPost.save();
@@ -197,15 +198,15 @@ exports.hidePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
+  if (req.user.hiddenPosts.includes(post.id)) {
+    return next(new AppError('Post already hidden', 400));
+  }
   await userModel.findByIdAndUpdate(req.user.id, {
-    $push: {hiddenPosts: post.id},
-  });
+    $push: {hiddenPosts: post.id}}, {
+    new: true});
   await post.save();
   res.status(200).json({
     status: 'success',
-    data: {
-      post,
-    },
   });
 });
 
@@ -214,15 +215,14 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
+  if (!req.user.hiddenPosts.includes(post.id)) {
+    return next(new AppError('Post not hidden', 400));
+  }
   await userModel.findByIdAndUpdate(req.user.id, {
-    $pull: {hiddenPosts: post.id},
-    new: true,
-  });
+    $pull: {hiddenPosts: post.id}}, {
+    new: true});
   res.status(200).json({
     status: 'success',
-    data: {
-      post,
-    },
   });
 });
 
@@ -272,7 +272,7 @@ exports.getInsights = catchAsync(async (req, res, next) => {
       numViews: post.numViews,
       upvotesRate: upvotesRate,
       numComments: post.commentsCount,
-      numShares: 0,
+      numShares: post.numShares,
     },
   });
 });
