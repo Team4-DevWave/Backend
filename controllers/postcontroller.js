@@ -122,6 +122,8 @@ exports.getPost = catchAsync(async (req, res, next) => {
   post.numViews += 1;
   await post.save();
   const alteredPosts = await postutil.alterPosts(req, [post]);
+  req.user.viewedPosts.push(post._id);
+  await req.user.save();
   res.status(200).json({
     status: 'success',
     data: {
