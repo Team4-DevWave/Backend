@@ -30,7 +30,6 @@ describe('POST /api/v1/chatrooms/:chatroomid/messages', () => {
     .send(chatMessage)
     .set('Authorization', `Bearer ${token}`);
     messageid = response.body.data.chatMessage._id;
-    console.log(messageid);
     expect(response.statusCode).toBe(201);
     expect(response.body.data).toHaveProperty('chatMessage');
   });
