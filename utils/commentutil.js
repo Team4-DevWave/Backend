@@ -21,7 +21,6 @@ exports.alterComments = async (req, comments) => {
   console.log(user.username);
 
   for (const comment of comments) {
-    console.log(comment);
     // const commentUser=comment.user.id;
     const commentPost=await postModel.findById(comment.post);
     if (commentPost) { // check access to private subreddit
@@ -38,7 +37,6 @@ exports.alterComments = async (req, comments) => {
       const poster=await userModel.findById(commentPost.userID.id);
       if (poster) {
         const stringBlock=poster.blockedUsers.map((user) => user.toString());
-        console.log(stringBlock);
         if (stringBlock.includes(user.id)) {
           continue;
         }
