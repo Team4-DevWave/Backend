@@ -48,9 +48,10 @@ router.use((req, res, next) => {
 // });
 
 // Create a metrics endpoint
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   res.set('Content-Type', client.register.contentType);
-  res.end(client.register.metrics());
+  const metrics = await client.register.metrics();
+  res.end(metrics);
 });
 
 module.exports = router;
