@@ -19,7 +19,7 @@ postRouter.patch('/:postid/vote', postController.vote);
 postRouter.patch('/:postid/edit', postController.editPost);
 postRouter.patch('/:postid/save', postController.savePost);
 postRouter.patch('/:postid/report', postController.reportPost);
-postRouter.patch('/:postid/hide', postController.hidePost);
+postRouter.post('/:postid/hide', postController.hidePost);
 postRouter.get('/:postid/insights', postController.getInsights);
 postRouter.post('/:postid/crosspost', postController.crosspost);
 postRouter.post('/submit/r/:subreddit', postController.createPost);
