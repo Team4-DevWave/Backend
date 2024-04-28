@@ -17,9 +17,9 @@ cloudinary.config({
   api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
 });
 
-exports.getBestPosts = catchAsync(async (req, res, next) => {
+exports.getHotPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
-  const paginatedPosts = paginate.paginate(await postModel.find({subredditID: {$exists: true}})
+  const paginatedPosts = paginate.paginate(await postModel.find({subredditID: {$exists: true, $ne: null}})
       .sort({numViews: -1}).exec(),
   10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
@@ -30,6 +30,44 @@ exports.getBestPosts = catchAsync(async (req, res, next) => {
     },
   });
 });
+exports.getBestPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const paginatedPosts = paginate.paginate(await postModel.find({subredditID: {$exists: true, $ne: null}}).exec(),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: alteredPosts,
+    },
+  });
+});
+exports.getNewPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const paginatedPosts = paginate.paginate(await postModel.find({subredditID: {$exists: true, $ne: null}})
+      .sort({postedTime: -1}).exec(),
+  10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: alteredPosts,
+    },
+  });
+});
+exports.getTopPosts = catchAsync(async (req, res, next) => {
+  const pageNumber = req.query.page || 1;
+  const paginatedPosts = paginate.paginate(await postModel.find({subredditID: {$exists: true, $ne: null}})
+      .sort({'votes.upvotes': -1}).exec(), 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: alteredPosts,
+    },
+  });
+});
+
 
 exports.getSubredditPosts = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;

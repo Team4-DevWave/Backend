@@ -32,7 +32,8 @@ exports.alterPosts = async (req, posts) => {
 
   const newPosts = [];
 
-  for (const post of posts) {
+  for (const posty of posts) {
+    const post=posty.toObject();
     const userID=post.userID.id;
     if (post.subredditID) { // check access to private subreddit
       const subID=post.subredditID.id;
@@ -68,6 +69,8 @@ exports.alterPosts = async (req, posts) => {
     if (!post.userVote) {
       post.userVote='none';
     }
+    post.test='test';
+    console.log(post);
     newPosts.push(post);
   }
   return newPosts;

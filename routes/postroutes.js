@@ -5,6 +5,9 @@ const commentRouter = require('./commentroutes');
 // eslint-disable-next-line new-cap
 const postRouter = express.Router({mergeParams: true});
 postRouter.get('/best', postController.getBestPosts);
+postRouter.get('/hot', postController.getHotPosts);
+postRouter.get('/top', postController.getTopPosts);
+postRouter.get('/new', postController.getNewPosts);
 postRouter.get('/', postController.getSubredditPosts);
 postRouter.get('/:postid', postController.getPost); // TODO check this route validity
 postRouter.use(authController.protect);
