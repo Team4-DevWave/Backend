@@ -5,6 +5,9 @@ const commentRouter = require('./commentroutes');
 // eslint-disable-next-line new-cap
 const postRouter = express.Router({mergeParams: true});
 postRouter.get('/best', postController.getBestPosts);
+postRouter.get('/hot', postController.getHotPosts);
+postRouter.get('/top', postController.getTopPosts);
+postRouter.get('/new', postController.getNewPosts);
 postRouter.use(authController.protect);
 postRouter.use('/:postid/comments', commentRouter); // NEEDS REVIEW
 
@@ -12,7 +15,7 @@ postRouter.post('/submit/u/:subreddit', postController.createPost);
 
 postRouter.use('/submit/r/:subreddit', authController.checkSubredditAccess('post'));
 postRouter.get('/', postController.getSubredditPosts);
-postRouter.get('/:postid', postController.getPost); // TODO check this route validity
+postRouter.get('/:postid', postController.getPost);
 postRouter.delete('/:postid/delete', postController.deletePost);
 postRouter.delete('/:postid/unhide', postController.unhidePost);
 postRouter.patch('/:postid/vote', postController.vote);

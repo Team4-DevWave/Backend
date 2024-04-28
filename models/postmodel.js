@@ -39,7 +39,7 @@ const postSchema = new mongoose.Schema({
 postSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'userID',
-    select: 'username',
+    select: 'username displayName profilePicture',
   });
   next();
 });
