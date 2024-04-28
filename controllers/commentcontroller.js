@@ -14,11 +14,11 @@ exports.getComment=catchAsync(async (req, res, next) => {
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
-  const alteredComment = await commentUtil.alterComments(req, comment);
+  const alteredComment = await commentUtil.alterComments(req, [comment]);
   res.status(200).json({
     status: 'success',
     data: {
-      alteredComment,
+      comment: alteredComment[0],
     },
   });
 });
@@ -37,7 +37,7 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
     status: 'success',
     results: alteredComments.length,
     data: {
-      alteredComments,
+      comments: alteredComments,
     },
   });
 });

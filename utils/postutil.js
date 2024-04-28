@@ -21,6 +21,8 @@ exports.alterPosts = async (req, posts) => {
           publicPosts.push(post);
         }
       }
+    } else {
+      publicPosts.push(post);
     }
   }
   if (!token) {
@@ -29,7 +31,6 @@ exports.alterPosts = async (req, posts) => {
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const user = await userModel.findById(decoded.userID);
   if (!user) return publicPosts;
-
   const newPosts = [];
 
   for (const posty of posts) {
@@ -69,8 +70,6 @@ exports.alterPosts = async (req, posts) => {
     if (!post.userVote) {
       post.userVote='none';
     }
-    post.test='test';
-    console.log(post);
     newPosts.push(post);
   }
   return newPosts;
