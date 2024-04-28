@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 const postutil = require('../utils/postutil');
 const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
+const commentModel = require('../models/commentsmodel');
 
 cloudinary.config({
   cloud_name: 'dxy3lq6gh',
@@ -220,13 +221,15 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findByIdAndDelete(req.params.postid);
-  if (post.userID.id != req.user.id) {
-    return next(new AppError('You are not the owner of the post', 400));
-  }
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
+  if (post.userID.id != req.user.id) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  await commentModel.deleteMany({post: post.id});
+  await postModel.deleteOne({_id: req.params.postid});
   res.status(204).json({
     status: 'success',
   });
