@@ -78,6 +78,7 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     if (postsAsString.includes(post.id)) {
       return next(new AppError('Post already here', 400));
     }
+    await postModel.findByIdAndUpdate(req.body.postid, {$inc: {numShares: 1}});
     newPostData.subredditID=null;
     const newPost = await postModel.create(newPostData);
     newPost.save();
@@ -121,6 +122,8 @@ exports.getPost = catchAsync(async (req, res, next) => {
   post.numViews += 1;
   await post.save();
   const alteredPosts = await postutil.alterPosts(req, [post]);
+  req.user.viewedPosts.push(post._id);
+  await req.user.save();
   res.status(200).json({
     status: 'success',
     data: {
@@ -133,6 +136,9 @@ exports.editPost = catchAsync(async (req, res, next) => {
   let post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
+  }
+  if (post.userID.id != req.user.id) {
+    return next(new AppError('You are not the owner of the post', 400));
   }
   req.body.lastEditedTime = Date.now();
   req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
@@ -198,15 +204,15 @@ exports.hidePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
+  if (req.user.hiddenPosts.includes(post.id)) {
+    return next(new AppError('Post already hidden', 400));
+  }
   await userModel.findByIdAndUpdate(req.user.id, {
-    $push: {hiddenPosts: post.id},
-  });
+    $push: {hiddenPosts: post.id}}, {
+    new: true});
   await post.save();
   res.status(200).json({
     status: 'success',
-    data: {
-      post,
-    },
   });
 });
 
@@ -215,15 +221,14 @@ exports.unhidePost = catchAsync(async (req, res, next) => {
   if (!post) {
     return next(new AppError('No post found with that ID', 404));
   }
+  if (!req.user.hiddenPosts.includes(post.id)) {
+    return next(new AppError('Post not hidden', 400));
+  }
   await userModel.findByIdAndUpdate(req.user.id, {
-    $pull: {hiddenPosts: post.id},
-    new: true,
-  });
+    $pull: {hiddenPosts: post.id}}, {
+    new: true});
   res.status(200).json({
     status: 'success',
-    data: {
-      post,
-    },
   });
 });
 
@@ -273,7 +278,7 @@ exports.getInsights = catchAsync(async (req, res, next) => {
       numViews: post.numViews,
       upvotesRate: upvotesRate,
       numComments: post.commentsCount,
-      numShares: 0,
+      numShares: post.numShares,
     },
   });
 });

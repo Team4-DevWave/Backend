@@ -7,6 +7,7 @@ const chatroomSchema = new mongoose.Schema({
   },
   chatroomName: {
     type: String,
+    required: true,
   },
   chatroomMembers: [
     {
@@ -14,19 +15,39 @@ const chatroomSchema = new mongoose.Schema({
       ref: 'users',
     },
   ],
-  chatroomMessages: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'chatmessages',
-    },
-  ],
   chatroomAdmin:
         {
           type: mongoose.Schema.ObjectId,
           ref: 'users',
+          required: true,
         },
-
+  isGroup: {
+    type: Boolean,
+    default: false,
+  },
+  latestMessage: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'chatmessages',
+    default: null,
+  },
 });
+
+chatroomSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'chatroomMembers',
+    select: 'username displayName profilePicture',
+    model: 'users',
+  });
+  next();
+} );
+chatroomSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'chatroomAdmin',
+    select: 'username displayName profilePicture',
+    model: 'users',
+  });
+  next();
+} );
 
 const chatroomModel = mongoose.model('chatrooms', chatroomSchema);
 

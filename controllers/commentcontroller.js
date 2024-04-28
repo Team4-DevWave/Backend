@@ -7,16 +7,18 @@ const userModel = require('../models/usermodel');
 const postModel = require('../models/postmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
+const commentUtil = require('../utils/commentutil');
 
 exports.getComment=catchAsync(async (req, res, next) => {
   const comment = await commentModel.findById(req.params.id);
   if (!comment) {
     return next(new AppError('no comment with that id', 404));
   }
+  const alteredComment = await commentUtil.alterComments(req, comment);
   res.status(200).json({
     status: 'success',
     data: {
-      comment,
+      alteredComment,
     },
   });
 });
@@ -30,11 +32,12 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
       return next(new AppError('no post with that id', 404));
     }
   }
+  const alteredComments = await commentUtil.alterComments(req, comments);
   res.status(200).json({
     status: 'success',
-    results: comments.length,
+    results: alteredComments.length,
     data: {
-      comments,
+      alteredComments,
     },
   });
 });
