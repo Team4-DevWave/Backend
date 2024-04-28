@@ -166,6 +166,20 @@ exports.getDownvoted=catchAsync(async (req, res, next)=>{
     },
   });
 });
+
+exports.getViewedPosts=catchAsync(async (req, res, next)=>{
+  const pageNumber=req.query.page || 1;
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.viewedPosts}}),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: alteredPosts,
+    },
+  });
+});
+
 const handleUserAction = (action, subaction) =>
   catchAsync(async (req, res, next) => {
     const targetUser = await userModel.findOne({username: req.params.username});
