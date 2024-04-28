@@ -8,6 +8,7 @@ const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
+const commentutil = require('../utils/commentutil');
 
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
@@ -61,10 +62,11 @@ exports.getComments=catchAsync(async (req, res, next)=>{
     return next(new AppError('User not found', 400));
   }
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
+  const alteredComments = await commentutil.alterComments(req, comments);
   res.status(200).json({
     status: 'success',
     data: {
-      comments: comments,
+      comments: alteredComments,
     },
   });
 });
@@ -77,11 +79,12 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   }
   const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
-  const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
+  const paginatedComments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
-      comments: comments,
+      comments: alteredComments,
       posts: alteredPosts,
     },
   });
@@ -100,16 +103,18 @@ exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
 });
 exports.getSaved=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
-  const comments=paginate.paginate(await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}}),
-      10, pageNumber);
+  const paginatedComments=paginate.paginate(await commentModel.find({_id:
+    {$in: req.user.savedPostsAndComments.comments}}),
+  10, pageNumber);
   const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
       10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
       posts: alteredPosts,
-      comments: comments,
+      comments: alteredComments,
     },
   });
 });
@@ -130,20 +135,34 @@ exports.getAbout=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getUpvoted=catchAsync(async (req, res, next)=>{
+  const pageNumber=req.query.page || 1;
+  const paginatedComments=paginate.paginate(await commentModel.find({_id: {$in: req.user.upvotes.comments}}),
+      10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.upvotes.posts}}),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: req.user.upvotes.posts,
-      comments: req.user.upvotes.comments,
+      posts: alteredPosts,
+      comments: alteredComments,
     },
   });
 });
 exports.getDownvoted=catchAsync(async (req, res, next)=>{
+  const pageNumber=req.query.page || 1;
+  const paginatedComments=paginate.paginate(await commentModel.find({_id: {$in: req.user.downvotes.comments}}),
+      10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.downvotes.posts}}),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: req.user.downvotes.posts,
-      comments: req.user.downvotes.comments,
+      posts: alteredPosts,
+      comments: alteredComments,
     },
   });
 });
