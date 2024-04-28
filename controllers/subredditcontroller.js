@@ -4,6 +4,8 @@ const paginate = require('../utils/paginate');
 const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const userModel = require('../models/usermodel');
+const postutil = require('../utils/postutil');
+const commentModel = require('../models/commentsmodel');
 // TODO exclude all not approved posts
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -99,12 +101,13 @@ exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  const posts = await postModel.find({subredditID: subreddit.id}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id}).sort({'votes.upvotes': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -127,10 +130,11 @@ exports.getRandomPostsBySubreddit = catchAsync(async (req, res, next) => {
     [posts[i], posts[j]] = [posts[j], posts[i]];
   }
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -148,40 +152,13 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
   // TODO randomize for random, sort by date edited for new, select a certain time frame for hot and sort
-  const posts = await postModel.aggregate([
-    {$match: {subredditID: subreddit._id}},
-    {$addFields: {voteDifference: {$subtract: ['$votes.upvotes', '$votes.downvotes']}}},
-    {$sort: {date: -1, voteDifference: -1}},
-    {
-      $lookup: {
-        from: 'subreddits',
-        let: {subredditID: '$subredditID'},
-        pipeline: [
-          {$match: {$expr: {$eq: ['$_id', '$$subredditID']}}},
-          {$project: {name: 1, _id: 1}}, // replace 'name' with the fields you want to include
-        ],
-        as: 'subredditID',
-      },
-    },
-    {$unwind: '$subredditID'},
-    {
-      $lookup: {
-        from: 'users',
-        let: {userID: '$userID'},
-        pipeline: [
-          {$match: {$expr: {$eq: ['$_id', '$$userID']}}},
-          {$project: {username: 1, _id: 1}}, // replace 'name' with the fields you want to include
-        ],
-        as: 'userID',
-      },
-    },
-    {$unwind: '$userID'},
-  ]);
+  const posts = await postModel.find({subredditID: subreddit.id}).sort({numViews: -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -200,10 +177,11 @@ exports.getNewPostsBySubreddit = catchAsync(async (req, res, next) => {
   }
   const posts = await postModel.find({subredditID: subreddit.id}).sort({'lastEditedTime': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
     },
   });
 });
@@ -244,8 +222,10 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
   }
   for (let i = 0; i < req.user.joinedSubreddits.length; i++) {
     const subreddit = await subredditModel.findById(req.user.joinedSubreddits[i]).select('name srLooks.icon');
+    // eslint-disable-next-line
     const {srLooks, ...otherProps} = subreddit._doc;
     subreddits.push({
+    // eslint-disable-next-line
       ...otherProps,
       icon: srLooks.icon,
     });
@@ -254,6 +234,62 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       userSubreddits: subreddits,
+    },
+  });
+});
+exports.searchSubreddit=catchAsync(async (req, res, next) => {
+  const query='.*'+req.query.q+'.*';
+  const subredditID=req.params.subreddit;
+  const sort= req.query.sort || 'Top';
+  const pageNumber= req.query.page || 1;
+  console.log(query, sort, pageNumber);
+  if (!query || !subredditID) {
+    next(new AppError('Please provide a search query', 400));
+    return;
+  }
+  const subreddit=await subredditModel.findById(subredditID);
+  if (!subreddit) {
+    next(new AppError('Subreddit does not exist', 404));
+    return;
+  }
+  const posts=await postModel.find({title: {$regex: query, $options: 'i'}, subredditID: subredditID}).exec();
+  const media=posts.filter((post) => post.type === 'image/video');
+  const comments=await commentModel.aggregate([
+    {
+      $match: {
+        content: {$regex: query, $options: 'i'},
+      },
+    },
+    {
+      $lookup: {
+        from: 'posts',
+        localField: 'post',
+        foreignField: '_id',
+        as: 'post',
+      },
+    },
+    {
+      $unwind: '$post',
+    },
+    {
+      $match: {
+        'post.subredditID': subreddit._id,
+      },
+    },
+  ]);
+
+  // handling posts
+  // handling comments
+  // handling subreddits
+  const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const paginatedMedia=paginate.paginate(media, 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: paginatedPosts,
+      comments: paginatedComments,
+      media: paginatedMedia,
     },
   });
 });

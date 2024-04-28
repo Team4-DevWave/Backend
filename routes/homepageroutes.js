@@ -9,5 +9,8 @@ homepageRouter
 homepageRouter
     .route('/subreddits_by_category')
     .get(homepageController.getSubredditsWithCategory);
+homepageRouter
+    .route('/search')
+    .get(homepageController.search);
 
 module.exports = homepageRouter;

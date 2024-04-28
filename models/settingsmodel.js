@@ -1,14 +1,6 @@
 const mongoose = require('mongoose');
 const settingsSchema = new mongoose.Schema({
   userProfile: {
-    profilePicture: {
-      type: String,
-      default: '',
-    },
-    displayName: {
-      type: String,
-      default: '',
-    },
     about: {
       type: String,
       default: '',
@@ -43,20 +35,21 @@ const settingsSchema = new mongoose.Schema({
             'pinterest',
             'tumblr',
             'reddit',
+            'spotify',
+            'discord',
             'other',
           ],
         },
-        socialURL: {
+        url: {
+          type: String,
+        },
+        username: {
           type: String,
         },
       },
     ],
   },
   safetyAndPrivacy: {
-    blockedPeople: {
-      type: [mongoose.Schema.ObjectId],
-      ref: 'users',
-    },
     blockedCommunities: {
       type: [mongoose.Schema.ObjectId],
       ref: 'subreddits',

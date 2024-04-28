@@ -2,12 +2,12 @@
 
 const request = require('supertest');
 const app = 'http://localhost:8000';
-const postid='6617f3328ae9d1cadf035a39';
+const postid='661e8e281710154e42ea63be';
 
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
-      username: 'moaz',
+      username: 'mariam',
       password: 'pass1234',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
@@ -20,7 +20,7 @@ describe('POST /api/v1/users/login', () => {
 describe('POST /api/v1/posts/:postid/comments/', () => {
   it('should create a new comment including mentions', async () => {
     const commentContent={
-          content: 'this is a comment test u/mohamed and u/mariam u/moaz',
+          content: 'this is a comment test u/theHazem and u/ismail ',
         }
     const res = await request(app)
         .post(`/api/v1/posts/${postid}/comments/`)

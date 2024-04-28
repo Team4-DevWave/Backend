@@ -6,8 +6,7 @@ const app = 'http://localhost:8000';
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
-      username: 'moaz',
-      email: 'moaz123@yopmail.com',
+      username: 'mariam',
       password: 'pass1234',
     };
     const res = await request(app).post('/api/v1/users/login')
@@ -22,7 +21,7 @@ describe('POST /api/v1/messages/compose', () => {
   it('should create a new message', async () => {
     const messageData = {
       from: '',
-      to: 'u/mariam',
+      to: 'u/ismail',
       subject: 'message composed',
       message: 'hello from the other world ',
     };

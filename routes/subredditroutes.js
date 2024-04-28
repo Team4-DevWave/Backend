@@ -29,6 +29,9 @@ subredditRouter
 subredditRouter
     .route('/:subreddit/rules')
     .get(subredditController.getSubredditRules);
+subredditRouter
+    .route('/:subreddit/search')
+    .get(subredditController.searchSubreddit);
 subredditRouter.get('/:subreddit/top', subredditController.getTopPostsBySubreddit);
 subredditRouter.get('/:subreddit/hot', subredditController.getHotPostsBySubreddit);
 subredditRouter.get('/:subreddit/new', subredditController.getNewPostsBySubreddit);

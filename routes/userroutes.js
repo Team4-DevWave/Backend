@@ -10,8 +10,11 @@ userRouter.get('/googleLogin', authController.googleLogin);
 userRouter.post('/googleSignup', authController.googleSignup);
 userRouter.get('/verify/:username/:token', authController.verifyEmail);
 userRouter.get('/check/:username', userController.usernameAvailable);// TESTED
-userRouter.post('/forgotPassword', authController.forgotPassword);
-userRouter.post('/resetPassword/', authController.resetPassword);
+userRouter.post('/forgotPassword', authController.forgotPassword); // TESTED
+userRouter
+    .route('/resetPassword/:token')
+    .get(authController.validateResetToken)
+    .post(authController.resetPassword);
 userRouter.get('/:username/posts', userController.getPosts);// TESTED
 userRouter.get('/:username/comments', userController.getComments);// TESTED
 userRouter.get('/:username/overview', userController.getOverview);// TESTED
@@ -36,6 +39,10 @@ userRouter
 userRouter.patch('/me/settings/changepassword', authController.updatePassword); // TESTED
 userRouter.patch('/me/settings/changeemail', authController.changeEmail);
 userRouter.patch('/me/settings/changecountry', userController.changeCountry);
+userRouter.post('/me/settings/addsociallink', userController.addSocialLink);
+userRouter.delete('/me/settings/removesociallink/:sociallinkid', userController.removeSocialLink);
+userRouter.patch('/me/changeGender', userController.changeGender);
+userRouter.patch('/me/changeDisplayName', userController.changeDisplayName);
 userRouter
     .route('/me/friend/:username')
     .post(userController.checkBlocked, userController.addFriend)// TESTED

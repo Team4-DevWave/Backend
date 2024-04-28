@@ -6,7 +6,7 @@ const app = "http://localhost:8000";
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
-      username: 'moaz',
+      username: 'mariam',
       password: 'pass1234',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
@@ -50,7 +50,7 @@ describe('POST /api/v1/r/create', () => {
 
  it('should not create a community due to community already exists', async () => {
   const communityData = {
-    name : "planetOfTheApes",
+    name : "firstcommunity",
     srType : "public",
     nsfw : false
 };
@@ -103,7 +103,7 @@ expect(response.body).toHaveProperty('message', 'Subreddit already exists');
 });
 
 it('should not join a user in a private community that does not have an invite', async () => {
-  const subreddit = 'elemod7eken';
+  const subreddit = 'private community 3';
   const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${token}`);;
   expect(response.statusCode).toBe(404);
   expect(response.body).toHaveProperty('status', 'fail');

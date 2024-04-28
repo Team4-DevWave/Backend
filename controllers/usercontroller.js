@@ -7,6 +7,7 @@ const commentModel = require('../models/commentsmodel');
 const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
+const postutil = require('../utils/postutil');
 
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
@@ -43,11 +44,12 @@ exports.getPosts=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: posts,
+      posts: alteredPosts,
     },
   });
 });
@@ -73,24 +75,26 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 400));
   }
-  const posts=paginate.paginate(await postModel.find({userID: user._id, hidden: false}).exec(), 10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
       comments: comments,
-      posts: posts,
+      posts: alteredPosts,
     },
   });
 });
 exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const hiddenPosts = await postModel.find({_id: {$in: req.user.hiddenPosts}});
-  const posts = paginate.paginate(hiddenPosts, 10, pageNumber);
+  const paginatedPosts = paginate.paginate(hiddenPosts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: posts,
+      posts: alteredPosts,
     },
   });
 });
@@ -98,12 +102,13 @@ exports.getSaved=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const comments=paginate.paginate(await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}}),
       10, pageNumber);
-  const posts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
       10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: posts,
+      posts: alteredPosts,
       comments: comments,
     },
   });
@@ -204,7 +209,10 @@ exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
 exports.getCurrentUser = catchAsync(async (req, res, next) => { // TODO moderate output
-  const output=await req.user.populate('blockedUsers', 'username');
+  const output = await req.user.populate([
+    {path: 'blockedUsers', select: 'username'},
+    {path: 'followedUsers', select: 'username'},
+  ]);
   res.status(200).json({
     status: 'success',
     data: {
@@ -246,16 +254,17 @@ exports.getUserByUsername = catchAsync(async (req, res, next) => {
   if (!username) {
     return next(new AppError('Please provide a username', 400));
   }
-  const user=await userModel.findOne({username: username});
+  const user=await userModel.findOne({username: username})
+      .populate('settings', '-notificationSettings -chatAndMessagingSettings -emailSettings -__v')
+      .populate('blockedUsers', 'username')
+      .populate('followedUsers', 'username');
   if (!user) {
     return next(new AppError('No user with that username', 404));
-  } // TODO continue this
+  }
   res.status(200).json({
     status: 'success',
     data: {
-      postKarma: user.karma.posts,
-      commentKarma: user.karma.comments,
-      cakeDay: user.dateJoined,
+      user,
     },
   });
 });
@@ -284,6 +293,55 @@ exports.changeCountry = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       user,
+    },
+  });
+});
+
+exports.changeGender = catchAsync(async (req, res, next) => {
+  const gender=req.body.gender;
+  req.user.gender=gender;
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
+exports.changeDisplayName = catchAsync(async (req, res, next) => {
+  const displayName=req.body.displayName;
+  req.user.displayName=displayName;
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
+exports.addSocialLink = catchAsync(async (req, res, next) => {
+  const socialLink = req.body;
+  const settings= await settingsModel.findOneAndUpdate({_id: req.user.settings},
+      {$push: {'userProfile.socialLinks': socialLink}}, {
+        new: true,
+      });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      socialLinks: settings.userProfile.socialLinks,
+    },
+  });
+});
+
+exports.removeSocialLink = catchAsync(async (req, res, next) => {
+  let settings=await settingsModel.findOne({_id: req.user.settings});
+  if (!settings.userProfile.socialLinks.some((link) => link._id.toString() === req.params.sociallinkid)) {
+    return next(new AppError('No social link with that id', 404));
+  }
+  settings = await settingsModel.findOneAndUpdate(
+      {_id: req.user.settings},
+      {$pull: {'userProfile.socialLinks': {_id: req.params.sociallinkid}}},
+      {new: true});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      socialLinks: settings.userProfile.socialLinks,
     },
   });
 });
