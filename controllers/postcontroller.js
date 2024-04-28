@@ -211,7 +211,7 @@ exports.editPost = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not the owner of the post', 400));
   }
   req.body.lastEditedTime = Date.now();
-  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
+  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body.text_body);
   post = await postModel.findByIdAndUpdate(req.params.postid, {$set: req.body}, {
     new: true,
     runValidators: true});
@@ -413,7 +413,10 @@ exports.createPost = catchAsync(async (req, res, next) => {
       }
     }
     if (req.body.text_body) {
-      newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
+      const mentioned = await handlerFactory.checkMentions(userModel, req.body.text_body);
+      newPost = await postModel.findByIdAndUpdate(newPostID,
+          {text_body: req.body.text_body, mentioned: mentioned}, {new: true});
+      // await newPost.save();
     }
     post = newPost;
     const user = req.user;
