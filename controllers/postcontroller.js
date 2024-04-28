@@ -189,6 +189,9 @@ exports.getPost = catchAsync(async (req, res, next) => {
       },
     });
   }
+  if (user.viewedPosts.includes(post._id)) {
+    user.viewedPosts = user.viewedPosts.filter((id) => id.toString() !== post._id.toString());
+  }
   user.viewedPosts.push(post._id);
   await user.save();
   res.status(200).json({
