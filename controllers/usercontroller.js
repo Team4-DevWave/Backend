@@ -368,7 +368,7 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
       });
       const url = result.secure_url;
       await userModel.findByIdAndUpdate(req.user.id, {profilePicture: url}, {new: true});
-      await settingsModel.findByIdAndUpdate(req.user.settings, {'userProfile.profilePicture': url}, {new: true});
+      await settingsModel.findByIdAndUpdate(req.user.settings, {profilePicture: url}, {new: true});
     }
     res.status(200).json({
       status: 'success',
