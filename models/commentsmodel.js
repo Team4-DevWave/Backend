@@ -41,6 +41,14 @@ commentSchema.pre(/^find/, function(next) {
   });
   next();
 });
+
+commentSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'mentioned',
+    select: 'username',
+  });
+  next();
+});
 const commentModel = mongoose.model('comments', commentSchema);
 
 module.exports = commentModel;

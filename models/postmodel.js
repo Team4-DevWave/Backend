@@ -56,5 +56,12 @@ postSchema.pre(/^find/, function(next) {
   });
   next();
 });
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'mentioned',
+    select: 'username',
+  });
+  next();
+});
 const postModel = mongoose.model('posts', postSchema);
 module.exports = postModel;
