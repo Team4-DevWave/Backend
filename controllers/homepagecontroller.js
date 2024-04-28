@@ -164,6 +164,7 @@ exports.getSubredditsWithCategory = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.search=catchAsync(async (req, res, next)=>{
   const query='.*'+req.query.q+'.*';
   const sort= req.query.sort || 'Top';

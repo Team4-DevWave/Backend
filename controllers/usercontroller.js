@@ -8,6 +8,13 @@ const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: 'dxy3lq6gh',
+  api_key: '941913859728837',
+  api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
+});
 
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
@@ -344,4 +351,24 @@ exports.removeSocialLink = catchAsync(async (req, res, next) => {
       socialLinks: settings.userProfile.socialLinks,
     },
   });
+});
+
+exports.changeProfilePic = catchAsync(async (req, res, next) => {
+  if (!req.body.image) {
+    return next(new AppError('No file uploaded', 400));
+  } else {
+    let media = null;
+    if (req.body.image) {
+      media = req.body.image;
+      const result = await cloudinary.uploader.upload(`data:image/png;base64,${media}`, {
+        resource_type: 'auto',
+      });
+      const url = result.secure_url;
+      await userModel.findByIdAndUpdate(req.user.id, {profilePicture: url}, {new: true});
+      await settingsModel.findByIdAndUpdate(req.user.settings, {'userProfile.profilePicture': url}, {new: true});
+    }
+    res.status(200).json({
+      status: 'success',
+    });
+  }
 });
