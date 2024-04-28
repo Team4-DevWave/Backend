@@ -101,10 +101,22 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
     if (voteType==1) {
       doc.votes.upvotes+=1;
       req.user.upvotes[voteOn].push(id);
+      const user = await postModel.findById(doc.userID);
+      const settings = await settingsmodel.findById(user.settings);
       if (voteOn === 'posts') {
-        const user = await postModel.findById(doc.userID);
-        const settings = await settingsmodel.findById(user.settings);
         if (settings.notificationSettings.upvotesOnYourPost) {
+          const notificationParameters = {
+            recipient: doc.userID,
+            content: 'u/' + user.username + ' upvoted your post',
+            sender: req.user.id,
+            type: 'upvote on post',
+            contentID: doc._id,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
+        }
+      } else {
+        if (settings.notificationSettings.upvotesOnYourComment) {
           const notificationParameters = {
             recipient: doc.userID,
             content: 'u/' + user.username + ' upvoted your post',

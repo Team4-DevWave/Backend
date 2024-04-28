@@ -143,7 +143,7 @@ const settingsSchema = new mongoose.Schema({
       type: Boolean,
       default: true,
     },
-    repliesToYourComments: {
+    upvotesOnYourComments: {
       type: Boolean,
       default: true,
     },

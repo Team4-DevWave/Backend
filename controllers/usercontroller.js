@@ -176,15 +176,18 @@ const handleUserAction = (action, subaction) =>
     let statusCode;
     subaction === 'add' ? statusCode=200 : statusCode=204;
     if (subaction === 'add' && action === 'follow') {
-      const notificationParameters = {
-        recipient: targetUser._id,
-        content: 'u/' + req.user.username + ' started following you',
-        sender: req.user.id,
-        type: 'follow',
-        contentID: req.user.id,
-      };
-      notificationController.createNotification(notificationParameters);
-      await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
+      const notificationsSettings = await settingsModel.findById(targetUser.settings);
+      if (notificationsSettings.notificationSettings.newFollowers) {
+        const notificationParameters = {
+          recipient: targetUser._id,
+          content: 'u/' + req.user.username + ' started following you',
+          sender: req.user.id,
+          type: 'follow',
+          contentID: req.user.id,
+        };
+        notificationController.createNotification(notificationParameters);
+        await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
+      }
     }
     res.status(statusCode).json({
       status: 'success',
