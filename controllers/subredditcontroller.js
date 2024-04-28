@@ -99,7 +99,7 @@ exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.members.includes(user.id) && subreddit.srSettings.srType === 'private') {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
-  const posts = await postModel.find({subredditID: subreddit.id}).exec();
+  const posts = await postModel.find({subredditID: subreddit.id}).sort({'votes.upvotes': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
@@ -150,35 +150,7 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not subscribed to this subreddit', 400));
   }
   // TODO randomize for random, sort by date edited for new, select a certain time frame for hot and sort
-  const posts = await postModel.aggregate([
-    {$match: {subredditID: subreddit._id}},
-    {$addFields: {voteDifference: {$subtract: ['$votes.upvotes', '$votes.downvotes']}}},
-    {$sort: {date: -1, voteDifference: -1}},
-    {
-      $lookup: {
-        from: 'subreddits',
-        let: {subredditID: '$subredditID'},
-        pipeline: [
-          {$match: {$expr: {$eq: ['$_id', '$$subredditID']}}},
-          {$project: {name: 1, _id: 1}}, // replace 'name' with the fields you want to include
-        ],
-        as: 'subredditID',
-      },
-    },
-    {$unwind: '$subredditID'},
-    {
-      $lookup: {
-        from: 'users',
-        let: {userID: '$userID'},
-        pipeline: [
-          {$match: {$expr: {$eq: ['$_id', '$$userID']}}},
-          {$project: {username: 1, _id: 1}}, // replace 'name' with the fields you want to include
-        ],
-        as: 'userID',
-      },
-    },
-    {$unwind: '$userID'},
-  ]);
+  const posts = await postModel.find({subredditID: subreddit.id}).sort({numViews: -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   res.status(200).json({
