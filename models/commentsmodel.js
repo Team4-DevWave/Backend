@@ -25,14 +25,6 @@ const commentSchema = new mongoose.Schema({
     ref: 'posts',
     required: [true, 'comment must belong to a post'],
   },
-  hidden: {
-    type: Boolean,
-    default: false,
-  },
-  saved: {
-    type: Boolean,
-    default: false,
-  },
   collapsed: {
     type: Boolean,
     default: false,
