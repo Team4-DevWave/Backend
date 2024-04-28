@@ -8,7 +8,8 @@ const paginate = require('../utils/paginate');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 const postutil = require('../utils/postutil');
-
+const {promisify} = require('util');
+const jwt = require('jsonwebtoken');
 
 cloudinary.config({
   cloud_name: 'dxy3lq6gh',
@@ -122,8 +123,35 @@ exports.getPost = catchAsync(async (req, res, next) => {
   post.numViews += 1;
   await post.save();
   const alteredPosts = await postutil.alterPosts(req, [post]);
-  req.user.viewedPosts.push(post._id);
-  await req.user.save();
+  let token;
+  if (
+    req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+  if (!token) {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        post: alteredPosts[0],
+      },
+    });
+  }
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const user = await userModel.findById(decoded.userID);
+  if (!user) {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        post: alteredPosts[0],
+      },
+    });
+  }
+  user.viewedPosts.push(post._id);
+  await user.save();
   res.status(200).json({
     status: 'success',
     data: {

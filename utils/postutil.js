@@ -12,10 +12,24 @@ exports.alterPosts = async (req, posts) => {
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
-  if (!token) return posts;
+  const publicPosts = [];
+  for (const post of posts) {
+    if (post.subredditID) { // check access to private subreddit
+      const subreddit = await subredditModel.findById(post.subredditID.id);
+      if (subreddit) {
+        if (subreddit.srSettings.srType === 'public') {
+          publicPosts.push(post);
+        }
+      }
+    }
+  }
+  if (!token) {
+    return publicPosts;
+  }
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const user = await userModel.findById(decoded.userID);
-  if (!user) return posts;
+  if (!user) return publicPosts;
+
   const newPosts = [];
 
   for (const post of posts) {
