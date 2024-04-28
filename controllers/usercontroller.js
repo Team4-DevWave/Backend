@@ -263,10 +263,21 @@ exports.getMySettings = catchAsync(async (req, res, next) => {
   });
 });
 exports.updateMySettings = catchAsync(async (req, res, next) => {
-  const settings = await settingsModel.findByIdAndUpdate(req.user.settings, {$set: req.body}, {
-    new: true,
-    runValidators: true,
-  });
+  const settings = await settingsModel.findById(req.user.settings);
+  if (!settings) {
+    return next(new AppError('No settings found with that ID', 404));
+  }
+  // Iterate over the keys in req.body and update the corresponding properties in settings
+  for (const key in req.body) {
+    if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+      for (const nestedKey in req.body[key]) {
+        if (Object.prototype.hasOwnProperty.call(req.body[key], nestedKey)) {
+          settings[key][nestedKey] = req.body[key][nestedKey];
+        }
+      }
+    }
+  }
+  await settings.save(); // This triggers validators
   res.status(200).json({
     status: 'success',
     data: {
