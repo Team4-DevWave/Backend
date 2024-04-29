@@ -18,13 +18,22 @@ exports.createChatroom = catchAsync(async (req, res, next) => {
   }
   const isGroup=chatroomMembers.length>1? true:false;
   members.push(req.user._id);
+  // Check if a direct message chatroom already exists between the current user and the other member
+  if (!isGroup && members.length === 2) {
+    const existingChatroom = await chatroomModel.findOne({
+      chatroomMembers: {$all: members},
+      isGroup: false,
+    });
+    if (existingChatroom) {
+      return next(new AppError('A direct message chatroom already exists with this member', 400));
+    }
+  }
   const chatroom = await chatroomModel.create({
     chatroomAdmin: req.user._id,
     chatroomName: chatroomName,
     chatroomMembers: members,
     isGroup: isGroup,
   });
-  console.log(chatroom);
   res.status(201).json({
     status: 'success',
     data: {
