@@ -86,10 +86,11 @@ exports.trending = catchAsync(async (req, res, next) => {
         title: trend.title,
         subtitle: trend.subtitle,
       }));
+      trends = restOfTrends;
       res.status(200).json({
         status: 'success',
         data: {
-          restOfTrends,
+          trends,
         },
       });
       return;

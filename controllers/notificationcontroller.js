@@ -4,6 +4,7 @@ const subredditModel = require('../models/subredditmodel');
 const AppError = require('../utils/apperror');
 const userModel = require('../models/usermodel');
 const settingsModel = require('../models/settingsmodel');
+const firebase = require('../utils/firebaseinit');
 
 
 exports.getUserNotifications = catchAsync(async (req, res, next) => {
@@ -43,7 +44,7 @@ exports.disableSubredditUpdates = catchAsync(async (req, res, next) => {
   if (!subreddit) {
     return next(new AppError('No subreddit with that name', 404));
   }
-  await userModel.findByIdAndUpdate(req.user.id, {$push: {disabledSubredditNotifications: subreddit.id}}, {new: true});
+  await settingsModel.findByIdAndUpdate(req.user.settings, {$set: {'notificationSettings.communityAlerts.key': 'off'}}, {new: true});   //eslint-disable-line
   res.status(200).json({
     status: 'success',
   });
@@ -74,4 +75,22 @@ exports.getNotificationSettings = catchAsync(async (req, res, next) => {
       notificationsSettings,
     },
   });
+});
+
+exports.sendNotification = catchAsync(async (msgBody, deviceToken) => {
+  const message = {
+    notification: {
+      title: 'Threaddit',
+      body: msgBody,
+    },
+    token: deviceToken, // The FCM token of the device you want to send the notification to
+  };
+
+  firebase.messaging().send(message)
+      .then((response) => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch((error) => {
+        console.log('Error sending message:', error);
+      });
 });

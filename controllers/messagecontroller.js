@@ -71,6 +71,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
     };
     notificationController.createNotification(notificationParameters);
     await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
+    notificationController.sendNotification(notificationParameters.content, await userModel.findById(req.body.to).deviceToken); //eslint-disable-line
   }
   res.status(201).json({
     status: 'success',

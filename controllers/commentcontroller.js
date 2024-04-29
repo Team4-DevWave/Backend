@@ -82,6 +82,7 @@ const createMessage = catchAsync(async (comment) => {
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
+        notificationController.sendNotification(notificationParameters.content, user.deviceToken);
       }
     });
   }
@@ -109,6 +110,7 @@ const createMessage = catchAsync(async (comment) => {
       };
       notificationController.createNotification(notificationParameters);
       await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
+      notificationController.sendNotification(notificationParameters.content, user.deviceToken);
     }
   }
 });

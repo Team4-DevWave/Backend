@@ -3,7 +3,6 @@ const AppError = require('../utils/apperror');
 const settingsmodel = require('../models/settingsmodel');
 const notificationController = require('./notificationcontroller');
 const postModel = require('../models/postmodel');
-const commentModel = require('../models/commentsmodel');
 const userModel = require('../models/usermodel');
 
 exports.deleteOne = (model) =>
@@ -109,23 +108,25 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
             recipient: doc.userID,
             content: 'u/' + user.username + ' upvoted your post',
             sender: req.user.id,
-            type: 'upvote on post',
+            type: 'post',
             contentID: doc._id,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
+          notificationController.sendNotification(notificationParameters.content, user.deviceToken);
         }
       } else {
         if (settings.notificationSettings.upvotesOnYourComment) {
           const notificationParameters = {
             recipient: doc.userID,
-            content: 'u/' + user.username + ' upvoted your post',
+            content: 'u/' + user.username + ' upvoted your comment',
             sender: req.user.id,
-            type: 'upvote on post',
+            type: 'comment',
             contentID: doc._id,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
+          notificationController.sendNotification(notificationParameters.content, user.deviceToken);
         }
       }
     }
