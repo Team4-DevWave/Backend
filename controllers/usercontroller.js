@@ -358,7 +358,10 @@ exports.removeSocialLink = catchAsync(async (req, res, next) => {
 
 exports.changeProfilePic = catchAsync(async (req, res, next) => {
   if (!req.body.image) {
-    return next(new AppError('No file uploaded', 400));
+    await userModel.findByIdAndUpdate(req.user.id, {profilePicture: ''}, {new: true});
+    res.status(200).json({
+      status: 'success',
+    });
   } else {
     let media = null;
     if (req.body.image) {
@@ -368,7 +371,6 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
       });
       const url = result.secure_url;
       await userModel.findByIdAndUpdate(req.user.id, {profilePicture: url}, {new: true});
-      await settingsModel.findByIdAndUpdate(req.user.settings, {profilePicture: url}, {new: true});
     }
     res.status(200).json({
       status: 'success',
