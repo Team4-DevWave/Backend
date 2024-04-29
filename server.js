@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 const app = require('./app');
 const {Server} = require('socket.io');
 const http = require('http');
-const chatroomModel = require('./models/chatroommodel');
 dotenv.config({path: './config.env'});
 
 const DB = process.env.DATABASE.replace(
