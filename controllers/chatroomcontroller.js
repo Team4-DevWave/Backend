@@ -25,7 +25,8 @@ exports.createChatroom = catchAsync(async (req, res, next) => {
       isGroup: false,
     });
     if (existingChatroom) {
-      return next(new AppError('A direct message chatroom already exists with this member', 400));
+      return next(
+          new AppError(`A direct message chatroom id: ${existingChatroom._id}  already exists with this member`, 400));
     }
   }
   const chatroom = await chatroomModel.create({
@@ -47,6 +48,7 @@ exports.getChatrooms = catchAsync(async (req, res, next) => {
       .populate('latestMessage');
   res.status(200).json({
     status: 'success',
+    results: chatrooms.length,
     data: {
       chatrooms,
     },
