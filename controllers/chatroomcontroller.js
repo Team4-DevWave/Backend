@@ -149,3 +149,22 @@ exports.removeMember = catchAsync(async (req, res, next) => {
 });
 
 
+exports.leaveChatroom = catchAsync(async (req, res, next) => {
+  const chatroom = await chatroomModel.findOneAndUpdate(
+      {_id: req.params.chatroomid, chatroomMembers: req.user._id},
+      {$pull: {chatroomMembers: req.user._id}},
+      {new: true});
+  if (!chatroom) {
+    return next(new AppError('Chatroom not found', 404));
+  }
+  if (chatroom.chatroomAdmin._id.toString() === req.user._id.toString()) {
+    chatroom.chatroomAdmin = chatroom.chatroomMembers[0]._id;
+  }
+  const isGroup=chatroom.chatroomMembers.length>2? true:false;
+  chatroom.isGroup=isGroup;
+  chatroom.save();
+  res.status(204).json({
+    status: 'success',
+  });
+},
+);
