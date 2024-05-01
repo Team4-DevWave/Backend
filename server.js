@@ -56,7 +56,7 @@ mongoose
           const room=await chatroomModel.findOne({chatroomMembers: {$in: [socket.userID]},
             _id: message.roomID});
           if (room) {
-            io.in(message.roomID).emit('message received', message.content);
+            io.in(message.roomID).emit('message received', message);
             const chatMessage = await chatMessageModel.create({
               sender: socket.userID,
               message: message.content,
