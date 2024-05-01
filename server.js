@@ -29,7 +29,7 @@ const io = new Server(socketServer,
     {
       pingTimeout: 600000,
       cors: {
-        origin: 'http://localhost:3000/',
+        origin: 'http://localhost:3000', // removed a /   to test
       },
     });
 io.on('connection', (socket) => {
@@ -39,19 +39,13 @@ io.on('connection', (socket) => {
     socket.emit('connected', userData.id);
   });
   socket.on('join room', (roomID) => {
-    socket.join(1);// recieve the room id
+    socket.join(roomID);// validation needed
   });
   // TODO LEAVE ROOM
-  socket.on('typing', (roomID) => socket.in(roomID).emit('typing'));
-  socket.on('stop typing', (roomID) => socket.in(roomID).emit('stop typing'));
 
-  socket.on('new message', (newMessageRecieve) => {
-    const chat = newMessageRecieve;
-    console.log(chat);
-    socket.to(1).emit('message recieved', ()=>{
-      console.log('message recieved', chat.message);
-      return chat.message;
-    });
+  socket.on('new message', (message) => {
+    socket.to(message.roomID).emit('message received', message.content);
+    socket.emit('message received', message.content); // remove if handled by backend
   });
 });
 socketServer.listen(socketPort, () => { // Start the Socket.IO server on port 3005
