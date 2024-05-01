@@ -5,7 +5,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM', 
-                    branches: [[name: '*/DevOps_new']], 
+                    branches: [[name: '*/main']], 
                     doGenerateSubmoduleConfigurations: false, 
                     extensions: [], 
                     submoduleCfg: [], 
@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Build') {
             options {
-                timeout(time: 6, unit: 'MINUTES')
+                timeout(time: 5, unit: 'MINUTES')
             }
             steps {
              sh 'docker build --cache-from hassanhatem/back:latest -t hassanhatem/back:latest .'
