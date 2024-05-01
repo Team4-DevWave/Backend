@@ -27,7 +27,7 @@ const socketPort = 3005;
 const socketServer = http.createServer(); // Create a new HTTP server for the Socket.IO server
 const io = new Server(socketServer,
     {
-      // pingTimeout: 60000,
+      pingTimeout: 600000,
       cors: {
         origin: 'http://localhost:3000/',
       },
@@ -35,26 +35,22 @@ const io = new Server(socketServer,
 io.on('connection', (socket) => {
   socket.on('setup', (userData) => {
     socket.join(userData.id);
-    socket.emit('connected');
-  });
-  socket.on('error', (error) => {
-    console.log('Socket Error', error);
+    console.log(userData);
+    socket.emit('connected', userData.id);
   });
   socket.on('join room', (roomID) => {
-    socket.join(roomID);// recieve the room id
+    socket.join(1);// recieve the room id
   });
+  // TODO LEAVE ROOM
   socket.on('typing', (roomID) => socket.in(roomID).emit('typing'));
   socket.on('stop typing', (roomID) => socket.in(roomID).emit('stop typing'));
 
-  socket.on('new message', async (newMessageRecieve) => {
+  socket.on('new message', (newMessageRecieve) => {
     const chat = newMessageRecieve;
     console.log(chat);
-    if (!chat.chatroomMembers) {
-      console.log('hello empty');
-      return;
-    }
-    socket.in(newMessageRecieve.chatID).emit('message recieved', (message)=>{
-      console.log('Received a message:', message);
+    socket.to(1).emit('message recieved', ()=>{
+      console.log('message recieved', chat.message);
+      return chat.message;
     });
   });
 });

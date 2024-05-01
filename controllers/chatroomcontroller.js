@@ -159,6 +159,12 @@ exports.leaveChatroom = catchAsync(async (req, res, next) => {
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
   }
+  if (chatroom.chatroomMembers.length === 1) {
+    await chatroomModel.findByIdAndDelete(req.params.chatroomid);
+    return res.status(204).json({
+      status: 'success',
+    });
+  }
   if (chatroom.chatroomAdmin._id.toString() === req.user._id.toString()) {
     chatroom.chatroomAdmin = chatroom.chatroomMembers[0]._id;
   }
