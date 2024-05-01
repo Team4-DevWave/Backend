@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  displayName: {
+    type: String,
+    default: '',
+  },
   profilePicture: {
     type: String,
   },

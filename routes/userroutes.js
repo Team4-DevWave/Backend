@@ -39,7 +39,10 @@ userRouter
 userRouter.patch('/me/settings/changepassword', authController.updatePassword); // TESTED
 userRouter.patch('/me/settings/changeemail', authController.changeEmail);
 userRouter.patch('/me/settings/changecountry', userController.changeCountry);
+userRouter.post('/me/settings/addsociallink', userController.addSocialLink);
+userRouter.delete('/me/settings/removesociallink/:sociallinkid', userController.removeSocialLink);
 userRouter.patch('/me/changeGender', userController.changeGender);
+userRouter.patch('/me/changeDisplayName', userController.changeDisplayName);
 userRouter
     .route('/me/friend/:username')
     .post(userController.checkBlocked, userController.addFriend)// TESTED

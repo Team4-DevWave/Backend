@@ -17,7 +17,6 @@ exports.alterPosts = async (req, posts) => {
   const user = await userModel.findById(decoded.userID);
   if (!user) return posts;
   const newPosts = [];
-  console.log(user.username);
 
   for (const posty of posts) {
     const post=posty.toObject();

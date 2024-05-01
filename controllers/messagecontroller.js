@@ -159,11 +159,35 @@ exports.getAllMentions = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAllMessages = catchAsync(async (req, res, next) => {
+exports.getMessages = catchAsync(async (req, res, next) => {
   const pageNumber=req.query.page || 1;
   const messages = paginate.paginate(await messageModel.find({
     to: req.user.id,
     toType: 'users',
+    subject: {
+      $not: {
+        $in: [/^username mention/, /^post reply/],
+      },
+    },
+    comment: {$exists: false},
+    post: {$exists: false},
+  }).populate('from', 'username')
+      .populate('to', 'username').sort({createdAt: -1}), 10, pageNumber);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      messages,
+    },
+  });
+});
+
+exports.getAllMessages = catchAsync(async (req, res, next) => {
+  const pageNumber=req.query.page || 1;
+  const messages = paginate.paginate(await messageModel.find({
+    $or: [
+      {from: req.user.id, fromType: 'users'},
+      {to: req.user.id, toType: 'users'},
+    ],
     subject: {
       $not: {
         $in: [/^username mention/, /^post reply/],

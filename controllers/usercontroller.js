@@ -209,7 +209,10 @@ exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
 exports.getCurrentUser = catchAsync(async (req, res, next) => { // TODO moderate output
-  const output=await req.user.populate('blockedUsers', 'username');
+  const output = await req.user.populate([
+    {path: 'blockedUsers', select: 'username'},
+    {path: 'followedUsers', select: 'username'},
+  ]);
   res.status(200).json({
     status: 'success',
     data: {
@@ -251,16 +254,17 @@ exports.getUserByUsername = catchAsync(async (req, res, next) => {
   if (!username) {
     return next(new AppError('Please provide a username', 400));
   }
-  const user=await userModel.findOne({username: username});
+  const user=await userModel.findOne({username: username})
+      .populate('settings', '-notificationSettings -chatAndMessagingSettings -emailSettings -__v')
+      .populate('blockedUsers', 'username')
+      .populate('followedUsers', 'username');
   if (!user) {
     return next(new AppError('No user with that username', 404));
-  } // TODO continue this
+  }
   res.status(200).json({
     status: 'success',
     data: {
-      postKarma: user.karma.posts,
-      commentKarma: user.karma.comments,
-      cakeDay: user.dateJoined,
+      user,
     },
   });
 });
@@ -299,5 +303,45 @@ exports.changeGender = catchAsync(async (req, res, next) => {
   await req.user.save();
   res.status(200).json({
     status: 'success',
+  });
+});
+
+exports.changeDisplayName = catchAsync(async (req, res, next) => {
+  const displayName=req.body.displayName;
+  req.user.displayName=displayName;
+  await req.user.save();
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
+exports.addSocialLink = catchAsync(async (req, res, next) => {
+  const socialLink = req.body;
+  const settings= await settingsModel.findOneAndUpdate({_id: req.user.settings},
+      {$push: {'userProfile.socialLinks': socialLink}}, {
+        new: true,
+      });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      socialLinks: settings.userProfile.socialLinks,
+    },
+  });
+});
+
+exports.removeSocialLink = catchAsync(async (req, res, next) => {
+  let settings=await settingsModel.findOne({_id: req.user.settings});
+  if (!settings.userProfile.socialLinks.some((link) => link._id.toString() === req.params.sociallinkid)) {
+    return next(new AppError('No social link with that id', 404));
+  }
+  settings = await settingsModel.findOneAndUpdate(
+      {_id: req.user.settings},
+      {$pull: {'userProfile.socialLinks': {_id: req.params.sociallinkid}}},
+      {new: true});
+  res.status(200).json({
+    status: 'success',
+    data: {
+      socialLinks: settings.userProfile.socialLinks,
+    },
   });
 });
