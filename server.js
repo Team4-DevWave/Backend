@@ -3,6 +3,8 @@ const dotenv = require('dotenv');
 const app = require('./app');
 const {Server} = require('socket.io');
 const http = require('http');
+const chatroomModel = require('./models/chatroommodel');
+const jwt = require('jsonwebtoken');
 dotenv.config({path: './config.env'});
 
 const DB = process.env.DATABASE.replace(
@@ -32,20 +34,34 @@ const io = new Server(socketServer,
         origin: 'http://localhost:3000', // removed a /   to test
       },
     });
-io.on('connection', (socket) => {
-  socket.on('setup', (userData) => {
-    socket.join(userData.id);
-    console.log(userData);
-    socket.emit('connected', userData.id);
+io.use((socket, next) => {
+  const token = socket.handshake.query.token;
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return next(new Error('Authentication error'));
+    }
+    socket.userID = decoded.id;
+    next();
   });
-  socket.on('join room', (roomID) => {
+});
+io.on('connection', (socket) => {
+  socket.on('setup', () => {
+    socket.join(socket.userID);
+    socket.emit('connected', socket.userID);
+  });
+  socket.on('join room', async (roomID) => {
+    // Check if a chatroom with the given ID exists
+    const chatroom = await chatroomModel.findById(roomID);
+    if (!chatroom) {
+      return socket.emit('error', 'Chatroom not found');
+    }
     socket.join(roomID);// validation needed
   });
-  // TODO LEAVE ROOM
-
+  socket.on('leave room', (roomID) => {
+    socket.leave(roomID);
+  });
   socket.on('new message', (message) => {
-    socket.to(message.roomID).emit('message received', message.content);
-    socket.emit('message received', message.content); // remove if handled by backend
+    io.in(message.roomID).emit('message received', message.content);
   });
 });
 socketServer.listen(socketPort, () => { // Start the Socket.IO server on port 3005
