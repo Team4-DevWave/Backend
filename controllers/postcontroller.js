@@ -483,5 +483,29 @@ exports.createPost = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.votePoll = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.type !== 'poll') {
+    return next(new AppError('Post is not a poll', 400));
+  }
+  const poll = post.poll;
+  if (!poll.has(req.body.option)) {
+    return next(new AppError('No such option', 400));
+  }
+  for (const option of poll.keys()) {
+    if (poll.get(option).includes(req.user._id)) {
+      return next(new AppError('Already voted another option', 400));
+    }
+  }
+  post.poll.get(req.body.option).push(req.user._id);
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+    poll: post.poll,
+  });
+});
+
 exports.reportPost = catchAsync(async (req, res, next) => {}); // TODO NEED MODERATION
-exports.crosspost = catchAsync(async (req, res, next) => {});
