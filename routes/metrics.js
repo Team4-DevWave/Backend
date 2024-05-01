@@ -34,6 +34,7 @@ router.use((req, res, next) => {
       requestsCounter.inc();
       latencyHistogram.observe(duration);
     }
+    console.log(`Request to ${req.headers.host}${req.path}`);
   });
 
   next();
