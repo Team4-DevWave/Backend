@@ -5,6 +5,7 @@ const {Server} = require('socket.io');
 const http = require('http');
 const chatroomModel = require('./models/chatroommodel');
 const chatMessageModel = require('./models/chatmessagemodel');
+const userModel = require('./models/usermodel');
 const jwt = require('jsonwebtoken');
 dotenv.config({path: './config.env'});
 
@@ -26,11 +27,13 @@ mongoose
               origin: 'http://localhost:3000', // removed a /   to test
             },
           });
-      io.use((socket, next) => {
+      io.use(async (socket, next) => {
         const token = socket.handshake.query.token;
         try {
           const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
-          socket.userID = decoded.userID;
+          const user = await userModel.findById(decoded.userID);
+          socket.userID = user._id.toString();
+          socket.username = user.username;
           next();
         } catch (err) {
           console.log(err);
@@ -56,7 +59,8 @@ mongoose
           const room=await chatroomModel.findOne({chatroomMembers: {$in: [socket.userID]},
             _id: message.roomID});
           if (room) {
-            io.in(message.roomID).emit('message received', message);
+            io.in(message.roomID).emit('message received', {content: message.content, sender: socket.username,
+              roomID: message.roomID});
             const chatMessage = await chatMessageModel.create({
               sender: socket.userID,
               message: message.content,
