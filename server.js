@@ -28,7 +28,7 @@ mongoose
             },
           });
       io.on('connection', (socket) => {
-        socket.on(('login'), async (token) => {
+        socket.on('login', async (token) => {
           try {
             const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
             const user = await userModel.findById(decoded.userID);
