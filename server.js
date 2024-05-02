@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const app = require('./app');
 const {Server} = require('socket.io');
+const http = require('http');
+const chatroomModel = require('./models/chatroommodel');
+const chatMessageModel = require('./models/chatmessagemodel');
+const userModel = require('./models/usermodel');
+const jwt = require('jsonwebtoken');
 dotenv.config({path: './config.env'});
 
 const DB = process.env.DATABASE.replace(
@@ -13,40 +18,68 @@ mongoose
     .connect(DB)
     .then(() => {
       console.log('db connection success');
+      const socketPort = 3005;
+      const socketServer = http.createServer(); // Create a new HTTP server for the Socket.IO server
+      const io = new Server(socketServer,
+          {
+            pingTimeout: 600000,
+            cors: {
+              origin: 'http://localhost:3000', // removed a /   to test
+            },
+          });
+      io.use(async (socket, next) => {
+        const token = socket.handshake.query.token;
+        try {
+          const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
+          const user = await userModel.findById(decoded.userID);
+          socket.userID = user._id.toString();
+          socket.username = user.username;
+          next();
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      io.on('connection', (socket) => {
+        socket.on('join rooms', async () => {
+          // Check if a chatroom with the given ID exists
+          const rooms = await chatroomModel.find({chatroomMembers: {$in: [socket.userID]}}).select('_id').exec();
+          const roomIds = rooms.map((room) => room._id.toString());
+          const joinedRooms = Array.from(socket.rooms);
+          joinedRooms.forEach((roomId) => {
+            if (!roomIds.includes(roomId)) {
+              socket.leave(roomId);
+            }
+          });
+          roomIds.forEach((roomId) => socket.join(roomId));
+        });
+        socket.on('leave room', (roomID) => {
+          socket.leave(roomID);
+        });
+        socket.on('new message', async (message) => {
+          const room=await chatroomModel.findOne({chatroomMembers: {$in: [socket.userID]},
+            _id: message.roomID});
+          if (room) {
+            io.in(message.roomID).emit('message received', {content: message.content, sender: socket.username,
+              roomID: message.roomID});
+            const chatMessage = await chatMessageModel.create({
+              sender: socket.userID,
+              message: message.content,
+              chatID: room._id,
+            });
+            room.latestMessage = chatMessage._id;
+            await room.save();
+          }
+        });
+      });
+      socketServer.listen(socketPort, () => { // Start the Socket.IO server on port 3005
+        console.log(`Socket.IO server running on port ${socketPort}...`);
+      });
     })
     .catch((err) => {
       console.log('ERROR');
     });
 
 const port = process.env.PORT || 8000;
-const server= app.listen(port, () => {
+app.listen(port, () => {
   console.log(`app running on port ${port}...`);
-});
-
-const io = new Server(server,
-    {
-      pingTimeout: 60000,
-      cors: {
-        origin: 'http://localhost:3005',
-      },
-    });
-io.on('connection', (socket) => {
-  socket.on('setup', (userData) => {
-    socket.join(userData.id);
-    socket.emit('connected');
-  });
-  socket.on('join room', (room) => {
-    socket.join(room);
-  });
-  socket.on('typing', (room) => socket.in(room).emit('typing'));
-  socket.on('stop typing', (room) => socket.in(room).emit('stop typing'));
-
-  socket.on('new message', (newMessageRecieve) => {
-    const chat = newMessageRecieve.chatID;
-    if (!chat.chatroomMembers) console.log('chats.chatroomMembers is not defined');
-    chat.chatroomMembers.forEach((user) => {
-      if (user._id == newMessageRecieve.sender._id) return;
-      socket.in(user._id).emit('message recieved', newMessageRecieve);
-    });
-  });
 });

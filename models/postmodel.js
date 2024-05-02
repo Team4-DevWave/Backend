@@ -19,7 +19,7 @@ const postSchema = new mongoose.Schema({
   image: {type: String, default: ''},
   video: {type: String, default: ''},
   url: {type: String},
-  poll: {type: Map, of: Number},
+  poll: {type: Map, of: [mongoose.Schema.Types.ObjectId]},
   locked: {type: Boolean, default: false},
   votes: {
     upvotes: {type: Number, default: 0},
@@ -53,6 +53,13 @@ postSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'subredditID',
     select: 'name',
+  });
+  next();
+});
+postSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'mentioned',
+    select: 'username',
   });
   next();
 });

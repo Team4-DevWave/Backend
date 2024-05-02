@@ -33,6 +33,46 @@ describe('POST /api/v1/messages/compose', () => {
     expect(res.statusCode).toBe(201);
     expect(res.body.data).toHaveProperty('message');
   });
+  it('you cannot send a message using other users name', async () => {
+    const messageData = {
+      from: 'u/mohamed',
+      to: 'u/theHazem',
+      subject: 'message composed',
+      message: 'hello from the other world ',
+    };
+    const res = await request(app)
+        .post('/api/v1/messages/compose')
+        .set('Authorization', `Bearer ${token}`)
+        .send(messageData);
+    expect(res.statusCode).toBe(400);
+  });
+  it('you cannot send a message using other subreddits name if you\'re not a member', async () => {
+    const messageData = {
+      from: 'r/hi',
+      to: 'u/theHazem',
+      subject: 'message composed',
+      message: 'hello from the other world ',
+    };
+    const res = await request(app)
+        .post('/api/v1/messages/compose')
+        .set('Authorization', `Bearer ${token}`)
+        .send(messageData);
+    expect(res.statusCode).toBe(400);
+  });
+  it('you cannot send a message using other subreddits name if you\'re not a moderator', async () => {
+    const messageData = {
+      from: 'r/mimiworld',
+      to: 'u/theHazem',
+      subject: 'message composed',
+      message: 'hello from the other world ',
+    };
+    const res = await request(app)
+        .post('/api/v1/messages/compose')
+        .set('Authorization', `Bearer ${token}`)
+        .send(messageData);
+    expect(res.statusCode).toBe(400);
+  });
+});
   describe('GET /api/v1/messages/inbox', () => {
     it('should get all inbox messages', async () => {
       const res = await request(app)
@@ -41,6 +81,7 @@ describe('POST /api/v1/messages/compose', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.data).toHaveProperty('messages');
     });
+
   });
   describe('GET /api/v1/messages/sent', () => {
     it('should get all sent messages', async () => {
@@ -52,7 +93,6 @@ describe('POST /api/v1/messages/compose', () => {
       expect(res.body.data).toHaveProperty('messages');
     });
   });
-});
 describe('GET /api/v1/messages/unread', () => {
   it('should get all unread messages', async () => {
     const res = await request(app)
@@ -96,6 +136,18 @@ describe('GET /api/v1/messages/:id', () => {
     .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
   });
+  it('should not get a message if it does not exist', async () => {
+    const res = await request(app)
+    .get('/api/v1/messages/661dadfa8a8e750d4c3f2abc')
+    .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(404);
+  });
+  it('should not get a message if it does not belong to the user', async () => {
+    const res = await request(app)
+    .get('/api/v1/messages/661dadfa8a8e750d4c3f2fff')
+    .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(404);
+  });
 });
 describe('PATCH /api/v1/messages/:id/markread', () => {
   it('should mark a message as read', async () => {
@@ -113,17 +165,17 @@ describe('DELETE /api/v1/messages/:id/delete', () => {
     .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(204);
   });
+  it('should not delete a message if it does not exist', async () => {
+    const res = await request(app)
+    .delete(`/api/v1/messages/${messageid}/delete`)
+    .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(404);
+  });
+  it('should not delete a message if it does not belong to the user', async () => {
+    const res = await request(app)
+    .delete('/api/v1/messages/661dadfa8a8e750d4c3f2fff/delete')
+    .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(404);
+  });
 });
 
-// TO DO AFTER MODERATION
-// describe('DELETE /api/v1/messages/:id/report', () => {
-//   it('should report a message', async () => {
-//     const id=0;
-//     const res = await request(app).post(`/api/v1/messages/${id}/report`);
-
-//     expect(res.statusCode).toBe(200);
-//     // Add more assertions to validate the res body or other conditions
-//   });
-
-//   // Add more test cases for other message routes
-// });
