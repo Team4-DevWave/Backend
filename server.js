@@ -27,19 +27,17 @@ mongoose
               origin: 'http://localhost:3000', // removed a /   to test
             },
           });
-      io.use(async (socket, next) => {
-        const token = socket.handshake.query.token;
-        try {
-          const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
-          const user = await userModel.findById(decoded.userID);
-          socket.userID = user._id.toString();
-          socket.username = user.username;
-          next();
-        } catch (err) {
-          console.log(err);
-        }
-      });
       io.on('connection', (socket) => {
+        socket.on(('login'), async (token) => {
+          try {
+            const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
+            const user = await userModel.findById(decoded.userID);
+            socket.userID = user._id.toString();
+            socket.username = user.username;
+          } catch (err) {
+            console.log(err);
+          }
+        });
         socket.on('join rooms', async () => {
           // Check if a chatroom with the given ID exists
           const rooms = await chatroomModel.find({chatroomMembers: {$in: [socket.userID]}}).select('_id').exec();
