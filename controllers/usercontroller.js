@@ -59,7 +59,7 @@ exports.getComments=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
-    return next(new AppError('User not found', 400));
+    return next(new AppError('User not found', 404));
   }
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
   const alteredComments = await commentutil.alterComments(req, comments);
@@ -75,7 +75,7 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
-    return next(new AppError('User not found', 400));
+    return next(new AppError('User not found', 404));
   }
   const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
@@ -382,10 +382,7 @@ exports.removeSocialLink = catchAsync(async (req, res, next) => {
       {_id: req.user.settings},
       {$pull: {'userProfile.socialLinks': {_id: req.params.sociallinkid}}},
       {new: true});
-  res.status(200).json({
+  res.status(204).json({
     status: 'success',
-    data: {
-      socialLinks: settings.userProfile.socialLinks,
-    },
   });
 });
