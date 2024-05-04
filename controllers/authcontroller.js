@@ -121,15 +121,13 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 exports.signout = (req, res) => {
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
+  res.clearCookie('jwt');
   res.status(200).json({
     status: 'success',
     message: 'Signed out successfully',
   });
 };
+
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const username = req.body.username;
   const email = req.body.email;
