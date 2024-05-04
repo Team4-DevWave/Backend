@@ -7,6 +7,7 @@ const handlerFactory = require('./handlerfactory');
 const paginate = require('../utils/paginate');
 const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
+const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
 const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
@@ -474,6 +475,37 @@ exports.createPost = catchAsync(async (req, res, next) => {
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}}, {new: true});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}}, {new: true});
+    const frequentMembers = userModel.find({joinedSubreddits: subreddit.id}).populate({path: 'settings', match: {'communityAlerts': 'frequent'}});    //eslint-disable-line
+    const lowMembers = userModel.find({joinedSubreddits: subreddit.id}).populate({path: 'settings', match: {'communityAlerts': 'low'}});    //eslint-disable-line
+    for (let i = 0; i < frequentMembers.length; i++) {
+      const user = await userModel.findById(frequentMembers[i]);
+      const notificationParameters = {
+        recipient: user.id,
+        content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
+        sender: subreddit.id,
+        type: 'post',
+        contentID: post.id,
+      };
+      notificationController.createNotification(notificationParameters);
+      await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
+      notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+    }
+    for (let i = 0; i < lowMembers.length; i++) {
+      const user = await userModel.findById(lowMembers[i]);
+      const number = Math.floor(Math.random() * (5 - 0 + 1)) + 0;
+      if (number === 4) {
+        const notificationParameters = {
+          recipient: user.id,
+          content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
+          sender: subreddit.id,
+          type: 'post',
+          contentID: post.id,
+        };
+        notificationController.createNotification(notificationParameters);
+        await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
+        notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+      }
+    }
   }
   res.status(201).json({
     status: 'success',

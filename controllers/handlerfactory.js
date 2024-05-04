@@ -1,5 +1,9 @@
 const catchAsync = require('../utils/catchasync');
 const AppError = require('../utils/apperror');
+const settingsmodel = require('../models/settingsmodel');
+const notificationController = require('./notificationcontroller');
+const postModel = require('../models/postmodel');
+const userModel = require('../models/usermodel');
 
 exports.deleteOne = (model) =>
   catchAsync(async (req, res, next) => {
@@ -96,6 +100,35 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
     if (voteType==1) {
       doc.votes.upvotes+=1;
       req.user.upvotes[voteOn].push(id);
+      const user = await postModel.findById(doc.userID);
+      const settings = await settingsmodel.findById(user.settings);
+      if (voteOn === 'posts') {
+        if (settings.notificationSettings.upvotesOnYourPost) {
+          const notificationParameters = {
+            recipient: doc.userID,
+            content: 'u/' + user.username + ' upvoted your post',
+            sender: req.user.id,
+            type: 'post',
+            contentID: doc._id,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
+          notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+        }
+      } else {
+        if (settings.notificationSettings.upvotesOnYourComment) {
+          const notificationParameters = {
+            recipient: doc.userID,
+            content: 'u/' + user.username + ' upvoted your comment',
+            sender: req.user.id,
+            type: 'comment',
+            contentID: doc._id,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
+          notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+        }
+      }
     }
     if (voteType==-1) {
       doc.votes.downvotes+=1;

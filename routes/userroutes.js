@@ -45,6 +45,7 @@ userRouter.post('/me/settings/addsociallink', userController.addSocialLink);
 userRouter.delete('/me/settings/removesociallink/:sociallinkid', userController.removeSocialLink);
 userRouter.patch('/me/changeGender', userController.changeGender);
 userRouter.patch('/me/changeDisplayName', userController.changeDisplayName);
+userRouter.patch('/me/changeProfilePic', userController.changeProfilePic);
 userRouter
     .route('/me/friend/:username')
     .post(userController.checkBlocked, userController.addFriend)// TESTED
