@@ -293,8 +293,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.verified=false;
   newUser.settings = settings._id;
   if (req.body.deviceToken) {
-    console.log('yes');
-    await userModel.findByIdAndUpdate(newUser.id, {deviceToken: req.body.deviceToken}, {new: true});
+    newUser.deviceToken = req.body.deviceToken;
   }
 
   const token=sendVerificationEmail(newUser); // TODO move under user.save
