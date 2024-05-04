@@ -405,6 +405,9 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
     await userModel.findByIdAndUpdate(req.user.id, {profilePicture: ''}, {new: true});
     res.status(200).json({
       status: 'success',
+      data: {
+        profilePicture: req.user.profilePicture,
+      },
     });
   } else {
     let media = null;
@@ -418,6 +421,9 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
     }
     res.status(200).json({
       status: 'success',
+      data: {
+        profilePicture: req.user.profilePicture,
+      },
     });
   }
 });
