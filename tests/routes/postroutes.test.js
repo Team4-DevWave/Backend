@@ -17,23 +17,7 @@ describe('POST /api/v1/users/login', () => {
   expect(response.body).toHaveProperty('token');
   expect(response.body.data).toHaveProperty('user');
   });
-  it('should not log in a user with invalid credentials', async () => {
-    const userCredentials = {
-      username: 'testuser1',
-      email: 'test@example.com',
-      password: 'wrongpassword',
-    };
-    const response = await request(app)
-                    .post('/api/v1/users/login')
-                    .send(userCredentials);
-    expect(response.statusCode).toBe(401);
-    expect(response.body).not.toHaveProperty('token');
-    expect(response.body).toHaveProperty('status', 'fail');
-    expect(response.body).toHaveProperty('message', 'Incorrect email or password');
-  });
 });
-
-
 describe('POST /api/v1/posts/submit/u/:subreddtnam_or_username', () => {
     
 //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
@@ -100,10 +84,10 @@ it('should create a new post with poll on the user profile successfully', async 
     locked: false,
     text_body: "feel free to open the link in response -.-",
     poll: {
-      "option1": 3,
-      "option2": 7,
-      "option3": 9,
-      "option4": 15
+      "option1": [],
+      "option2": [],
+      "option3": [],
+      "option4": []
     }
   };
   const username = 'moaz';
@@ -179,17 +163,17 @@ describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
     
     it('should create a new post with poll on a subreddit successfully', async () => {
       const post = {
-        title: "el7ala",
+        title: postTitle,
         type: "poll",
         spoiler: true,
         nsfw: false,
         locked: false,
         text_body: "feel free to open the link in response -.-",
         poll: {
-          "option1": 3,
-          "option2": 7,
-          "option3": 9,
-          "option4": 15
+          "option1": [],
+          "option2": [],
+          "option3": [],
+          "option4": []
         }
       };
       const subreddit = 'firstcommunity';
@@ -251,10 +235,10 @@ describe('post /api/v1/posts/:id/hide', () => {
         // expect(response.body.data).toHaveProperty('post');
     });
 
-  it('should not hide a post the user selected as post doesn not exist', async () => {
-    const postid = '65ff1fec2116981dac6bd5c2';
+  it('should not hide a post the user selected as post doesnt exist', async () => {
+    const postid = '65ff1fec2116981dac6bd4c1';
     const response = await request(app)
-                    .patch(`/api/v1/posts/${postid}/hide`)
+                    .post(`/api/v1/posts/${postid}/hide`)
                     .set('Authorization', `Bearer ${token}`);;
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('status', 'fail');

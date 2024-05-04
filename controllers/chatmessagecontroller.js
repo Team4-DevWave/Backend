@@ -9,7 +9,7 @@ exports.createChatMessage = catchAsync(async (req, res, next) => {
     return next(new AppError('No chatroom found with that ID', 404));
   }
   const chatroomMembers = chatroom.chatroomMembers.map((member) => member._id.toString());
-  if (!chatroomMembers.includes(req.user._id.toString())) {
+  if (!chatroomMembers.includes(req.user.id)) {
     return next(new AppError('You are not a member of this chatroom', 401));
   }
   const chatMessage = await chatMessageModel.create({
@@ -33,7 +33,7 @@ exports.getChatMessages = catchAsync(async (req, res, next) => {
     return next(new AppError('No chatroom found with that ID', 404));
   }
   const chatroomMembers = chatroom.chatroomMembers.map((member) => member._id.toString());
-  if (!chatroomMembers.includes(req.user._id.toString())) {
+  if (!chatroomMembers.includes(req.user.id)) {
     return next(new AppError('You are not a member of this chatroom', 401));
   }
   const chatMessages = await chatMessageModel.find({chatID: chatroom._id});
@@ -52,7 +52,7 @@ exports.getChatMessage = catchAsync(async (req, res, next) => {
   }
   const chatroom = await chatroomModel.findById(chatMessage.chatID);
   const chatroomMembers = chatroom.chatroomMembers.map((member) => member._id.toString());
-  if (!chatroomMembers.includes(req.user._id.toString())) {
+  if (!chatroomMembers.includes(req.user.id)) {
     return next(new AppError('You are not a member of this chatroom', 401));
   }
   res.status(200).json({
@@ -70,7 +70,7 @@ exports.deleteChatMessage = catchAsync(async (req, res, next) => {
   }
   const chatroom = await chatroomModel.findById(chatMessage.chatID);
   const chatroomMembers = chatroom.chatroomMembers.map((member) => member._id.toString());
-  if (!chatroomMembers.includes(req.user._id.toString())) {
+  if (!chatroomMembers.includes(req.user.id)) {
     return next(new AppError('You are not a member of this chatroom', 401));
   }
   if (chatroom.latestMessage.toString() === chatMessage._id.toString()) {

@@ -25,14 +25,6 @@ const commentSchema = new mongoose.Schema({
     ref: 'posts',
     required: [true, 'comment must belong to a post'],
   },
-  hidden: {
-    type: Boolean,
-    default: false,
-  },
-  saved: {
-    type: Boolean,
-    default: false,
-  },
   collapsed: {
     type: Boolean,
     default: false,
@@ -45,6 +37,14 @@ const commentSchema = new mongoose.Schema({
 commentSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'user',
+    select: 'username',
+  });
+  next();
+});
+
+commentSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'mentioned',
     select: 'username',
   });
   next();

@@ -65,17 +65,12 @@ const subredditSchema =new mongoose.Schema({
   invitedUsers: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
 });
 
-// // //query middle ware
-// subredditSchema.pre(/^find/, function(next) {
-//   // anything that starts with find ex: findanddelete/findandupdate
-//   this.populate({
-//     // this points to the current query (used to populate all ur docs)
-//     path: 'moderators',
-//     select: '-__v -passwordChangedAt', // - means remove the selected fields from showing in the population
-//   });
-//   // using populate a lot might affect performance as it creates new query
-//   // we used populate in here instead of tourcontroller to prevent code repetition (to populate all of ur documents)
-//   next();
-// });
+subredditSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'members moderators invitedUsers',
+    select: 'username',
+  });
+  next();
+});
 const subredditModel = mongoose.model('subreddits', subredditSchema);
 module.exports = subredditModel;
