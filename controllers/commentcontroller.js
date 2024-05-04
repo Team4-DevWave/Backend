@@ -7,6 +7,7 @@ const userModel = require('../models/usermodel');
 const postModel = require('../models/postmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
+const settingsModel = require('../models/settingsmodel');
 const commentUtil = require('../utils/commentutil');
 
 exports.getComment=catchAsync(async (req, res, next) => {
@@ -70,15 +71,19 @@ const createMessage = catchAsync(async (comment) => {
         message: comment.content,
         post: comment.post,
       });
-      const notificationParameters = {
-        recipient: userId,
-        content: 'u/' + username + ' mentioned you in a comment',
-        sender: comment.user._id,
-        type: 'comment',
-        contentID: comment._id,
-      };
-      notificationController.createNotification(notificationParameters);
-      await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
+      const recipientSettings = await settingsModel.findById(user.settings);
+      if (recipientSettings.notificationSettings.mentionsOfUsername) {
+        const notificationParameters = {
+          recipient: userId,
+          content: 'u/' + username + ' mentioned you in a comment',
+          sender: comment.user._id,
+          type: 'comment',
+          contentID: comment._id,
+        };
+        notificationController.createNotification(notificationParameters);
+        await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
+        notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+      }
     });
   }
   // Send a message to the post owner
@@ -94,15 +99,19 @@ const createMessage = catchAsync(async (comment) => {
       message: comment.content,
       post: comment.post,
     });
-    const notificationParameters = {
-      recipient: post.userID,
-      content: 'u/' + username + ' commented on your post',
-      sender: comment.user._id,
-      type: 'comment',
-      contentID: comment._id,
-    };
-    notificationController.createNotification(notificationParameters);
-    await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
+    const recipientSettings = await settingsModel.findById(user.settings);
+    if (recipientSettings.notificationSettings.commentsOnYourPost) {
+      const notificationParameters = {
+        recipient: post.userID,
+        content: 'u/' + username + ' commented on your post',
+        sender: comment.user._id,
+        type: 'comment',
+        contentID: comment._id,
+      };
+      notificationController.createNotification(notificationParameters);
+      await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
+      notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+    }
   }
 });
 // CREATING A MESSAGE NOT TESTED YET IN CREATE AND EDIT COMMENT

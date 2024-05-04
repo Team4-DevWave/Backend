@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchasync');
 const paginate = require('../utils/paginate');
 const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
+const userModel = require('../models/usermodel');
 const postutil = require('../utils/postutil');
 const commentModel = require('../models/commentsmodel');
 // TODO exclude all not approved posts
@@ -36,6 +37,7 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
   if (req.body.category) {
     newCommunity = await subredditModel.findByIdAndUpdate(newCommunity.id, {category: req.body.category}, {new: true});
   }
+  await userModel.findByIdAndUpdate(req.user.id, {$push: {joinedSubreddits: newCommunity.id}}, {new: true});
   res.status(201).json({
     status: 'success',
     data: {
@@ -234,20 +236,20 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
 });
 exports.searchSubreddit=catchAsync(async (req, res, next) => {
   const query='.*'+req.query.q+'.*';
-  const subredditID=req.params.subreddit;
+  const subredditName=req.params.subreddit;
   const sort= req.query.sort || 'Top';
   const pageNumber= req.query.page || 1;
   console.log(query, sort, pageNumber);
-  if (!query || !subredditID) {
+  if (!query || !subredditName) {
     next(new AppError('Please provide a search query', 400));
     return;
   }
-  const subreddit=await subredditModel.findById(subredditID);
+  const subreddit=await subredditModel.find({name: subredditName});
   if (!subreddit) {
     next(new AppError('Subreddit does not exist', 404));
     return;
   }
-  const posts=await postModel.find({title: {$regex: query, $options: 'i'}, subredditID: subredditID}).exec();
+  const posts=await postModel.find({title: {$regex: query, $options: 'i'}, subredditID: subreddit.id}).exec();
   const media=posts.filter((post) => post.type === 'image/video');
   const comments=await commentModel.aggregate([
     {

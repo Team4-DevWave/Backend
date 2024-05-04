@@ -8,7 +8,16 @@ const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
+
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: 'dxy3lq6gh',
+  api_key: '941913859728837',
+  api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
+});
 const commentutil = require('../utils/commentutil');
+
 
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
@@ -202,15 +211,19 @@ const handleUserAction = (action, subaction) =>
     let statusCode;
     subaction === 'add' ? statusCode=200 : statusCode=204;
     if (subaction === 'add' && action === 'follow') {
-      const notificationParameters = {
-        recipient: targetUser._id,
-        content: 'u/' + req.user.username + ' started following you',
-        sender: req.user.id,
-        type: 'follow',
-        contentID: req.user.id,
-      };
-      notificationController.createNotification(notificationParameters);
-      await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
+      const notificationsSettings = await settingsModel.findById(targetUser.settings);
+      if (notificationsSettings.notificationSettings.newFollowers) {
+        const notificationParameters = {
+          recipient: targetUser._id,
+          content: 'u/' + req.user.username + ' started following you',
+          sender: req.user.id,
+          type: 'follow',
+          contentID: req.user.id,
+        };
+        notificationController.createNotification(notificationParameters);
+        await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
+        notificationController.sendNotification(notificationParameters.content, targetUser.deviceToken);
+      }
     }
     res.status(statusCode).json({
       status: 'success',
@@ -385,4 +398,26 @@ exports.removeSocialLink = catchAsync(async (req, res, next) => {
   res.status(204).json({
     status: 'success',
   });
+});
+
+exports.changeProfilePic = catchAsync(async (req, res, next) => {
+  if (!req.body.image) {
+    await userModel.findByIdAndUpdate(req.user.id, {profilePicture: ''}, {new: true});
+    res.status(200).json({
+      status: 'success',
+    });
+  } else {
+    let media = null;
+    if (req.body.image) {
+      media = req.body.image;
+      const result = await cloudinary.uploader.upload(`data:image/png;base64,${media}`, {
+        resource_type: 'auto',
+      });
+      const url = result.secure_url;
+      await userModel.findByIdAndUpdate(req.user.id, {profilePicture: url}, {new: true});
+    }
+    res.status(200).json({
+      status: 'success',
+    });
+  }
 });

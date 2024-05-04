@@ -292,6 +292,9 @@ exports.signup = catchAsync(async (req, res, next) => {
     gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
   newUser.verified=false;
   newUser.settings = settings._id;
+  if (req.body.deviceToken) {
+    newUser.deviceToken = req.body.deviceToken;
+  }
 
   const token=sendVerificationEmail(newUser); // TODO move under user.save
   newUser.verficationToken=token;

@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
+    default: '',
   },
   verificationToken: {
     type: String,
@@ -168,6 +169,7 @@ const userSchema = new mongoose.Schema({
     },
   ],
   notificationCount: {type: Number, default: 0},
+  deviceToken: {type: String},
 });
 // password encryption
 userSchema.pre('save', async function(next) {

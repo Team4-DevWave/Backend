@@ -40,16 +40,20 @@ mongoose
         }
       });
       io.on('connection', (socket) => {
+        socket.on(('login'), async (token) => {
+          try {
+            const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
+            const user = await userModel.findById(decoded.userID);
+            socket.userID = user._id.toString();
+            socket.username = user.username;
+          } catch (err) {
+            console.log(err);
+          }
+        });
         socket.on('join rooms', async () => {
           // Check if a chatroom with the given ID exists
           const rooms = await chatroomModel.find({chatroomMembers: {$in: [socket.userID]}}).select('_id').exec();
           const roomIds = rooms.map((room) => room._id.toString());
-          const joinedRooms = Array.from(socket.rooms);
-          joinedRooms.forEach((roomId) => {
-            if (!roomIds.includes(roomId)) {
-              socket.leave(roomId);
-            }
-          });
           roomIds.forEach((roomId) => socket.join(roomId));
         });
         socket.on('leave room', (roomID) => {
