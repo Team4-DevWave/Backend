@@ -20,8 +20,9 @@ exports.alterComments = async (req, comments) => {
   const newComments = [];
   console.log(user.username);
 
-  for (const comment of comments) {
+  for (const commenty of comments) {
     // const commentUser=comment.user.id;
+    const comment = commenty.toObject();
     const commentPost=await postModel.findById(comment.post);
     if (commentPost && commentPost.subredditID) { // check access to private subreddit
       const subredditID=commentPost.subredditID.id;
