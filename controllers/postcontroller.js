@@ -9,7 +9,9 @@ const cloudinary = require('cloudinary').v2;
 const mongoose = require('mongoose');
 const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
-
+const {promisify} = require('util');
+const jwt = require('jsonwebtoken');
+const commentModel = require('../models/commentsmodel');
 
 cloudinary.config({
   cloud_name: 'dxy3lq6gh',
@@ -161,8 +163,38 @@ exports.getPost = catchAsync(async (req, res, next) => {
   post.numViews += 1;
   await post.save();
   const alteredPosts = await postutil.alterPosts(req, [post]);
-  req.user.viewedPosts.push(post._id);
-  await req.user.save();
+  let token;
+  if (
+    req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+  if (!token) {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        post: alteredPosts[0],
+      },
+    });
+  }
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const user = await userModel.findById(decoded.userID);
+  if (!user) {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        post: alteredPosts[0],
+      },
+    });
+  }
+  if (user.viewedPosts.includes(post._id)) {
+    user.viewedPosts = user.viewedPosts.filter((id) => id.toString() !== post._id.toString());
+  }
+  user.viewedPosts.push(post._id);
+  await user.save();
   res.status(200).json({
     status: 'success',
     data: {
@@ -180,7 +212,7 @@ exports.editPost = catchAsync(async (req, res, next) => {
     return next(new AppError('You are not the owner of the post', 400));
   }
   req.body.lastEditedTime = Date.now();
-  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body);
+  req.body.mentioned= await handlerFactory.checkMentions(userModel, req.body.text_body);
   post = await postModel.findByIdAndUpdate(req.params.postid, {$set: req.body}, {
     new: true,
     runValidators: true});
@@ -193,13 +225,15 @@ exports.editPost = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePost = catchAsync(async (req, res, next) => {
-  const post = await postModel.findByIdAndDelete(req.params.postid);
-  if (post.userID.id != req.user.id) {
-    return next(new AppError('You are not the owner of the post', 400));
-  }
+  const post = await postModel.findById(req.params.postid);
   if (!post) {
     return next(new AppError('no post with that id', 404));
   }
+  if (post.userID.id != req.user.id) {
+    return next(new AppError('You are not the owner of the post', 400));
+  }
+  await commentModel.deleteMany({post: post.id});
+  await postModel.deleteOne({_id: req.params.postid});
   res.status(204).json({
     status: 'success',
   });
@@ -380,7 +414,10 @@ exports.createPost = catchAsync(async (req, res, next) => {
       }
     }
     if (req.body.text_body) {
-      newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
+      const mentioned = await handlerFactory.checkMentions(userModel, req.body.text_body);
+      newPost = await postModel.findByIdAndUpdate(newPostID,
+          {text_body: req.body.text_body, mentioned: mentioned}, {new: true});
+      // await newPost.save();
     }
     post = newPost;
     const user = req.user;
@@ -478,5 +515,29 @@ exports.createPost = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.votePoll = catchAsync(async (req, res, next) => {
+  const post = await postModel.findById(req.params.postid);
+  if (!post) {
+    return next(new AppError('No post found with that ID', 404));
+  }
+  if (post.type !== 'poll') {
+    return next(new AppError('Post is not a poll', 400));
+  }
+  const poll = post.poll;
+  if (!poll.has(req.body.option)) {
+    return next(new AppError('No such option', 400));
+  }
+  for (const option of poll.keys()) {
+    if (poll.get(option).includes(req.user._id)) {
+      return next(new AppError('Already voted another option', 400));
+    }
+  }
+  post.poll.get(req.body.option).push(req.user._id);
+  await post.save();
+  res.status(200).json({
+    status: 'success',
+    poll: post.poll,
+  });
+});
+
 exports.reportPost = catchAsync(async (req, res, next) => {}); // TODO NEED MODERATION
-exports.crosspost = catchAsync(async (req, res, next) => {});

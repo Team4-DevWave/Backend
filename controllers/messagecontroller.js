@@ -222,8 +222,8 @@ exports.getMessage = catchAsync(async (req, res, next) => {
   if (!message) {
     return next(new AppError('no message with that id', 404));
   }
-  if (message.to._id.toString() !== req.user.id.toString() && message.from._id.toString() !== req.user.id.toString()) {
-    return next(new AppError('you are not allowed to access this message', 403));
+  if (message.to.id !== req.user.id && message.from.id !== req.user.id) {
+    return next(new AppError('you are not allowed to access this message', 404));
   }
   res.status(200).json({
     status: 'success',
@@ -239,7 +239,7 @@ exports.deleteMessage =catchAsync(async (req, res, next) => {
     return next(new AppError('no message with that id', 404));
   }
   if (message.to._id.toString() !== req.user.id.toString() && message.from._id.toString() !== req.user.id.toString()) {
-    return next(new AppError('you are not allowed to delete this message', 403));
+    return next(new AppError('you are not allowed to delete this message', 404));
   }
   res.status(204).json({
     status: 'success',

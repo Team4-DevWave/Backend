@@ -8,6 +8,7 @@ const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
+
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -15,6 +16,8 @@ cloudinary.config({
   api_key: '941913859728837',
   api_secret: 'R1IDiKXAcMkswyGb0Ac10wXk6tM',
 });
+const commentutil = require('../utils/commentutil');
+
 
 exports.usernameAvailable=catchAsync(async (req, res, next)=>{
   if (!req.params.username) {
@@ -65,13 +68,14 @@ exports.getComments=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
-    return next(new AppError('User not found', 400));
+    return next(new AppError('User not found', 404));
   }
   const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
+  const alteredComments = await commentutil.alterComments(req, comments);
   res.status(200).json({
     status: 'success',
     data: {
-      comments: comments,
+      comments: alteredComments,
     },
   });
 });
@@ -80,15 +84,16 @@ exports.getOverview=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
   const user=await userModel.findOne({username: username});
   if (!user) {
-    return next(new AppError('User not found', 400));
+    return next(new AppError('User not found', 404));
   }
   const paginatedPosts=paginate.paginate(await postModel.find({userID: user._id}).exec(), 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
-  const comments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
+  const paginatedComments=paginate.paginate(await commentModel.find({user: user._id}), 10, pageNumber);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
-      comments: comments,
+      comments: alteredComments,
       posts: alteredPosts,
     },
   });
@@ -107,16 +112,18 @@ exports.gethiddenPosts=catchAsync(async (req, res, next)=>{
 });
 exports.getSaved=catchAsync(async (req, res, next)=>{
   const pageNumber=req.query.page || 1;
-  const comments=paginate.paginate(await commentModel.find({_id: {$in: req.user.savedPostsAndComments.comments}}),
-      10, pageNumber);
+  const paginatedComments=paginate.paginate(await commentModel.find({_id:
+    {$in: req.user.savedPostsAndComments.comments}}),
+  10, pageNumber);
   const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.savedPostsAndComments.posts}}),
       10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
       posts: alteredPosts,
-      comments: comments,
+      comments: alteredComments,
     },
   });
 });
@@ -137,23 +144,51 @@ exports.getAbout=catchAsync(async (req, res, next)=>{
   });
 });
 exports.getUpvoted=catchAsync(async (req, res, next)=>{
+  const pageNumber=req.query.page || 1;
+  const paginatedComments=paginate.paginate(await commentModel.find({_id: {$in: req.user.upvotes.comments}}),
+      10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.upvotes.posts}}),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: req.user.upvotes.posts,
-      comments: req.user.upvotes.comments,
+      posts: alteredPosts,
+      comments: alteredComments,
     },
   });
 });
 exports.getDownvoted=catchAsync(async (req, res, next)=>{
+  const pageNumber=req.query.page || 1;
+  const paginatedComments=paginate.paginate(await commentModel.find({_id: {$in: req.user.downvotes.comments}}),
+      10, pageNumber);
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.downvotes.posts}}),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  const alteredComments = await commentutil.alterComments(req, paginatedComments);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: req.user.downvotes.posts,
-      comments: req.user.downvotes.comments,
+      posts: alteredPosts,
+      comments: alteredComments,
     },
   });
 });
+
+exports.getViewedPosts=catchAsync(async (req, res, next)=>{
+  const pageNumber=req.query.page || 1;
+  const paginatedPosts=paginate.paginate(await postModel.find({_id: {$in: req.user.viewedPosts}}),
+      10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      posts: alteredPosts,
+    },
+  });
+});
+
 const handleUserAction = (action, subaction) =>
   catchAsync(async (req, res, next) => {
     const targetUser = await userModel.findOne({username: req.params.username});
@@ -241,10 +276,21 @@ exports.getMySettings = catchAsync(async (req, res, next) => {
   });
 });
 exports.updateMySettings = catchAsync(async (req, res, next) => {
-  const settings = await settingsModel.findByIdAndUpdate(req.user.settings, {$set: req.body}, {
-    new: true,
-    runValidators: true,
-  });
+  const settings = await settingsModel.findById(req.user.settings);
+  if (!settings) {
+    return next(new AppError('No settings found with that ID', 404));
+  }
+  // Iterate over the keys in req.body and update the corresponding properties in settings
+  for (const key in req.body) {
+    if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+      for (const nestedKey in req.body[key]) {
+        if (Object.prototype.hasOwnProperty.call(req.body[key], nestedKey)) {
+          settings[key][nestedKey] = req.body[key][nestedKey];
+        }
+      }
+    }
+  }
+  await settings.save(); // This triggers validators
   res.status(200).json({
     status: 'success',
     data: {
@@ -349,11 +395,8 @@ exports.removeSocialLink = catchAsync(async (req, res, next) => {
       {_id: req.user.settings},
       {$pull: {'userProfile.socialLinks': {_id: req.params.sociallinkid}}},
       {new: true});
-  res.status(200).json({
+  res.status(204).json({
     status: 'success',
-    data: {
-      socialLinks: settings.userProfile.socialLinks,
-    },
   });
 });
 

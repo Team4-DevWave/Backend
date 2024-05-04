@@ -23,7 +23,7 @@ exports.alterComments = async (req, comments) => {
   for (const comment of comments) {
     // const commentUser=comment.user.id;
     const commentPost=await postModel.findById(comment.post);
-    if (commentPost) { // check access to private subreddit
+    if (commentPost && commentPost.subredditID) { // check access to private subreddit
       const subredditID=commentPost.subredditID.id;
       const subreddit = await subredditModel.findById(subredditID);
       if (subreddit) {
@@ -34,7 +34,7 @@ exports.alterComments = async (req, comments) => {
       }
     }
     if (user) { // check if the author blocked the user trying to access the post
-      const poster=await userModel.findById(commentPost.userID.id);
+      const poster=await userModel.findById(comment.user.id);
       if (poster) {
         const stringBlock=poster.blockedUsers.map((user) => user.toString());
         if (stringBlock.includes(user.id)) {
@@ -42,8 +42,6 @@ exports.alterComments = async (req, comments) => {
         }
       }
     }
-    const stringhidden=user.hiddenPosts.map((post) => post.toString());
-    comment.hidden=stringhidden.includes(commentPost._id.toString());
     const stringSaved=user.savedPostsAndComments.comments.map((comment) => comment.toString());
     comment.saved=stringSaved.includes(comment._id.toString());
     const stringUpvoted=user.upvotes.comments.map((comment) => comment.toString());

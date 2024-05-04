@@ -5,6 +5,7 @@ const authController = require('../controllers/authcontroller');
 const userRouter = express.Router();
 userRouter.post('/signup', authController.signup);// TESTED
 userRouter.post('/login', authController.login);// TESTED
+userRouter.get('/signout', authController.signout);
 userRouter.post('/forgotUsername', authController.forgotUsername);// TESTED
 userRouter.get('/googleLogin', authController.googleLogin);
 userRouter.post('/googleSignup', authController.googleSignup);
@@ -32,6 +33,7 @@ userRouter.get('/me/saved', userController.getSaved);// TESTED
 userRouter.get('/me/hidden', userController.gethiddenPosts);// TESTED
 userRouter.get('/me/upvoted', userController.getUpvoted);// TESTED
 userRouter.get('/me/downvoted', userController.getDownvoted);// TESTED
+userRouter.get('/me/history', userController.getViewedPosts);// TESTED
 userRouter
     .route('/me/settings')
     .get(userController.getMySettings)// TESTED
