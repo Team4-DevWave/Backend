@@ -121,15 +121,13 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 exports.signout = (req, res) => {
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
+  res.clearCookie('jwt');
   res.status(200).json({
     status: 'success',
     message: 'Signed out successfully',
   });
 };
+
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const username = req.body.username;
   const email = req.body.email;
@@ -294,6 +292,9 @@ exports.signup = catchAsync(async (req, res, next) => {
     gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
   newUser.verified=false;
   newUser.settings = settings._id;
+  if (req.body.deviceToken) {
+    newUser.deviceToken = req.body.deviceToken;
+  }
 
   const token=sendVerificationEmail(newUser); // TODO move under user.save
   newUser.verficationToken=token;
