@@ -40,8 +40,9 @@ exports.alterComments = async (req, comments) => {
         }
       }
     }
+    const commentObj = comment.toObject();
     const stringSaved=user.savedPostsAndComments.comments.map((comment) => comment.toString());
-    comment.saved=stringSaved.includes(comment._id.toString());
+    commentObj.saved=stringSaved.includes(comment._id.toString());
     const stringUpvoted=user.upvotes.comments.map((comment) => comment.toString());
     const stringDownvoted=user.downvotes.comments.map((comment) => comment.toString());
     let userVote;
@@ -52,7 +53,6 @@ exports.alterComments = async (req, comments) => {
     } else {
       userVote='none';
     }
-    const commentObj = comment.toObject();
     commentObj.userVote=userVote;
     newComments.push(commentObj);
   }
