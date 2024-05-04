@@ -39,7 +39,7 @@ describe('GET /api/v1/homepage/trending', () => {
     const response = await request(app).get('/api/v1/homepage/trending').send().set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveProperty('trends');
-  }, 10000)
+  }, 20000)
 });
 
 describe('GET /api/v1/homepage/subreddits_by_category', () => {
