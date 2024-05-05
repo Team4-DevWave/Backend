@@ -6,6 +6,7 @@ const postModel = require('../models/postmodel');
 const userModel = require('../models/usermodel');
 const postutil = require('../utils/postutil');
 const commentModel = require('../models/commentsmodel');
+const settingsModel = require('../models/settingsmodel');
 // TODO exclude all not approved posts
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
@@ -38,6 +39,39 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
     newCommunity = await subredditModel.findByIdAndUpdate(newCommunity.id, {category: req.body.category}, {new: true});
   }
   await userModel.findByIdAndUpdate(req.user.id, {$push: {joinedSubreddits: newCommunity.id}}, {new: true});
+  const newSubredditUserMod = {
+    allowModNotifications: true,
+    activity: {
+      newPosts: false,
+      postsWithUpvotes: {
+        allowNotification: false,
+        advancedSetup: false,
+        numberOfUpvotes: 5,
+      },
+      postsWithComments: {
+        allowNotification: true,
+        advancedSetup: false,
+        numberOfComments: 3,
+      },
+    },
+    reports: {
+      posts: {
+        allowNotification: true,
+        advancedSetup: false,
+        numberOfReports: 2,
+      },
+      comments: {
+        allowNotification: true,
+        advancedSetup: false,
+        numberOfReports: 2,
+      },
+    },
+  };
+  await settingsModel.findByIdAndUpdate(req.user.settings, {
+    $set: {
+      [`notificationSettings.subredditsUserMods.${newCommunity.name}`]: newSubredditUserMod,
+    },
+  });
   res.status(201).json({
     status: 'success',
     data: {

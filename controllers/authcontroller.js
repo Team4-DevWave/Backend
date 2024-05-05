@@ -120,13 +120,14 @@ exports.login = catchAsync(async (req, res, next) => {
   // 3) if everything is okay , send token to client
   createSendToken(user, 200, res);
 });
-exports.signout = (req, res) => {
+exports.signout = catchAsync(async (req, res, next) => {
+  await userModel.findByIdAndUpdate(req.user._id, {deviceToken: ''}, {new: true});
   res.clearCookie('jwt');
   res.status(200).json({
     status: 'success',
     message: 'Signed out successfully',
   });
-};
+});
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const username = req.body.username;
@@ -292,8 +293,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
   newUser.verified=false;
   newUser.settings = settings._id;
-  if (req.body.deviceToken) {
-    newUser.deviceToken = req.body.deviceToken;
+  if (req.body.mtoken) {
+    newUser.deviceToken = req.body.mtoken;
   }
 
   const token=sendVerificationEmail(newUser); // TODO move under user.save

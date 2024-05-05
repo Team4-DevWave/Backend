@@ -67,7 +67,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
       content: 'u/' + req.user.username + ' sent you a message',
       sender: req.body.from,
       type: 'message',
-      contentID: message._id,
+      contentID: message,
     };
     notificationController.createNotification(notificationParameters);
     await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});

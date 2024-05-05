@@ -226,7 +226,9 @@ const handleUserAction = (action, subaction) =>
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
-        notificationController.sendNotification(notificationParameters.content, targetUser.deviceToken);
+        if (targetUser.deviceToken) {
+          notificationController.sendNotification(notificationParameters.content, targetUser.deviceToken);
+        }
       }
     }
     res.status(statusCode).json({

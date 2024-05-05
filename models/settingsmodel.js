@@ -163,38 +163,36 @@ const settingsSchema = new mongoose.Schema({
           default: true,
         },
         activity: {
-          activity: {
-            newPosts: {
+          newPosts: {
+            type: Boolean,
+            default: false,
+          },
+          postsWithUpvotes: {
+            allowNotification: {
               type: Boolean,
               default: false,
             },
-            postsWithUpvotes: {
-              allowNotification: {
-                type: Boolean,
-                default: false,
-              },
-              advancedSetup: {
-                type: Boolean,
-                default: false,
-              },
-              numberOfUpvotes: {
-                type: Number,
-                default: 5,
-              },
+            advancedSetup: {
+              type: Boolean,
+              default: false,
             },
-            postsWithCommetns: {
-              allowNotification: {
-                type: Boolean,
-                default: true,
-              },
-              advancedSetup: {
-                type: Boolean,
-                default: false,
-              },
-              numberOfComments: {
-                type: Number,
-                default: 3,
-              },
+            numberOfUpvotes: {
+              type: Number,
+              default: 5,
+            },
+          },
+          postsWithComments: {
+            allowNotification: {
+              type: Boolean,
+              default: true,
+            },
+            advancedSetup: {
+              type: Boolean,
+              default: false,
+            },
+            numberOfComments: {
+              type: Number,
+              default: 3,
             },
           },
         },
@@ -229,6 +227,7 @@ const settingsSchema = new mongoose.Schema({
           },
         },
       },
+      default: new Map(),
     },
   },
 });
