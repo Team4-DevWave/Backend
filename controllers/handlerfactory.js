@@ -101,6 +101,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
       doc.votes.upvotes+=1;
       req.user.upvotes[voteOn].push(id);
       const user = await postModel.findById(doc.userID);
+      console.log(doc);
       const settings = await settingsmodel.findById(user.settings);
       if (voteOn === 'posts') {
         if (settings.notificationSettings.upvotesOnYourPost) {
@@ -109,7 +110,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
             content: 'u/' + user.username + ' upvoted your post',
             sender: req.user.id,
             type: 'post',
-            contentID: doc._id,
+            contentID: doc,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
@@ -122,7 +123,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
             content: 'u/' + user.username + ' upvoted your comment',
             sender: req.user.id,
             type: 'comment',
-            contentID: doc._id,
+            contentID: doc,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
