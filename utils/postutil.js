@@ -2,7 +2,17 @@ const userModel = require('../models/usermodel');
 const subredditModel = require('../models/subredditmodel');
 const jwt = require('jsonwebtoken');
 const {promisify} = require('util');
-exports.alterPosts = async (req, posts) => {
+exports.alterPosts = async (req, postss) => {
+  const posts=[];
+  for (const posty of postss) {
+    const post=posty.toObject();
+    if (post.subredditID) {
+      const subredditID=post.subredditID._id;
+      const subredditName=post.subredditID.name;
+      post.subredditID={_id: subredditID, name: subredditName};
+    }
+    posts.push(post);
+  }
   let token;
   if (
     req.headers.authorization &&
@@ -33,8 +43,7 @@ exports.alterPosts = async (req, posts) => {
   if (!user) return publicPosts;
   const newPosts = [];
 
-  for (const posty of posts) {
-    const post=posty.toObject();
+  for (const post of posts) {
     const userID=post.userID.id;
     if (post.subredditID) { // check access to private subreddit
       const subID=post.subredditID.id;
