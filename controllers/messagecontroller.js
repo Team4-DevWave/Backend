@@ -60,18 +60,22 @@ exports.createMessage = catchAsync(async (req, res, next) => {
   }
   req.body.createdAt = Date.now();
   const message= await messageModel.create(req.body);
-  const userSettings = await settingsModel.findById(await userModel.findById(req.body.to).settings);
+  const user = await userModel.findById(req.body.to);
+  // console.log(user);
+  const userSettings = await settingsModel.findById(user.settings);
+  // console.log(userSettings);
+  console.log(await messageModel.findById(message.id));
   if (userSettings.notificationSettings.privateMessages) {
     const notificationParameters = {
       recipient: req.body.to,
       content: 'u/' + req.user.username + ' sent you a message',
       sender: req.body.from,
       type: 'message',
-      contentID: message,
+      contentID: await messageModel.findById(message.id),
     };
     notificationController.createNotification(notificationParameters);
     await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
-    notificationController.sendNotification(notificationParameters.content, await userModel.findById(req.body.to).deviceToken); //eslint-disable-line
+    notificationController.sendNotification(notificationParameters.content, user.deviceToken); //eslint-disable-line
   }
   res.status(201).json({
     status: 'success',

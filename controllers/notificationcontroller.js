@@ -83,9 +83,9 @@ exports.sendNotification = catchAsync(async (msgBody, deviceToken) => {
       title: 'Threaddit',
       body: msgBody,
     },
-    data: {
-      screen: '/communities',
-    },
+    // data: {
+    //   screen: '/communities',
+    // },
     token: deviceToken, // The FCM token of the device you want to send the notification to
   };
 
