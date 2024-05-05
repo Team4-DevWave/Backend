@@ -11,8 +11,9 @@ postRouter.get('/hot', postController.getHotPosts);
 postRouter.get('/top', postController.getTopPosts);
 postRouter.get('/new', postController.getNewPosts);
 postRouter.get('/:postid', postController.getPost); // TODO check this route validity
-postRouter.use(authController.protect);
 postRouter.use('/:postid/comments', commentRouter); // NEEDS REVIEW
+postRouter.use(authController.protect);
+
 
 postRouter.post('/submit/u/:subreddit', postController.createPost);
 
