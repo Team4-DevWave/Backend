@@ -505,7 +505,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
         content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
         sender: subreddit.id,
         type: 'post',
-        contentID: post.id,
+        contentID: post,
       };
       notificationController.createNotification(notificationParameters);
       await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
@@ -520,7 +520,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
           content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
           sender: subreddit.id,
           type: 'post',
-          contentID: post.id,
+          contentID: post,
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
