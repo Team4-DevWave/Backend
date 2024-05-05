@@ -18,8 +18,6 @@ exports.alterComments = async (req, comments) => {
   const user = await userModel.findById(decoded.userID);
   if (!user) return comments;
   const newComments = [];
-  console.log(user.username);
-
   for (const comment of comments) {
     // const commentUser=comment.user.id;
     const commentPost=await postModel.findById(comment.post);
@@ -42,20 +40,21 @@ exports.alterComments = async (req, comments) => {
         }
       }
     }
+    const commentObj = comment.toObject();
     const stringSaved=user.savedPostsAndComments.comments.map((comment) => comment.toString());
-    comment.saved=stringSaved.includes(comment._id.toString());
+    commentObj.saved=stringSaved.includes(comment._id.toString());
     const stringUpvoted=user.upvotes.comments.map((comment) => comment.toString());
-    if (stringUpvoted.includes(comment._id.toString())) {
-      comment.userVote='upvoted';
-    }
     const stringDownvoted=user.downvotes.comments.map((comment) => comment.toString());
-    if (stringDownvoted.includes(comment._id.toString())) {
-      comment.userVote='downvoted';
+    let userVote;
+    if (stringUpvoted.includes(comment._id.toString())) {
+      userVote='upvoted';
+    } else if (stringDownvoted.includes(comment._id.toString())) {
+      userVote='downvoted';
+    } else {
+      userVote='none';
     }
-    if (!comment.userVote) {
-      comment.userVote='none';
-    }
-    newComments.push(comment);
+    commentObj.userVote=userVote;
+    newComments.push(commentObj);
   }
   return newComments;
 };

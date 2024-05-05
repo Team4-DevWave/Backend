@@ -206,7 +206,11 @@ const handleUserAction = (action, subaction) =>
     const updateOperation = subaction === 'add' ? '$addToSet' : '$pull';
     const updatedUser = await userModel.findByIdAndUpdate(req.user.id, {
       [updateOperation]: {[actionField]: targetUser._id},
-    }, {new: true});
+    }, {new: true})
+        .select('username followedUsers blockedUsers')
+        .populate('followedUsers', 'username')
+        .populate('blockedUsers', 'username');
+
     updatedUser.save();
     let statusCode;
     subaction === 'add' ? statusCode=200 : statusCode=204;
