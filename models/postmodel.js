@@ -28,6 +28,8 @@ const postSchema = new mongoose.Schema({
   parentPost: {type: mongoose.Schema.Types.ObjectId, ref: 'posts'},
   mentioned: [{type: mongoose.Schema.Types.ObjectId, ref: 'users'}],
   approved: {type: Boolean, required: true, default: false},
+  pollDuration: {type: Number, default: 0},
+  availableForVoting: {type: Boolean, default: true},
 },
 {
   // second option is schema options (used to show virtual properties)

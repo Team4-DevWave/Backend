@@ -83,6 +83,9 @@ exports.sendNotification = catchAsync(async (msgBody, deviceToken) => {
       title: 'Threaddit',
       body: msgBody,
     },
+    // data: {
+    //   screen: '/communities',
+    // },
     token: deviceToken, // The FCM token of the device you want to send the notification to
   };
 
@@ -93,4 +96,112 @@ exports.sendNotification = catchAsync(async (msgBody, deviceToken) => {
       .catch((error) => {
         console.log('Error sending message:', error);
       });
+});
+
+exports.changeUserSettings = catchAsync(async (req, res, next) => {
+  const setting = await settingsModel.findOne({_id: req.user.settings});
+  await settingsModel.updateOne({_id: req.user.settings}, {
+    $set: {
+      [`notificationSettings.${req.body.setting}`]: !setting.notificationSettings[req.body.setting],
+    },
+  }, {new: true});
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
+exports.changeModSettings = catchAsync(async (req, res, next) => {
+  const settings = await settingsModel.findOne({_id: req.user.settings});
+  if (req.params.subredditKey === 'land of death') {
+    // console.log(settings.notificationSettings);
+    // console.log(settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).allowModNotifications);
+  }
+  if (req.params.subredditKey && !req.params.settingTab && !req.params.activityMenu && !req.params.subsetting && !req.params.number) {    //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.allowModNotifications`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).allowModNotifications,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && !req.params.activityMenu && !req.params.subsetting && !req.params.number) {    //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.newPosts`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).activity.newPosts,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && req.params.activityMenu === 'postsWithUpvotes' && !req.params.subsetting && !req.params.number) {   // eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.postsWithUpvotes.allowNotification`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).activity.postsWithUpvotes.allowNotification,    //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && req.params.activityMenu === 'postsWithUpvotes' && req.params.subsetting && !req.params.number) {  // eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.postsWithUpvotes.advancedSetup`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).activity.postsWithUpvotes.advancedSetup,    //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && req.params.activityMenu === 'postsWithUpvotes' && req.params.subsetting && req.params.number) {    //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.postsWithUpvotes.numberOfUpvotes`]: req.params.number,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && req.params.activityMenu === 'postsWithComments' && !req.params.subsetting && !req.params.number) {   //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.postsWithComments.allowNotification`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).activity.postsWithComments.allowNotification,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && req.params.activityMenu === 'postsWithComments' && req.params.subsetting && !req.params.number) {  // eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.postsWithComments.advancedSetup`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).activity.postsWithComments.advancedSetup,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'activity' && req.params.activityMenu === 'postsWithComments' && req.params.subsetting && req.params.number) {    //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.activity.postsWithComments.numberOfComments`]: req.params.number,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'reports' && req.params.activityMenu === 'posts' && !req.params.subsetting && !req.params.number) {   //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.reports.posts.allowNotification`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).reports.posts.allowNotification,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'reports' && req.params.activityMenu === 'posts' && req.params.subsetting && !req.params.number) {  // eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.reports.posts.advancedSetup`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).reports.posts.advancedSetup,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'reports' && req.params.activityMenu === 'posts' && req.params.subsetting && req.params.number) {    //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.reports.posts.numberOfReports`]: req.params.number,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'reports' && req.params.activityMenu === 'comments' && !req.params.subsetting && !req.params.number) {   //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.reports.comments.allowNotification`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).reports.comments.allowNotification,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'reports' && req.params.activityMenu === 'comments' && req.params.subsetting && !req.params.number) {  // eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.reports.comments.advancedSetup`]: !settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).reports.comments.advancedSetup,   //eslint-disable-line
+      },
+    }, {new: true});
+  } else if (req.params.subredditKey && req.params.settingTab === 'reports' && req.params.activityMenu === 'comments' && req.params.subsetting && req.params.number) {    //eslint-disable-line
+    await settingsModel.updateOne({_id: req.user.settings}, {
+      $set: {
+        [`notificationSettings.subredditsUserMods.${req.params.subredditKey}.reports.comments.numberOfReports`]: req.params.number,    //eslint-disable-line
+      },
+    }, {new: true});
+  }
+  res.status(200).json({
+    status: 'success',
+  });
 });

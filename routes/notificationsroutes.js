@@ -22,6 +22,12 @@ notificationRouter
 notificationRouter
     .route('/settings')
     .get(notificationController.getNotificationSettings);
+notificationRouter
+    .route('/change_user_mod_notifications_settings/:subredditKey?/:settingTab?/:activityMenu?/:subsetting?/:number?')
+    .patch(notificationController.changeModSettings);
+notificationRouter
+    .route('/change_user_settings')
+    .patch(notificationController.changeUserSettings);
 
 
 module.exports = notificationRouter;

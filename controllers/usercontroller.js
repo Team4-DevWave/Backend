@@ -226,7 +226,9 @@ const handleUserAction = (action, subaction) =>
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
-        notificationController.sendNotification(notificationParameters.content, targetUser.deviceToken);
+        if (targetUser.deviceToken) {
+          notificationController.sendNotification(notificationParameters.content, targetUser.deviceToken);
+        }
       }
     }
     res.status(statusCode).json({
@@ -409,6 +411,9 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
     await userModel.findByIdAndUpdate(req.user.id, {profilePicture: ''}, {new: true});
     res.status(200).json({
       status: 'success',
+      data: {
+        profilePicture: req.user.profilePicture,
+      },
     });
   } else {
     let media = null;
@@ -422,6 +427,9 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
     }
     res.status(200).json({
       status: 'success',
+      data: {
+        profilePicture: req.user.profilePicture,
+      },
     });
   }
 });

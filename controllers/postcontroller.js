@@ -163,6 +163,25 @@ exports.getPost = catchAsync(async (req, res, next) => {
   post.numViews += 1;
   await post.save();
   const alteredPosts = await postutil.alterPosts(req, [post]);
+  if (alteredPosts[0].type==='poll') {
+    const currentTime = new Date();
+    const postCreationTime = new Date(alteredPosts[0].postedTime);
+    const timeDifferenceInMilliseconds = currentTime - postCreationTime;
+    const timeDifferenceInSeconds = timeDifferenceInMilliseconds / 1000;
+
+    // Convert the time difference from seconds to minutes
+    const timeDifferenceInMinutes = timeDifferenceInSeconds / 60;
+
+    // Convert the time difference from minutes to hours
+    const timeDifferenceInHours = timeDifferenceInMinutes / 60;
+
+    // Convert the time difference from hours to days
+    const timeDifferenceInDays = timeDifferenceInHours / 24;
+    if (timeDifferenceInDays >= alteredPosts[0].pollDuration) {
+      alteredPosts[0].availableForVoting = false;
+      await postModel.findByIdAndUpdate(alteredPosts[0].id, {availableForVoting: false}, {new: true});
+    }
+  }
   let token;
   if (
     req.headers.authorization &&
@@ -411,6 +430,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
         return next(new AppError('No options created', 400));
       } else {
         newPost = await postModel.findByIdAndUpdate(newPostID, {poll: req.body.poll}, {new: true});
+        newPost = await postModel.findByIdAndUpdate(newPostID, {pollDuration: req.body.duration}, {new: true});
       }
     }
     if (req.body.text_body) {
@@ -467,6 +487,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
         return next(new AppError('No options created', 400));
       } else {
         newPost = await postModel.findByIdAndUpdate(newPostID, {poll: req.body.poll}, {new: true});
+        newPost = await postModel.findByIdAndUpdate(newPostID, {pollDuration: req.body.duration}, {new: true});
       }
     }
     if (req.body.text_body) {
