@@ -105,19 +105,24 @@ const createMessage = catchAsync(async (req, comment) => {
       post: comment.post,
     });
     const recipientSettings = await settingsModel.findById(user.settings);
-    if (recipientSettings.notificationSettings.commentsOnYourPost) {
-      const notificationParameters = {
-        recipient: post.userID,
-        content: 'u/' + username + ' commented on your post',
-        sender: comment.user._id,
-        type: 'post',
-        contentID: alteredPosts[0],
-        body: comment.content,
-      };
-      notificationController.createNotification(notificationParameters);
-      await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
-      if (user.deviceToken) {
-        notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+    console.log(comment);
+    console.log(comment.user);
+    console.log(post.userID._id);
+    if (!comment.user._id.equals(post.userID._id)) {
+      if (recipientSettings.notificationSettings.commentsOnYourPost) {
+        const notificationParameters = {
+          recipient: post.userID,
+          content: 'u/' + username + ' commented on your post',
+          sender: comment.user._id,
+          type: 'post',
+          contentID: alteredPosts[0],
+          body: comment.content,
+        };
+        notificationController.createNotification(notificationParameters);
+        await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
+        if (user.deviceToken) {
+          notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        }
       }
     }
   }

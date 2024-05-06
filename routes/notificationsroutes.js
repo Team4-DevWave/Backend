@@ -28,6 +28,8 @@ notificationRouter
 notificationRouter
     .route('/change_user_settings')
     .patch(notificationController.changeUserSettings);
-
+notificationRouter
+    .route('/get_number_of_notifications')
+    .get(notificationController.getNumberOfNotifications);
 
 module.exports = notificationRouter;

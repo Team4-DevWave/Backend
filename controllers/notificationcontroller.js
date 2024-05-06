@@ -207,3 +207,12 @@ exports.changeModSettings = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
+
+exports.getNumberOfNotifications = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: {
+      number: req.user.notificationCount,
+    },
+  });
+});
