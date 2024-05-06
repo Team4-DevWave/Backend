@@ -99,7 +99,7 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   if (subreddit.srSettings.srType === 'private') {
-    if (subreddit.invitedUsers.some((user) => user._id.toString() === req.user.id)) {
+    if (!subreddit.invitedUsers.some((user) => user.id === req.user.id)) {
       return next(new AppError('You cannot have access to this subreddit as it is private', 404));
     }
     await subredditModel.findByIdAndUpdate(subreddit.id, {
@@ -108,7 +108,7 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
     });
   }
   const user = req.user;
-  if (subreddit.members.some((member) => member._id.toString() === req.user.id)) {
+  if (subreddit.members.some((member) => member.id === req.user.id)) {
     return next(new AppError('You are already subscribed to this subreddit', 400));
   }
   await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {members: user.id}});
@@ -320,7 +320,8 @@ exports.deleteSubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit) {
     return next(new AppError('Subreddit does not exist', 404));
   }
-  if (!subreddit.moderators.includes(req.user.id)) {
+  const moderatorIds = subreddit.moderators.map((moderator) => moderator.id);
+  if (!moderatorIds.includes(req.user.id)) {
     return next(new AppError('You are not a moderator of this subreddit', 403));
   }
   await userModel.updateMany(

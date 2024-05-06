@@ -34,7 +34,6 @@ describe('POST /api/v1/users/login', () => {
 });
 
 describe('POST /api/v1/r/create', () => {
-           
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
   it('should create a community successfully', async () => {
     subredditName = 'community' + Math.floor(Math.random() * 10000);
@@ -73,13 +72,23 @@ describe('POST /api/v1/r/create', () => {
  })
 
  describe('POST /api/v1/r/:subreddit/subscribe', () => {
-           
+  it('should log in successfully', async () => {
+    const userCredentials = {
+      username: 'dirty',
+      password: 'pass1234',
+    };
+    const response = await request(app).post('/api/v1/users/login').send(userCredentials);
+    membertoken = response.body.token;
+  expect(response.statusCode).toBe(200);
+  expect(response.body).toHaveProperty('token');
+  expect(response.body.data).toHaveProperty('user');
+  });
   //REMOVE CREATED USER AND THEIR SETTINGS FROM DB TO BE ABLE TO TEST AGAIN
     it('should join a user in a community successfully', async () => {
     const subreddit = subredditName;
     const response = await request(app)
                     .post(`/api/v1/r/${subreddit}/subscribe`)
-                    .set('Authorization', `Bearer ${token}`);;
+                    .set('Authorization', `Bearer ${membertoken}`);;
     expect(response.statusCode).toBe(200);
  });
 
@@ -93,7 +102,7 @@ describe('POST /api/v1/r/create', () => {
 
   it('should not join a user in a private community that does not have an invite', async () => {
     const subreddit = 'private community 3';
-    const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${token}`);;
+    const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${membertoken}`);;
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('status', 'fail');
     expect(response.body).toHaveProperty('message', 'You cannot have access to this subreddit as it is private');
@@ -101,10 +110,10 @@ describe('POST /api/v1/r/create', () => {
 
   it('should not join a user in a community as the user is already in the community', async () => {
     const subreddit = 'planetOfTheApes';
-    const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${token}`);;
-    expect(response.statusCode).toBe(409);
+    const response = await request(app).post(`/api/v1/r/${subredditName}/subscribe`).send().set('Authorization', `Bearer ${membertoken}`);;
+    expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('status', 'fail');
-    expect(response.body).toHaveProperty('message', 'You are already a member of this subreddit');
+    expect(response.body).toHaveProperty('message', 'You are already subscribed to this subreddit');
   });
 });
 
