@@ -255,7 +255,7 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
 exports.searchSubreddit=catchAsync(async (req, res, next) => {
   const query='.*'+req.query.q+'.*';
   const subredditName=req.params.subreddit;
-  const sort= req.query.sort || 'Top';
+  const sort= req.query.sort || 'Top'; //eslint-disable-line
   const pageNumber= req.query.page || 1;
   console.log('hi');
   if (!query || !subredditName) {
