@@ -54,4 +54,9 @@ userRouter
     .route('/me/block/:username')
     .post(userController.unfollowBlockedUser, userController.blockUser)// TESTED
     .delete(userController.unblockUser);// TESTED
+userRouter
+    .route('/me/favorites')
+    .get(userController.getFavorites)
+    .patch(userController.addFavourites)
+    .delete(userController.deleteFavourites);
 module.exports = userRouter;

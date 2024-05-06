@@ -8,6 +8,7 @@ const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
 const postutil = require('../utils/postutil');
+const subredditModel =require('../models/subredditmodel');
 
 const cloudinary = require('cloudinary').v2;
 
@@ -432,4 +433,162 @@ exports.changeProfilePic = catchAsync(async (req, res, next) => {
       },
     });
   }
+});
+
+exports.getFavorites = catchAsync(async (req, res, next) => {
+  const favorites = [];
+  for (let i = 0; i < req.user.favourites.length; i++) {
+    const favorite = {
+      name: req.user.favourites[i].name,
+      type: req.user.favourites[i].type,
+    };
+    if (favorite.type === 'user') {
+      const user = await userModel.findOne({username: favorite.name});
+      if (user.profilePicture) {
+        favorite.Picture = user.profilePicture;
+      } else {
+        favorite.Picture = '';
+      }
+      favorites.push(favorite);
+    } else {
+      const subreddit = await subredditModel.findOne({name: favorite.name});
+      if (subreddit.srLooks.icon) {
+        favorite.Picture = subreddit.srLooks.icon;
+      } else {
+        favorite.Picture = '';
+      }
+      favorites.push(favorite);
+    }
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      favorites: favorites,
+    },
+  });
+});
+
+exports.addFavourites = catchAsync(async (req, res, next) => {
+  if (!req.body.name) {
+    return next(new AppError('No name sent', 400));
+  } else if (!req.body.type) {
+    return next(new AppError('No type sent', 400));
+  } else if (req.body.type === 'user') {
+    if (! await userModel.findOne({username: req.body.name})) {
+      return next(new AppError('No user with that username', 404));
+    }
+  } else if (req.body.type === 'subreddit') {
+    if (! await subredditModel.findOne({name: req.body.name})) {
+      return next(new AppError('No subreddit with that name', 404));
+    }
+  }
+  for (let i = 0; i < req.user.favourites.length; i++) {
+    if (req.user.favourites[i].name === req.body.name && req.user.favourites[i].type === req.body.type) {
+      return next(new AppError('Already exists', 409));
+    }
+  }
+  await userModel.findByIdAndUpdate(req.user.id, {
+    $push: {
+      favourites: {
+        name: req.body.name,
+        type: req.body.type,
+      },
+    },
+  }, {new: true});
+  const reqUser = await userModel.findById(req.user.id);
+  const favorites = [];
+  for (let i = 0; i < reqUser.favourites.length; i++) {
+    const favorite = {
+      name: reqUser.favourites[i].name,
+      type: reqUser.favourites[i].type,
+    };
+    if (favorite.type === 'user') {
+      const user = await userModel.findOne({username: favorite.name});
+      if (user.profilePicture) {
+        favorite.Picture = user.profilePicture;
+      } else {
+        favorite.Picture = '';
+      }
+      favorites.push(favorite);
+    } else {
+      const subreddit = await subredditModel.findOne({name: favorite.name});
+      if (subreddit.srLooks.icon) {
+        favorite.Picture = subreddit.srLooks.icon;
+      } else {
+        favorite.Picture = '';
+      }
+      favorites.push(favorite);
+    }
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      favorites: favorites,
+    },
+  });
+});
+
+exports.deleteFavourites = catchAsync(async (req, res, next) => {
+  if (!req.body.name) {
+    return next(new AppError('No name sent', 400));
+  } else if (!req.body.type) {
+    return next(new AppError('No type sent', 400));
+  } else if (req.body.type === 'user') {
+    if (! await userModel.findOne({username: req.body.name})) {
+      return next(new AppError('No user with that username', 404));
+    }
+  } else if (req.body.type === 'subreddit') {
+    if (! await subredditModel.findOne({name: req.body.name})) {
+      return next(new AppError('No subreddit with that name', 404));
+    }
+  }
+  let found = false;
+  for (let i = 0; i < req.user.favourites.length; i++) {
+    if (req.user.favourites[i].name === req.body.name && req.user.favourites[i].type === req.body.type) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    return next(new AppError('No such favourite found', 404));
+  }
+  await userModel.findByIdAndUpdate(req.user.id, {
+    $pull: {
+      favourites: {
+        name: req.body.name,
+        type: req.body.type,
+      },
+    },
+  }, {new: true});
+  const reqUser = await userModel.findById(req.user.id);
+  const favorites = [];
+  for (let i = 0; i < reqUser.favourites.length; i++) {
+    const favorite = {
+      name: reqUser.favourites[i].name,
+      type: reqUser.favourites[i].type,
+    };
+    if (favorite.type === 'user') {
+      const user = await userModel.findOne({username: favorite.name});
+      if (user.profilePicture) {
+        favorite.Picture = user.profilePicture;
+      } else {
+        favorite.Picture = '';
+      }
+      favorites.push(favorite);
+    } else {
+      const subreddit = await subredditModel.findOne({name: favorite.name});
+      if (subreddit.srLooks.icon) {
+        favorite.Picture = subreddit.srLooks.icon;
+      } else {
+        favorite.Picture = '';
+      }
+      favorites.push(favorite);
+    }
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      favorites: favorites,
+    },
+  });
 });
