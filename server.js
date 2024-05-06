@@ -64,13 +64,12 @@ mongoose
           const room=await chatroomModel.findOne({chatroomMembers: {$in: [socket.userID]},
             _id: message.roomID});
           if (room) {
-            io.in(message.roomID).emit('message received', {content: message.content, sender: socket.username,
-              roomID: message.roomID});
             const chatMessage = await chatMessageModel.create({
               sender: socket.userID,
-              message: message.content,
+              message: message.message,
               chatID: room._id,
             });
+            io.in(message.roomID).emit('message received', chatMessage);
             room.latestMessage = chatMessage._id;
             await room.save();
           }
