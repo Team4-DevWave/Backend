@@ -219,7 +219,6 @@ exports.getPost = catchAsync(async (req, res, next) => {
   }
   user.viewedPosts.push(post._id);
   await user.save();
-  console.log(alteredPosts[0]);
   res.status(200).json({
     status: 'success',
     data: {

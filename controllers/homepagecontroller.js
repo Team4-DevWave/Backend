@@ -168,9 +168,8 @@ exports.getSubredditsWithCategory = catchAsync(async (req, res, next) => {
 
 exports.search=catchAsync(async (req, res, next)=>{
   const query='.*'+req.query.q+'.*';
-  const sort= req.query.sort || 'Top';
+  const sort= req.query.sort || 'Top'; //eslint-disable-line
   const pageNumber= req.query.page || 1;
-  console.log(query, sort, pageNumber);
   if (!query) {
     next(new AppError('Please provide a search query', 400));
     return;

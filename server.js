@@ -30,26 +30,18 @@ mongoose
           });
       io.use(catchAsync(async (socket, next) => {
         const token = socket.handshake.query.token;
-        try {
+        const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
+        const user = await userModel.findById(decoded.userID);
+        socket.userID = user._id.toString();
+        socket.username = user.username;
+        next();
+      }));
+      io.on('connection', (socket) => {
+        socket.on(('login'), catchAsync(async (token) => {
           const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
           const user = await userModel.findById(decoded.userID);
           socket.userID = user._id.toString();
           socket.username = user.username;
-          next();
-        } catch (err) {
-          console.log(err);
-        }
-      }));
-      io.on('connection', (socket) => {
-        socket.on(('login'), catchAsync(async (token) => {
-          try {
-            const decoded = (jwt.verify)(token, process.env.JWT_SECRET);
-            const user = await userModel.findById(decoded.userID);
-            socket.userID = user._id.toString();
-            socket.username = user.username;
-          } catch (err) {
-            console.log(err);
-          }
         }));
         socket.on('join rooms', catchAsync( async () => {
           // Check if a chatroom with the given ID exists

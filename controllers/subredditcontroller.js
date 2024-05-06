@@ -257,7 +257,6 @@ exports.searchSubreddit=catchAsync(async (req, res, next) => {
   const subredditName=req.params.subreddit;
   const sort= req.query.sort || 'Top'; //eslint-disable-line
   const pageNumber= req.query.page || 1;
-  console.log('hi');
   if (!query || !subredditName) {
     next(new AppError('Please provide a search query', 400));
     return;

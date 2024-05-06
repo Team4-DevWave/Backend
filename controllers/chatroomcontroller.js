@@ -100,7 +100,6 @@ exports.renameChatroom = catchAsync(async (req, res, next) => {
 
 exports.addMember = catchAsync(async (req, res, next) => {
   const member = await userModel.findOne({username: {$in: req.body.member}}, '_id');
-  console.log(member);
   if (!member) {
     return next(new AppError('member does not exist', 400));
   }
