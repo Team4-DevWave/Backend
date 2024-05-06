@@ -323,6 +323,10 @@ exports.deleteSubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit.moderators.includes(req.user.id)) {
     return next(new AppError('You are not a moderator of this subreddit', 403));
   }
+  await userModel.updateMany(
+      {joinedCommunities: subreddit.id},
+      {$pull: {joinedCommunities: subreddit.id}},
+  );
   await subredditModel.findByIdAndDelete(subreddit.id);
   res.status(204).json({
     status: 'success',
