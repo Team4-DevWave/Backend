@@ -13,6 +13,7 @@ const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
 const commentModel = require('../models/commentsmodel');
 
+
 cloudinary.config({
   cloud_name: 'dxy3lq6gh',
   api_key: '941913859728837',
@@ -181,6 +182,10 @@ exports.getPost = catchAsync(async (req, res, next) => {
       alteredPosts[0].availableForVoting = false;
       await postModel.findByIdAndUpdate(alteredPosts[0].id, {availableForVoting: false}, {new: true});
     }
+    alteredPosts[0].poll = Array.from(post.poll).reduce((obj, [key, value]) => {
+      obj[key] = value;
+      return obj;
+    }, {});
   }
   let token;
   if (
@@ -214,6 +219,7 @@ exports.getPost = catchAsync(async (req, res, next) => {
   }
   user.viewedPosts.push(post._id);
   await user.save();
+  console.log(alteredPosts[0]);
   res.status(200).json({
     status: 'success',
     data: {

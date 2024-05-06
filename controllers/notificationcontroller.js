@@ -77,15 +77,16 @@ exports.getNotificationSettings = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.sendNotification = catchAsync(async (msgBody, deviceToken) => {
+exports.sendNotification = catchAsync(async (ID, msgBody, deviceToken) => {
   const message = {
     notification: {
       title: 'Threaddit',
       body: msgBody,
     },
-    // data: {
-    //   screen: '/communities',
-    // },
+    data: {
+      userID: ID,
+      screen: '/notifications',
+    },
     token: deviceToken, // The FCM token of the device you want to send the notification to
   };
 
