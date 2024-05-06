@@ -268,46 +268,26 @@ exports.searchSubreddit=catchAsync(async (req, res, next) => {
   }
   const posts = await postModel.find({
     title: {$regex: query, $options: 'i'},
-    $and: [
-      {subredditID: {$ne: null}},
-      {subredditID: subreddit.id},
-    ],
+    subredditID: subreddit[0].id,
   }).exec();
   const media=posts.filter((post) => post.type === 'image/video');
-  const comments=await commentModel.aggregate([
-    {
-      $match: {
-        content: {$regex: query, $options: 'i'},
-      },
-    },
-    {
-      $lookup: {
-        from: 'posts',
-        localField: 'post',
-        foreignField: '_id',
-        as: 'post',
-      },
-    },
-    {
-      $unwind: '$post',
-    },
-    {
-      $match: {
-        'post.subredditID': subreddit._id,
-      },
-    },
-  ]);
+  const commentstemp=await commentModel.find({content: {$regex: query, $options: 'i'}}).populate('post').exec();
+  const comments=commentstemp.filter((comment) => {
+    return comment.post&&comment.post.subredditID&&comment.post.subredditID._id.toString()===subreddit[0].id;
+  });
+
 
   // handling posts
   // handling comments
   // handling subreddits
   const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   const paginatedComments=paginate.paginate(comments, 10, pageNumber);
   const paginatedMedia=paginate.paginate(media, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
+      posts: alteredPosts,
       comments: paginatedComments,
       media: paginatedMedia,
     },
