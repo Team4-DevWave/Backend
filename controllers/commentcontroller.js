@@ -170,7 +170,7 @@ exports.editComment = catchAsync(async (req, res, next) => {
   const newMentions = comment.mentioned.filter((mention) => !oldMentions.includes(mention));
   if (newMentions.length > 0) {
     newMentions.forEach((user) => {
-      createMessage(comment);
+      createMessage(req, comment);
     });
   }
   res.status(200).json({
