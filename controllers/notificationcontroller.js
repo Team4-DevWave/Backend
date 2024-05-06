@@ -26,6 +26,7 @@ exports.createNotification = catchAsync(async (notificationParameters) => {
     sender: notificationParameters.sender,
     type: notificationParameters.type,
     contentID: notificationParameters.contentID,
+    body: notificationParameters.body,
   });
   return notification;
 });

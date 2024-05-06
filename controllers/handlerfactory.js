@@ -113,6 +113,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
             sender: req.user.id,
             type: 'post',
             contentID: alteredPosts[0],
+            body: doc.title,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
@@ -131,6 +132,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
             sender: req.user.id,
             type: 'post',
             contentID: alteredPosts[0],
+            body: doc.content,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});

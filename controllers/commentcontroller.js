@@ -79,8 +79,9 @@ const createMessage = catchAsync(async (req, comment) => {
           recipient: userId,
           content: 'u/' + username + ' mentioned you in a comment',
           sender: comment.user._id,
-          type: 'comment',
+          type: 'post',
           contentID: alteredPosts[0],
+          body: comment.content,
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
@@ -109,8 +110,9 @@ const createMessage = catchAsync(async (req, comment) => {
         recipient: post.userID,
         content: 'u/' + username + ' commented on your post',
         sender: comment.user._id,
-        type: 'comment',
+        type: 'post',
         contentID: alteredPosts[0],
+        body: comment.content,
       };
       notificationController.createNotification(notificationParameters);
       await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
