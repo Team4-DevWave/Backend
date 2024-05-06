@@ -6,6 +6,8 @@ const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const commentModel = require('../models/commentsmodel');
 const paginate = require('../utils/paginate');
+const postutil = require('../utils/postutil');
+const commentutil = require('../utils/commentutil');
 const userModel = require('../models/usermodel');
 
 exports.trending = catchAsync(async (req, res, next) => {
@@ -183,14 +185,16 @@ exports.search=catchAsync(async (req, res, next)=>{
   // handling comments
   // handling subreddits
   const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts=await postutil.alterPosts(req, paginatedPosts);
   const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const alteredComments=await commentutil.removeSr( paginatedComments);
   const paginatedSubreddits=paginate.paginate(subreddits, 10, pageNumber);
   const paginatedMedia=paginate.paginate(media, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
-      comments: paginatedComments,
+      posts: alteredPosts,
+      comments: alteredComments,
       subreddits: paginatedSubreddits,
       media: paginatedMedia,
       users,

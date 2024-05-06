@@ -64,3 +64,14 @@ exports.alterComments = async (req, comments) => {
   }
   return newComments;
 };
+exports.removeSr=async (comments)=>{
+  const newComments=[];
+  for (const comment of comments) {
+    const commentObj = comment.toObject();
+    if (commentObj.post&&commentObj.post.subredditID) {
+      commentObj.post.subredditID={_id: commentObj.post.subredditID._id, name: commentObj.post.subredditID.name};
+    }
+    newComments.push(commentObj);
+  }
+  return newComments;
+};

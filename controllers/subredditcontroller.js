@@ -5,6 +5,7 @@ const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const userModel = require('../models/usermodel');
 const postutil = require('../utils/postutil');
+const commentutil = require('../utils/commentutil');
 const commentModel = require('../models/commentsmodel');
 const settingsModel = require('../models/settingsmodel');
 // TODO exclude all not approved posts
@@ -283,12 +284,13 @@ exports.searchSubreddit=catchAsync(async (req, res, next) => {
   const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const alterComments=await commentutil.removeSr(paginatedComments);
   const paginatedMedia=paginate.paginate(media, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
       posts: alteredPosts,
-      comments: paginatedComments,
+      comments: alterComments,
       media: paginatedMedia,
     },
   });
