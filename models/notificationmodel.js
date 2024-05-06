@@ -14,6 +14,7 @@ const notificationSchema = new mongoose.Schema({
   hidden: {type: Boolean, default: false},
   sender: {type: mongoose.Schema.Types.ObjectId, ref: 'users'},
   contentID: {type: mongoose.Schema.Types.Mixed, required: true},
+  body: {type: String},
 });
 
 const notificationModel = mongoose.model('notifications', notificationSchema);

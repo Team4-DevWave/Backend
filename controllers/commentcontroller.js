@@ -9,6 +9,7 @@ const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
 const settingsModel = require('../models/settingsmodel');
 const commentUtil = require('../utils/commentutil');
+const postutil = require('../utils/postutil');
 
 exports.getComment=catchAsync(async (req, res, next) => {
   const comment = await commentModel.findById(req.params.id);
@@ -43,7 +44,7 @@ exports.getAllComments = catchAsync(async (req, res, next) => {
   });
 });
 
-const createMessage = catchAsync(async (comment) => {
+const createMessage = catchAsync(async (req, comment) => {
   const post = await postModel.findById(comment.post);
   if (!post) {
     throw new AppError('Post not found', 404);
@@ -51,6 +52,7 @@ const createMessage = catchAsync(async (comment) => {
   // Send a message to each mentioned user
   const user = await userModel.findById(comment.user);
   const username = user.username;
+  const alteredPosts = await postutil.alterPosts(req, [post]);
   if (comment.mentioned && comment.mentioned.length > 0) {
     comment.mentioned.forEach(async (userId) => {
       // If the user is the one who created the comment, skip sending the message
@@ -77,12 +79,15 @@ const createMessage = catchAsync(async (comment) => {
           recipient: userId,
           content: 'u/' + username + ' mentioned you in a comment',
           sender: comment.user._id,
-          type: 'comment',
-          contentID: comment._id,
+          type: 'post',
+          contentID: alteredPosts[0],
+          body: comment.content,
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
-        notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+        if (user.deviceToken) {
+          notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        }
       }
     });
   }
@@ -105,12 +110,15 @@ const createMessage = catchAsync(async (comment) => {
         recipient: post.userID,
         content: 'u/' + username + ' commented on your post',
         sender: comment.user._id,
-        type: 'comment',
-        contentID: comment._id,
+        type: 'post',
+        contentID: alteredPosts[0],
+        body: comment.content,
       };
       notificationController.createNotification(notificationParameters);
       await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
-      notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+      if (user.deviceToken) {
+        notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+      }
     }
   }
 });
@@ -136,7 +144,7 @@ exports.createComment =catchAsync(async (req, res, next) => {
       {$addToSet: {'comments': comment._id}}, {new: true});
   post.commentsCount+=1;
   await post.save();
-  createMessage(comment);
+  createMessage(req, comment);
   res.status(201).json({
     status: 'success',
     data: {

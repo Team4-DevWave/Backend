@@ -222,12 +222,12 @@ const handleUserAction = (action, subaction) =>
           content: 'u/' + req.user.username + ' started following you',
           sender: req.user.id,
           type: 'follow',
-          contentID: req.user.id,
+          contentID: {username: req.user.username},
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
         if (targetUser.deviceToken) {
-          notificationController.sendNotification(notificationParameters.content, targetUser.deviceToken);
+          notificationController.sendNotification(targetUser.id, notificationParameters.content, targetUser.deviceToken);   //eslint-disable-line
         }
       }
     }

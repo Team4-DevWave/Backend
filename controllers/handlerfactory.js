@@ -4,6 +4,8 @@ const settingsmodel = require('../models/settingsmodel');
 const notificationController = require('./notificationcontroller');
 const postModel = require('../models/postmodel');
 const userModel = require('../models/usermodel');
+const postutil = require('../utils/postutil');
+
 
 exports.deleteOne = (model) =>
   catchAsync(async (req, res, next) => {
@@ -100,33 +102,43 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
     if (voteType==1) {
       doc.votes.upvotes+=1;
       req.user.upvotes[voteOn].push(id);
-      const user = await postModel.findById(doc.userID);
-      const settings = await settingsmodel.findById(user.settings);
       if (voteOn === 'posts') {
+        const user = await userModel.findById(doc.userID.id);
+        const settings = await settingsmodel.findById(user.settings);
+        const alteredPosts = await postutil.alterPosts(req, [doc]);
         if (settings.notificationSettings.upvotesOnYourPost) {
           const notificationParameters = {
             recipient: doc.userID,
             content: 'u/' + user.username + ' upvoted your post',
             sender: req.user.id,
             type: 'post',
-            contentID: doc._id,
+            contentID: alteredPosts[0],
+            body: doc.title,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
-          notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+          if (user.deviceToken) {
+            notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+          }
         }
       } else {
-        if (settings.notificationSettings.upvotesOnYourComment) {
+        const user = await userModel.findById(doc.user.id);
+        const settings = await settingsmodel.findById(user.settings);
+        const alteredPosts = await postutil.alterPosts(req, [await postModel.findById(doc.post)]);
+        if (settings.notificationSettings.upvotesOnYourComments) {
           const notificationParameters = {
-            recipient: doc.userID,
+            recipient: doc.user.id,
             content: 'u/' + user.username + ' upvoted your comment',
             sender: req.user.id,
-            type: 'comment',
-            contentID: doc._id,
+            type: 'post',
+            contentID: alteredPosts[0],
+            body: doc.content,
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(doc.userID, {$inc: {notificationCount: 1}});
-          notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+          if (user.deviceToken) {
+            notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+          }
         }
       }
     }
