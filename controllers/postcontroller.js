@@ -502,9 +502,17 @@ exports.createPost = catchAsync(async (req, res, next) => {
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}}, {new: true});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}}, {new: true});
-    const frequentMembers = userModel.find({joinedSubreddits: subreddit.id}).populate({path: 'settings', match: {'communityAlerts': 'frequent'}});    //eslint-disable-line
-    const lowMembers = userModel.find({joinedSubreddits: subreddit.id}).populate({path: 'settings', match: {'communityAlerts': 'low'}});    //eslint-disable-line
+    const frequentMembers = await userModel.find({
+      joinedSubreddits: subreddit.id,
+      _id: {$ne: req.user._id}}).populate({path: 'settings', match: {
+        'communityAlerts': 'frequent'}}).exec();    //eslint-disable-line
+    const lowMembers = await userModel.find({
+      joinedSubreddits: subreddit.id,
+      _id: {$ne: req.user._id}}).populate({path: 'settings', match: {
+        'communityAlerts': 'low'}}).exec();    //eslint-disable-line
+    console.log(frequentMembers);
     for (let i = 0; i < frequentMembers.length; i++) {
+      console.log('yo');
       const user = await userModel.findById(frequentMembers[i]);
       const notificationParameters = {
         recipient: user.id,
@@ -515,7 +523,9 @@ exports.createPost = catchAsync(async (req, res, next) => {
       };
       notificationController.createNotification(notificationParameters);
       await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
-      notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+      if (user.deviceToken) {
+        notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+      }
     }
     for (let i = 0; i < lowMembers.length; i++) {
       const user = await userModel.findById(lowMembers[i]);
@@ -530,7 +540,9 @@ exports.createPost = catchAsync(async (req, res, next) => {
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
-        notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+        if (user.deviceToken) {
+          notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        }
       }
     }
   }

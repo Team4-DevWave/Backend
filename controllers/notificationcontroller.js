@@ -216,3 +216,14 @@ exports.getNumberOfNotifications = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.changeSubredditSettings = catchAsync(async (req, res, next) => {
+  await settingsModel.updateOne({_id: req.user.settings}, {
+    $set: {
+      [`notificationSettings.communityAlerts.${req.body.subredditKey}`]: req.body.setting,
+    },
+  }, {new: true});
+  res.status(200).json({
+    status: 'success',
+  });
+});

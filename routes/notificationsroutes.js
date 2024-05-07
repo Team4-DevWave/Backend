@@ -31,5 +31,8 @@ notificationRouter
 notificationRouter
     .route('/get_number_of_notifications')
     .get(notificationController.getNumberOfNotifications);
+notificationRouter
+    .route('/change_subreddit_notifications_settings')
+    .patch(notificationController.changeSubredditSettings);
 
 module.exports = notificationRouter;
