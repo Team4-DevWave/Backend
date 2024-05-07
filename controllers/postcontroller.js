@@ -445,7 +445,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
           };
           notificationController.createNotification(notificationParameters);
           await userModel.findByIdAndUpdate(settingsUser, {$inc: {notificationCount: 1}});
-          console.log(settingsUser.deviceToken);
           if (settingsUser.deviceToken !== 'NONE' && settingsUser.deviceToken) {
             notificationController.sendNotification(settingsUser.id, notificationParameters.content, settingsUser.deviceToken);   //eslint-disable-line
           }
@@ -570,7 +569,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
       }
     }
     for (let i = 0; i < lowfilteredMembers.length; i++) {
-      console.log('here');
       const user = await userModel.findById(lowfilteredMembers[i]);
       const number = Math.floor(Math.random() * (5 - 0 + 1)) + 0;
       if (number === 4) {

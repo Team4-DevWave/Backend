@@ -114,10 +114,6 @@ exports.changeUserSettings = catchAsync(async (req, res, next) => {
 
 exports.changeModSettings = catchAsync(async (req, res, next) => {
   const settings = await settingsModel.findOne({_id: req.user.settings});
-  if (req.params.subredditKey === 'land of death') {
-    // console.log(settings.notificationSettings);
-    // console.log(settings.notificationSettings.subredditsUserMods.get(req.params.subredditKey).allowModNotifications);
-  }
   if (req.params.subredditKey && !req.params.settingTab && !req.params.activityMenu && !req.params.subsetting && !req.params.number) {    //eslint-disable-line
     await settingsModel.updateOne({_id: req.user.settings}, {
       $set: {

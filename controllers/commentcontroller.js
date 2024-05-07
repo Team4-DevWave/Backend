@@ -105,9 +105,6 @@ const createMessage = catchAsync(async (req, comment) => {
       post: comment.post,
     });
     const recipientSettings = await settingsModel.findById(user.settings);
-    console.log(comment);
-    console.log(comment.user);
-    console.log(post.userID._id);
     if (!comment.user._id.equals(post.userID._id)) {
       if (recipientSettings.notificationSettings.commentsOnYourPost) {
         const notificationParameters = {
