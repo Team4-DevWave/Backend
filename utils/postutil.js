@@ -11,6 +11,12 @@ exports.alterPosts = async (req, postss) => {
       const subredditName=post.subredditID.name;
       post.subredditID={_id: subredditID, name: subredditName};
     }
+    if (post.type==='poll') {
+      post.poll = Array.from(post.poll).reduce((obj, [key, value]) => {
+        obj[key] = value;
+        return obj;
+      }, {});
+    }
     posts.push(post);
   }
   let token;
