@@ -15,7 +15,7 @@ exports.alterPosts = async (req, postss) => {
     if (post.type==='poll') {
       post.poll = Array.from(post.poll).reduce((obj, [key, value]) => {
         obj[key] = value.length;
-        value.forEach((v) => pollUsers.set(v.toString(), key));
+        value.forEach((v) => pollUsers.set(v.toString()+post._id.toString(), key));
         return obj;
       }, {});
     }
@@ -88,7 +88,7 @@ exports.alterPosts = async (req, postss) => {
       post.userVote='none';
     }
     if (post.type==='poll') {
-      post.userPollVote=pollUsers.get(user.id);
+      post.userPollVote=pollUsers.get(user.id+post._id.toString())||null;
     }
 
     newPosts.push(post);
