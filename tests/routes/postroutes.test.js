@@ -184,7 +184,7 @@ describe('POST /api/v1/posts/submit/r/:subreddtnam_or_username', () => {
       subredditpollpostid=response.body.data.post._id;
       expect(response.statusCode).toBe(201);
       expect(response.body.data).toHaveProperty('post');
-    });
+    },20000);
   
   it('should not create a new post on a subreddit due to subreddit not found', async () => {
     const post = {

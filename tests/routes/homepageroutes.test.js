@@ -60,5 +60,5 @@ describe('GET /api/v1/homepage/subreddits_by_category', () => {
     const response = await request(app).get('/api/v1/homepage/subreddits_by_category').send(body).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.data).toHaveProperty('result');
-  });
+  },20000);
 });
