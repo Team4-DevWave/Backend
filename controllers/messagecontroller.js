@@ -73,7 +73,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
     };
     notificationController.createNotification(notificationParameters);
     await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
-    if (user.deviceToken) {
+    if (user.deviceToken !== 'NONE' && user.deviceToken) {
       notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
     } //eslint-disable-line
   }

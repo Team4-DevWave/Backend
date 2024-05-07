@@ -12,6 +12,7 @@ const postutil = require('../utils/postutil');
 const {promisify} = require('util');
 const jwt = require('jsonwebtoken');
 const commentModel = require('../models/commentsmodel');
+const settingsModel = require('../models/settingsmodel');
 
 
 cloudinary.config({
@@ -429,7 +430,26 @@ exports.createPost = catchAsync(async (req, res, next) => {
       const mentioned = await handlerFactory.checkMentions(userModel, req.body.text_body);
       newPost = await postModel.findByIdAndUpdate(newPostID,
           {text_body: req.body.text_body, mentioned: mentioned}, {new: true});
-      // await newPost.save();
+      const alteredPosts = await postutil.alterPosts(req, [newPost]);
+      for (let i = 0; i < mentioned; i++) {
+        const settingsUser = await userModel.findById(mentioned[i]);
+        const recipientSettings = await settingsModel.findById(settingsUser.settings);
+        if (recipientSettings.notificationSettings.mentionsOfUsername) {
+          const notificationParameters = {
+            recipient: mentioned[i],
+            content: 'u/' + req.user.username + ' mentioned you in a post',
+            sender: req.user._id,
+            type: 'post',
+            contentID: alteredPosts[0],
+            body: newPost.title,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(settingsUser, {$inc: {notificationCount: 1}});
+          if (settingsUser.deviceToken !== 'NONE' && settingsUser.deviceToken) {
+            notificationController.sendNotification(settingsUser.id, notificationParameters.content, settingsUser.deviceToken);   //eslint-disable-line
+          }
+        }
+      }
     }
     post = newPost;
     const user = req.user;
@@ -483,28 +503,73 @@ exports.createPost = catchAsync(async (req, res, next) => {
       }
     }
     if (req.body.text_body) {
-      newPost = await postModel.findByIdAndUpdate(newPostID, {text_body: req.body.text_body}, {new: true});
+      const mentioned = await handlerFactory.checkMentions(userModel, req.body.text_body);
+      newPost = await postModel.findByIdAndUpdate(newPostID,
+          {text_body: req.body.text_body, mentioned: mentioned}, {new: true});
+      const alteredPosts = await postutil.alterPosts(req, [newPost]);
+      for (let i = 0; i < mentioned.length; i++) {
+        const settingsUser = await userModel.findById(mentioned[i]);
+        const recipientSettings = await settingsModel.findById(settingsUser.settings);
+        if (recipientSettings.notificationSettings.mentionsOfUsername) {
+          const notificationParameters = {
+            recipient: mentioned[i],
+            content: 'u/' + req.user.username + ' mentioned you in a post',
+            sender: req.user._id,
+            type: 'post',
+            contentID: alteredPosts[0],
+            body: newPost.title,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(settingsUser, {$inc: {notificationCount: 1}});
+          if (settingsUser.deviceToken !== 'NONE' && settingsUser.deviceToken) {
+            notificationController.sendNotification(settingsUser.id, notificationParameters.content, settingsUser.deviceToken);   //eslint-disable-line
+          }
+        }
+      }
     }
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}}, {new: true});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}}, {new: true});
-    const frequentMembers = userModel.find({joinedSubreddits: subreddit.id}).populate({path: 'settings', match: {'communityAlerts': 'frequent'}});    //eslint-disable-line
-    const lowMembers = userModel.find({joinedSubreddits: subreddit.id}).populate({path: 'settings', match: {'communityAlerts': 'low'}});    //eslint-disable-line
-    for (let i = 0; i < frequentMembers.length; i++) {
-      const user = await userModel.findById(frequentMembers[i]);
+    // const frequentMembers = await userModel.find({
+    //   joinedSubreddits: subreddit.id,
+    //   _id: {$ne: req.user._id}}).populate({path: 'settings', match: {
+    //     'communityAlerts': 'frequent'}}).exec();    //eslint-disable-line
+    const frequentMembers = await userModel.find({
+      joinedSubreddits: subreddit.id,
+      _id: {$ne: req.user._id},
+    }).populate('settings').exec();
+    const filteredMembers = frequentMembers.filter((user) =>
+      user.settings.notificationSettings.communityAlerts.get(subreddit.name) === 'frequent',
+    );
+    const obj = {};
+    for (const [key, value] of frequentMembers[0].settings.notificationSettings.communityAlerts.entries()) {
+      obj[key] = value;
+    }
+    const lowMembers = await userModel.find({
+      joinedSubreddits: subreddit.id,
+      _id: {$ne: req.user._id},
+    }).populate('settings').exec();
+    const lowfilteredMembers = lowMembers.filter((user) =>
+      user.settings.notificationSettings.communityAlerts.get(subreddit.name) === 'low',
+    );
+    for (let i = 0; i < filteredMembers.length; i++) {
+      const user = await userModel.findById(filteredMembers[i]);
       const notificationParameters = {
         recipient: user.id,
         content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
         sender: subreddit.id,
         type: 'post',
         contentID: post,
+        body: post.title,
       };
       notificationController.createNotification(notificationParameters);
       await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
-      notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+      if (user.deviceToken !== 'NONE' && user.deviceToken) {
+        notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+      }
     }
-    for (let i = 0; i < lowMembers.length; i++) {
-      const user = await userModel.findById(lowMembers[i]);
+    for (let i = 0; i < lowfilteredMembers.length; i++) {
+      const user = await userModel.findById(lowfilteredMembers[i]);
       const number = Math.floor(Math.random() * (5 - 0 + 1)) + 0;
       if (number === 4) {
         const notificationParameters = {
@@ -513,10 +578,13 @@ exports.createPost = catchAsync(async (req, res, next) => {
           sender: subreddit.id,
           type: 'post',
           contentID: post,
+          body: post.title,
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
-        notificationController.sendNotification(notificationParameters.content, user.deviceToken);
+        if (user.deviceToken !== 'NONE' && user.deviceToken) {
+          notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        }
       }
     }
   }

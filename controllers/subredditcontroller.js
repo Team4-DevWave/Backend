@@ -73,6 +73,11 @@ exports.createSubreddit = catchAsync(async (req, res, next) => {
       [`notificationSettings.subredditsUserMods.${newCommunity.name}`]: newSubredditUserMod,
     },
   });
+  await settingsModel.findByIdAndUpdate(req.user.settings, {
+    $set: {
+      [`notificationSettings.communityAlerts.${newCommunity.name}`]: 'low',
+    },
+  });
   res.status(201).json({
     status: 'success',
     data: {
@@ -114,6 +119,11 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
   }
   await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {members: user.id}});
   user.joinedSubreddits.push(subreddit.id);
+  await settingsModel.findByIdAndUpdate(req.user.settings, {
+    $set: {
+      [`notificationSettings.communityAlerts.${req.params.subreddit}`]: 'low',
+    },
+  });
   await user.save();
   res.status(200).json({
     status: 'success',
@@ -211,6 +221,11 @@ exports.unsubscribeToSubreddit = catchAsync(async (req, res, next) => {
   await subredditModel.findByIdAndUpdate(subreddit.id, {$pull: {members: user.id}});
   user.joinedSubreddits.pull(subreddit.id);
   await user.save();
+  await settingsModel.findByIdAndUpdate(req.user.settings, {
+    $unset: {
+      [`notificationSettings.communityAlerts.${req.params.subreddit}`]: '',
+    },
+  });
   res.status(200).json({
     status: 'success',
   });
