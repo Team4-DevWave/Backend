@@ -117,10 +117,6 @@ exports.sharePost= catchAsync(async (req, res, next) => {
   newPostData.spoiler= req.body.spoiler? req.body.spoiler: post.spoiler;
   newPostData.vote= {upvotes: 0, downvotes: 0};
   if (destination==='') {
-    const postsAsString = req.user.posts.map((post) => post.toString());
-    if (postsAsString.includes(post.id)) {
-      return next(new AppError('Post already here', 400));
-    }
     await postModel.findByIdAndUpdate(req.body.postid, {$inc: {numShares: 1}});
     newPostData.subredditID=null;
     const newPost = await postModel.create(newPostData);
@@ -138,11 +134,6 @@ exports.sharePost= catchAsync(async (req, res, next) => {
     const subreddit = await subredditModel.findOne({name: destination});
     if (!subreddit) {
       return next(new AppError('No subreddit found with that name', 404));
-    }
-    const posts = await postModel.find({subredditID: subreddit.id}).exec();
-    const postsAsString = posts.map((post) => post.id);
-    if (postsAsString.includes(post.id)) {
-      return next(new AppError('Post already here', 400));
     }
     newPostData.subredditID=subreddit.id;
     const newPost = await postModel.create(newPostData);
@@ -183,10 +174,6 @@ exports.getPost = catchAsync(async (req, res, next) => {
       alteredPosts[0].availableForVoting = false;
       await postModel.findByIdAndUpdate(alteredPosts[0].id, {availableForVoting: false}, {new: true});
     }
-    alteredPosts[0].poll = Array.from(post.poll).reduce((obj, [key, value]) => {
-      obj[key] = value;
-      return obj;
-    }, {});
   }
   let token;
   if (
@@ -220,7 +207,6 @@ exports.getPost = catchAsync(async (req, res, next) => {
   }
   user.viewedPosts.push(post._id);
   await user.save();
-  console.log(alteredPosts[0]);
   res.status(200).json({
     status: 'success',
     data: {

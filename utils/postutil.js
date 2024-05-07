@@ -4,12 +4,20 @@ const jwt = require('jsonwebtoken');
 const {promisify} = require('util');
 exports.alterPosts = async (req, postss) => {
   const posts=[];
+  const pollUsers = new Map();
   for (const posty of postss) {
     const post=posty.toObject();
     if (post.subredditID) {
       const subredditID=post.subredditID._id;
       const subredditName=post.subredditID.name;
       post.subredditID={_id: subredditID, name: subredditName};
+    }
+    if (post.type==='poll') {
+      post.poll = Array.from(post.poll).reduce((obj, [key, value]) => {
+        obj[key] = value.length;
+        value.forEach((v) => pollUsers.set(v.toString()+post._id.toString(), key));
+        return obj;
+      }, {});
     }
     posts.push(post);
   }
@@ -79,6 +87,10 @@ exports.alterPosts = async (req, postss) => {
     if (!post.userVote) {
       post.userVote='none';
     }
+    if (post.type==='poll') {
+      post.userPollVote=pollUsers.get(user.id+post._id.toString())||null;
+    }
+
     newPosts.push(post);
   }
   return newPosts;

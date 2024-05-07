@@ -2,7 +2,7 @@
 
 const request = require('supertest');
 const app = 'http://localhost:8000';
-chatroomid = "66314952e62f1c87666419f4";
+chatroomid = "6638d65ebd7bd683a7a2dfc8";
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {

@@ -61,10 +61,7 @@ exports.createMessage = catchAsync(async (req, res, next) => {
   req.body.createdAt = Date.now();
   const message= await messageModel.create(req.body);
   const user = await userModel.findById(req.body.to);
-  // console.log(user);
   const userSettings = await settingsModel.findById(user.settings);
-  // console.log(userSettings);
-  console.log(await messageModel.findById(message.id));
   if (userSettings.notificationSettings.privateMessages) {
     const notificationParameters = {
       recipient: req.body.to,

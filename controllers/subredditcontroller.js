@@ -5,6 +5,7 @@ const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const userModel = require('../models/usermodel');
 const postutil = require('../utils/postutil');
+const commentutil = require('../utils/commentutil');
 const commentModel = require('../models/commentsmodel');
 const settingsModel = require('../models/settingsmodel');
 // TODO exclude all not approved posts
@@ -104,7 +105,7 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   if (subreddit.srSettings.srType === 'private') {
-    if (subreddit.invitedUsers.some((user) => user._id.toString() === req.user.id)) {
+    if (!subreddit.invitedUsers.some((user) => user.id === req.user.id)) {
       return next(new AppError('You cannot have access to this subreddit as it is private', 404));
     }
     await subredditModel.findByIdAndUpdate(subreddit.id, {
@@ -113,7 +114,7 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
     });
   }
   const user = req.user;
-  if (subreddit.members.some((member) => member._id.toString() === req.user.id)) {
+  if (subreddit.members.some((member) => member.id === req.user.id)) {
     return next(new AppError('You are already subscribed to this subreddit', 400));
   }
   await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {members: user.id}});
@@ -138,10 +139,6 @@ exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   const pageNumber = req.query.page || 1;
-  if (!subreddit.members.some((member) => member._id.toString() === req.user.id) &&
-   subreddit.srSettings.srType === 'private') {
-    return next(new AppError('You are not subscribed to this subreddit', 400));
-  }
   const posts = await postModel.find({subredditID: subreddit.id}).sort({'votes.upvotes': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
@@ -161,10 +158,6 @@ exports.getRandomPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   const pageNumber = req.query.page || 1;
-  if (!subreddit.members.some((member) => member._id.toString() === req.user.id) &&
-   subreddit.srSettings.srType === 'private') {
-    return next(new AppError('You are not subscribed to this subreddit', 400));
-  }
   const posts = await postModel.find({subredditID: subreddit.id}).exec();
   for (let i = posts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -188,10 +181,6 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   const pageNumber = req.query.page || 1;
-  if (!subreddit.members.some((member) => member._id.toString() === req.user.id) &&
-   subreddit.srSettings.srType === 'private') {
-    return next(new AppError('You are not subscribed to this subreddit', 400));
-  }
   // TODO randomize for random, sort by date edited for new, select a certain time frame for hot and sort
   const posts = await postModel.find({subredditID: subreddit.id}).sort({numViews: -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
@@ -212,10 +201,6 @@ exports.getNewPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   const pageNumber = req.query.page || 1;
-  if (!subreddit.members.some((member) => member._id.toString() === req.user.id) &&
-   subreddit.srSettings.srType === 'private') {
-    return next(new AppError('You are not subscribed to this subreddit', 400));
-  }
   const posts = await postModel.find({subredditID: subreddit.id}).sort({'lastEditedTime': -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
@@ -286,9 +271,8 @@ exports.getUserSubreddits = catchAsync(async (req, res, next) => {
 exports.searchSubreddit=catchAsync(async (req, res, next) => {
   const query='.*'+req.query.q+'.*';
   const subredditName=req.params.subreddit;
-  const sort= req.query.sort || 'Top';
+  const sort= req.query.sort || 'Top'; //eslint-disable-line
   const pageNumber= req.query.page || 1;
-  console.log(query, sort, pageNumber);
   if (!query || !subredditName) {
     next(new AppError('Please provide a search query', 400));
     return;
@@ -298,43 +282,30 @@ exports.searchSubreddit=catchAsync(async (req, res, next) => {
     next(new AppError('Subreddit does not exist', 404));
     return;
   }
-  const posts=await postModel.find({title: {$regex: query, $options: 'i'}, subredditID: subreddit.id}).exec();
+  const posts = await postModel.find({
+    title: {$regex: query, $options: 'i'},
+    subredditID: subreddit[0].id,
+  }).exec();
   const media=posts.filter((post) => post.type === 'image/video');
-  const comments=await commentModel.aggregate([
-    {
-      $match: {
-        content: {$regex: query, $options: 'i'},
-      },
-    },
-    {
-      $lookup: {
-        from: 'posts',
-        localField: 'post',
-        foreignField: '_id',
-        as: 'post',
-      },
-    },
-    {
-      $unwind: '$post',
-    },
-    {
-      $match: {
-        'post.subredditID': subreddit._id,
-      },
-    },
-  ]);
+  const commentstemp=await commentModel.find({content: {$regex: query, $options: 'i'}}).populate('post').exec();
+  const comments=commentstemp.filter((comment) => {
+    return comment.post&&comment.post.subredditID&&comment.post.subredditID._id.toString()===subreddit[0].id;
+  });
+
 
   // handling posts
   // handling comments
   // handling subreddits
   const paginatedPosts=paginate.paginate(posts, 10, pageNumber);
+  const alteredPosts = await postutil.alterPosts(req, paginatedPosts);
   const paginatedComments=paginate.paginate(comments, 10, pageNumber);
+  const alterComments=await commentutil.removeSr(paginatedComments);
   const paginatedMedia=paginate.paginate(media, 10, pageNumber);
   res.status(200).json({
     status: 'success',
     data: {
-      posts: paginatedPosts,
-      comments: paginatedComments,
+      posts: alteredPosts,
+      comments: alterComments,
       media: paginatedMedia,
     },
   });
@@ -345,9 +316,14 @@ exports.deleteSubreddit = catchAsync(async (req, res, next) => {
   if (!subreddit) {
     return next(new AppError('Subreddit does not exist', 404));
   }
-  if (!subreddit.moderators.includes(req.user.id)) {
+  const moderatorIds = subreddit.moderators.map((moderator) => moderator.id);
+  if (!moderatorIds.includes(req.user.id)) {
     return next(new AppError('You are not a moderator of this subreddit', 403));
   }
+  await userModel.updateMany(
+      {joinedCommunities: subreddit.id},
+      {$pull: {joinedCommunities: subreddit.id}},
+  );
   await subredditModel.findByIdAndDelete(subreddit.id);
   res.status(204).json({
     status: 'success',
