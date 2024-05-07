@@ -25,7 +25,7 @@ mongoose
           {
             pingTimeout: 600000,
             cors: {
-              origin: 'http://localhost:3000', // removed a /   to test
+              origin: ['http://localhost:3000', 'https://www.threadit.tech'], // Allow both origins
             },
           });
       io.use(catchAsync(async (socket, next) => {
