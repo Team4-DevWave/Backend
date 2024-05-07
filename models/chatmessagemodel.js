@@ -20,23 +20,6 @@ const chatMessageSchema = new mongoose.Schema({
   },
 });
 
-// chatMessageSchema.pre(/^find/, function(next) {
-//   this.populate({
-//     path: 'sender',
-//     select: 'username profilePicture',
-//     model: 'users',
-//   });
-//   next();
-// });
-// chatMessageSchema.pre(/^find/, function(next) {
-//   this.populate({
-//     path: 'chatID',
-//     // select: 'chatroomName isGroup chatroomMembers',
-//     model: 'chatrooms',
-//   });
-//   next();
-// });
-
 const populateFields = function(next) {
   this.populate({
     path: 'sender',
