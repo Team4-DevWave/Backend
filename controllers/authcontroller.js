@@ -28,7 +28,7 @@ const sendVerificationEmail = (user) => {
   const Token = crypto.randomBytes(32).toString('hex');
   user.verificationToken=Token;
   mailControl.sendEmail(user.email, 'Welcome to Reddit',
-      'Welcome to Reddit,please click the link to verify your email: http://localhost:8000/api/v1/users/verify/'+
+      'Welcome to Reddit,please click the link to verify your email: https://www.threadit.tech/api/v1/users/verify/'+
   user.username+'/'+Token); // TODO modify link when hosting
   return Token;
 };
@@ -156,7 +156,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   mailControl.sendEmail(
       user.email,
       'Hello',
-      'If you forgot your password please click the link http://localhost:8000/api/v1/users/resetPassword/'+ resetToken,
+      'If you forgot your password please click the link https://www.threadit.tech/api/v1/users/resetPassword/'+ resetToken,
   );
   res.status(200).json({
     status: 'success',
