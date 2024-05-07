@@ -56,7 +56,7 @@ mongoose
           const room=await chatroomModel.findOne({chatroomMembers: {$in: [socket.userID]},
             _id: message.roomID});
           if (room) {
-            latestMessage chatMessage = await chatMessageModel.create({
+            let chatMessage = await chatMessageModel.create({
               sender: socket.userID,
               message: message.message,
               chatID: room._id,
