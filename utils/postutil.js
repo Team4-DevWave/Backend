@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const {promisify} = require('util');
 exports.alterPosts = async (req, postss) => {
   const posts=[];
+  const pollUsers = new Map();
   for (const posty of postss) {
     const post=posty.toObject();
     if (post.subredditID) {
@@ -13,7 +14,8 @@ exports.alterPosts = async (req, postss) => {
     }
     if (post.type==='poll') {
       post.poll = Array.from(post.poll).reduce((obj, [key, value]) => {
-        obj[key] = value;
+        obj[key] = value.length;
+        value.forEach((v) => pollUsers.set(v.toString(), key));
         return obj;
       }, {});
     }
@@ -85,6 +87,10 @@ exports.alterPosts = async (req, postss) => {
     if (!post.userVote) {
       post.userVote='none';
     }
+    if (post.type==='poll') {
+      post.userPollVote=pollUsers.get(user.id);
+    }
+
     newPosts.push(post);
   }
   return newPosts;

@@ -182,10 +182,6 @@ exports.getPost = catchAsync(async (req, res, next) => {
       alteredPosts[0].availableForVoting = false;
       await postModel.findByIdAndUpdate(alteredPosts[0].id, {availableForVoting: false}, {new: true});
     }
-    alteredPosts[0].poll = Array.from(post.poll).reduce((obj, [key, value]) => {
-      obj[key] = value;
-      return obj;
-    }, {});
   }
   let token;
   if (
