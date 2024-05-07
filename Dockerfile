@@ -12,7 +12,8 @@ RUN npm install --save-dev nodemon
 # Copy the rest of the application code into the Docker container
 COPY . .
 
-EXPOSE 8000
+EXPOSE 8000 
+EXPOSE 3005
 
 # Define the command to start your application
 CMD [ "node", "server.js" ]
