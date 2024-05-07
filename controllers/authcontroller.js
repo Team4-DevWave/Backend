@@ -117,7 +117,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
-  if (req.body.mtoken) {
+  if (req.body.mtoken !== 'NONE') {
     await userModel.findOneAndUpdate({username: req.body.username}, {deviceToken: req.body.mtoken}, {new: true});
   }
   // 3) if everything is okay , send token to client
@@ -296,7 +296,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     gender: gender?gender:'I prefer not to say', email: email, password: password, passwordConfirm: passwordConfirm});
   newUser.verified=false;
   newUser.settings = settings._id;
-  if (req.body.mtoken) {
+  if (req.body.mtoken !== 'NONE') {
     newUser.deviceToken = req.body.mtoken;
   }
 
