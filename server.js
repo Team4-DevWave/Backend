@@ -61,7 +61,7 @@ mongoose
               message: message.message,
               chatID: room._id,
             });
-            chatMessage = await chatMessage.populate('chatID').execPopulate();
+            chatMessage = await chatMessage.populate('chatID');
             io.in(message.roomID).emit('message received', chatMessage);
             room.latestMessage = chatMessage._id;
             await room.save();
