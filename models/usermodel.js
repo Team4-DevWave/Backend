@@ -169,7 +169,7 @@ const userSchema = new mongoose.Schema({
     },
   ],
   notificationCount: {type: Number, default: 0},
-  deviceToken: {type: String},
+  deviceToken: {type: String, default: 'NONE'},
   favourites: [
     {
       name: {type: String},

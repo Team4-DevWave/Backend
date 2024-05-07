@@ -227,7 +227,7 @@ const handleUserAction = (action, subaction) =>
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(targetUser._id, {$inc: {notificationCount: 1}});
-        if (targetUser.deviceToken) {
+        if (targetUser.deviceToken !== 'NONE' && targetUser.deviceToken) {
           notificationController.sendNotification(targetUser.id, notificationParameters.content, targetUser.deviceToken);   //eslint-disable-line
         }
       }

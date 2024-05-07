@@ -117,11 +117,14 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
+  if (req.body.mtoken) {
+    await userModel.findOneAndUpdate({username: req.body.username}, {deviceToken: req.body.mtoken}, {new: true});
+  }
   // 3) if everything is okay , send token to client
   createSendToken(user, 200, res);
 });
 exports.signout = catchAsync(async (req, res, next) => {
-  await userModel.findByIdAndUpdate(req.user._id, {deviceToken: ''}, {new: true});
+  await userModel.findByIdAndUpdate(req.user._id, {deviceToken: 'NONE'}, {new: true});
   res.clearCookie('jwt');
   res.status(200).json({
     status: 'success',
