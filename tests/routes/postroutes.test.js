@@ -232,7 +232,6 @@ describe('post /api/v1/posts/:id/hide', () => {
   it('should hide a post the user selected successfully', async () => {
         const response = await request(app).post(`/api/v1/posts/${usertextpostid}/hide`).send().set('Authorization', `Bearer ${token}`);;
         expect(response.statusCode).toBe(200);
-        // expect(response.body.data).toHaveProperty('post');
     });
 
   it('should not hide a post the user selected as post doesnt exist', async () => {
@@ -254,7 +253,6 @@ describe('post /api/v1/posts/:id/hide', () => {
                     .delete(`/api/v1/posts/${usertextpostid}/unhide`)
                     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
-    // expect(response.body.data).toHaveProperty('post');
   });
   
   it('should not hide a post the user selected as post doesn not exist', async () => {
@@ -263,8 +261,6 @@ describe('post /api/v1/posts/:id/hide', () => {
                     .delete(`/api/v1/posts/${postid}/unhide`)
                     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(404);
-    // expect(response.body).toHaveProperty('status', 'fail');
-    // expect(response.body).toHaveProperty('message', 'No post found with that ID');
     });
   });
 
