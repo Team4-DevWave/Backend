@@ -541,10 +541,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
     const filteredMembers = frequentMembers.filter((user) =>
       user.settings.notificationSettings.communityAlerts.get(subreddit.name) === 'frequent',
     );
-    const obj = {};
-    for (const [key, value] of frequentMembers[0].settings.notificationSettings.communityAlerts.entries()) {
-      obj[key] = value;
-    }
     const lowMembers = await userModel.find({
       joinedSubreddits: subreddit.id,
       _id: {$ne: req.user._id},
