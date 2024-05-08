@@ -530,10 +530,6 @@ exports.createPost = catchAsync(async (req, res, next) => {
     post = newPost;
     await subredditModel.findByIdAndUpdate(subreddit.id, {$push: {postsID: newPost.id}}, {new: true});
     await userModel.findByIdAndUpdate(req.user.id, {$push: {posts: newPost.id}}, {new: true});
-    // const frequentMembers = await userModel.find({
-    //   joinedSubreddits: subreddit.id,
-    //   _id: {$ne: req.user._id}}).populate({path: 'settings', match: {
-    //     'communityAlerts': 'frequent'}}).exec();    //eslint-disable-line
     const frequentMembers = await userModel.find({
       joinedSubreddits: subreddit.id,
       _id: {$ne: req.user._id},

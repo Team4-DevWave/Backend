@@ -37,7 +37,7 @@ const postSchema = new mongoose.Schema({
   toObject: {virtuals: true}, // display virtual as object
 });
 
-// //query middle ware
+// query middle ware
 postSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'userID',

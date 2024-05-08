@@ -8,7 +8,6 @@ const postutil = require('../utils/postutil');
 const commentutil = require('../utils/commentutil');
 const commentModel = require('../models/commentsmodel');
 const settingsModel = require('../models/settingsmodel');
-// TODO exclude all not approved posts
 exports.getAllSubreddits = catchAsync(async (req, res, next) => {
   const pageNumber = req.query.page || 1;
   let subreddits = await subredditModel.find({category: req.query.category});
@@ -129,7 +128,6 @@ exports.subscribeToSubreddit = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
-// TODO test these gets and implement hot and random and best
 exports.getTopPostsBySubreddit = catchAsync(async (req, res, next) => {
   if (!req.params.subreddit) {
     return next(new AppError('Please provide a subreddit', 400));
@@ -181,7 +179,6 @@ exports.getHotPostsBySubreddit = catchAsync(async (req, res, next) => {
     return next(new AppError('Subreddit does not exist', 404));
   }
   const pageNumber = req.query.page || 1;
-  // TODO randomize for random, sort by date edited for new, select a certain time frame for hot and sort
   const posts = await postModel.find({subredditID: subreddit.id}).sort({numViews: -1}).exec();
   const paginatedPosts = paginate.paginate(posts, 10, pageNumber);
   const alteredPosts = await postutil.alterPosts(req, paginatedPosts);

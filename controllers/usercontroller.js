@@ -3,7 +3,6 @@ const AppError = require('../utils/apperror');
 const postModel = require('../models/postmodel');
 const catchAsync = require('../utils/catchasync');
 const commentModel = require('../models/commentsmodel');
-// const handlerFactory = require('./handlerfactory');
 const settingsModel = require('../models/settingsmodel');
 const paginate = require('../utils/paginate');
 const notificationController = require('./notificationcontroller');
@@ -134,7 +133,6 @@ exports.getAbout=catchAsync(async (req, res, next)=>{
   if (!user) {
     return next(new AppError('User not found', 400));
   }
-  // TODO add a follower count field and return it here
   res.status(200).json({
     status: 'success',
     data: {
@@ -261,7 +259,7 @@ exports.addFriend = handleUserAction('follow', 'add');
 exports.removeFriend =handleUserAction('follow', 'remove');
 exports.blockUser = handleUserAction('block', 'add');
 exports.unblockUser = handleUserAction('block', 'remove');
-exports.getCurrentUser = catchAsync(async (req, res, next) => { // TODO moderate output
+exports.getCurrentUser = catchAsync(async (req, res, next) => {
   const output = await req.user.populate([
     {path: 'blockedUsers', select: 'username'},
     {path: 'followedUsers', select: 'username'},
@@ -297,7 +295,7 @@ exports.updateMySettings = catchAsync(async (req, res, next) => {
       }
     }
   }
-  await settings.save(); // This triggers validators
+  await settings.save();
   res.status(200).json({
     status: 'success',
     data: {

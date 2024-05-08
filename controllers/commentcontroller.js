@@ -126,7 +126,6 @@ const createMessage = catchAsync(async (req, comment) => {
     }
   }
 });
-// CREATING A MESSAGE NOT TESTED YET IN CREATE AND EDIT COMMENT
 exports.createComment =catchAsync(async (req, res, next) => {
   const post = await postModel.findById(req.params.postid);
   if (!post) {
@@ -156,7 +155,6 @@ exports.createComment =catchAsync(async (req, res, next) => {
     },
   });
 });
-// TRY SEND MESSAGE TO NEWLY MENTIONED USERS IF COMMENT EDITED
 exports.editComment = catchAsync(async (req, res, next) => {
   const comment = await commentModel.findById(req.params.id);
   if (!comment) {

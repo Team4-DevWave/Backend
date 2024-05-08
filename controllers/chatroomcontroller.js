@@ -1,4 +1,3 @@
-// const messageModel = require('../models/messageModel');
 const chatroomModel = require('../models/chatroommodel');
 const userModel = require('../models/usermodel');
 const catchAsync = require('../utils/catchasync');
@@ -61,7 +60,6 @@ exports.getChatroom = catchAsync(async (req, res, next) => {
   if (!chatroom) {
     return next(new AppError('Chatroom not found', 404));
   }
-  // TODO GET ALL MESSAGES IN CHATROOM
   res.status(200).json({
     status: 'success',
     data: {
