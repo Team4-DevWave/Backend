@@ -50,7 +50,7 @@ const createMessage = catchAsync(async (req, comment) => {
     throw new AppError('Post not found', 404);
   }
   // Send a message to each mentioned user
-  const user = await userModel.findById(comment.user);
+  let user = await userModel.findById(comment.user);
   const username = user.username;
   const alteredPosts = await postutil.alterPosts(req, [post]);
   if (comment.mentioned && comment.mentioned.length > 0) {
@@ -73,7 +73,8 @@ const createMessage = catchAsync(async (req, comment) => {
         message: comment.content,
         post: comment.post,
       });
-      const recipientSettings = await settingsModel.findById(user.settings);
+      const recipientUser = await userModel.findById(userId);
+      const recipientSettings = await settingsModel.findById(recipientUser.settings);
       if (recipientSettings.notificationSettings.mentionsOfUsername) {
         const notificationParameters = {
           recipient: userId,
@@ -85,8 +86,8 @@ const createMessage = catchAsync(async (req, comment) => {
         };
         notificationController.createNotification(notificationParameters);
         await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
-        if (user.deviceToken !== 'NONE' && user.deviceToken) {
-          notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        if (recipientUser.deviceToken !== 'NONE' && recipientUser.deviceToken) {
+          notificationController.sendNotification(recipientUser.id, notificationParameters.content, user.deviceToken);
         }
       }
     });
@@ -104,7 +105,8 @@ const createMessage = catchAsync(async (req, comment) => {
       message: comment.content,
       post: comment.post,
     });
-    const recipientSettings = await settingsModel.findById(user.settings);
+    const recipientUser = await userModel.findById(post.userID);
+    const recipientSettings = await settingsModel.findById(recipientUser.settings);
     if (!comment.user._id.equals(post.userID._id)) {
       if (recipientSettings.notificationSettings.commentsOnYourPost) {
         const notificationParameters = {
@@ -116,9 +118,9 @@ const createMessage = catchAsync(async (req, comment) => {
           body: comment.content,
         };
         notificationController.createNotification(notificationParameters);
-        await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
-        if (user.deviceToken !== 'NONE' && user.deviceToken) {
-          notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        user = await userModel.findByIdAndUpdate(post.userID, {$inc: {notificationCount: 1}});
+        if (recipientUser.deviceToken !== 'NONE' && recipientUser.deviceToken) {
+          notificationController.sendNotification(recipientUser.id, notificationParameters.content, recipientUser.deviceToken);   //eslint-disable-line
         }
       }
     }
