@@ -268,9 +268,6 @@ describe('GET /api/v1/users/:username', () => {
     const response = await request(app).get(`/api/v1/users/${username}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('status', 'success');
-    // expect(response.body.data).toHaveProperty('cakeDay');
-    // expect(response.body.data).toHaveProperty('commentKarma');
-    // expect(response.body.data).toHaveProperty('postKarma');
   });
 });
 

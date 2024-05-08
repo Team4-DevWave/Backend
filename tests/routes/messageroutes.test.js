@@ -130,7 +130,6 @@ describe('PATCH /api/v1/messages/markallread', () => {
 });
 describe('GET /api/v1/messages/:id', () => {
   it('should get a message', async () => {
-    // const id='6608b0ce956f80a60f484f75';
     const res = await request(app)
     .get(`/api/v1/messages/${messageid}`)
     .set('Authorization', `Bearer ${token}`);
@@ -151,7 +150,6 @@ describe('GET /api/v1/messages/:id', () => {
 });
 describe('PATCH /api/v1/messages/:id/markread', () => {
   it('should mark a message as read', async () => {
-    // const id=0;
     const res = await request(app)
     .patch(`/api/v1/messages/${messageid}/markread`)
     .set('Authorization', `Bearer ${token}`);
