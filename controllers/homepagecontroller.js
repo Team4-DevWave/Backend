@@ -140,23 +140,22 @@ exports.getSubredditsWithCategory = catchAsync(async (req, res, next) => {
         });
       }
     } else {
-      next(new AppError('No subreddits found with that category', 404));
-      return;
+      return next(new AppError('No subreddits found with that category', 404));
     }
   } else {
-    while (subreddits === null || subreddits.length === 0) {
-      const categories = Object.values(subredditModel.schema.path('category').enumValues);
-      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-      subreddits = await subredditModel.find({category: randomCategory});
-      if (subreddits !== null || subreddits.length !== 0) {
-        for (let i = 0; i < subreddits.length; i++) {
-          const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
+    const count = await subredditModel.countDocuments({category: {$exists: true, $ne: null}});
+    if (count===0) return next(new AppError('No subreddits found', 404));
+    const random = Math.floor(Math.random() * count);
+    const subreddit = await subredditModel.findOne({category: {$exists: true, $ne: null}}).skip(random);
+    subreddits = await subredditModel.find({category: subreddit.category});
+    if (subreddits !== null) {
+      for (let i = 0; i < subreddits.length; i++) {
+        const subreddit = await subredditModel.findById(subreddits[i].id).select('name srLooks.icon');
           const {srLooks, ...otherProps} = subreddit._doc;    //eslint-disable-line
-          result.push({
+        result.push({
             ...otherProps,    //eslint-disable-line
-            icon: srLooks.icon,
-          });
-        }
+          icon: srLooks.icon,
+        });
       }
     }
   }
