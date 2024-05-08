@@ -576,22 +576,18 @@ describe('PATCH /api/v1/users/me/settings/changeemail', () => {
 describe('post /api/v1/users/forgetUsername', () => {
   it('should get the username to email', async () => {
     const reqData = {
-      email: 'modyben43@gmail.com',
+      email: 'mody123@yopmail.com',
     };
     const response = await request(app)
       .post('/api/v1/users/forgotUsername').send(reqData);
     expect(response.statusCode).toBe(200);
   });
-});
-describe('post /api/v1/users/forgetUsername', () => {
-  it('should get the logged in user\'s settings', async () => {
+  it('should not get the username as user not found', async () => {
     const response = await request(app)
-      .post('/api/v1/users/forgotUsername').send({email: 'modyben4@gmail.com'});
+      .post('/api/v1/users/forgotUsername').send({email: 'modyi123@yopmail.com'});
     expect(response.statusCode).toBe(404);
   });
-});
-describe('post /api/v1/users/forgetUsername', () => {
-  it('should get the logged in user\'s settings', async () => {
+  it('should not get username as email not sent', async () => {
     const response = await request(app)
       .post('/api/v1/users/forgotUsername').send({});
     expect(response.statusCode).toBe(400);

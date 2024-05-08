@@ -46,7 +46,7 @@ describe('GET /api/v1/homepage/subreddits_by_category', () => {
   it('should return subreddits by specific category', async () => {
     const body = {
       random: false,
-      category: 'Sports'
+      category: 'cute'
     };
     const response = await request(app).get('/api/v1/homepage/subreddits_by_category').send(body).set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);

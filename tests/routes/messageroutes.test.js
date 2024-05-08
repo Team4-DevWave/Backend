@@ -48,7 +48,7 @@ describe('POST /api/v1/messages/compose', () => {
   });
   it('you cannot send a message using other subreddits name if you\'re not a member', async () => {
     const messageData = {
-      from: 'r/hi',
+      from: 'r/mimiworld',
       to: 'u/theHazem',
       subject: 'message composed',
       message: 'hello from the other world ',

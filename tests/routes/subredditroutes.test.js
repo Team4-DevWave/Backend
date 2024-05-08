@@ -74,7 +74,7 @@ describe('POST /api/v1/r/create', () => {
  describe('POST /api/v1/r/:subreddit/subscribe', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
-      username: 'dirty',
+      username: 'mohamed',
       password: 'pass1234',
     };
     const response = await request(app).post('/api/v1/users/login').send(userCredentials);
@@ -101,7 +101,7 @@ describe('POST /api/v1/r/create', () => {
   });
 
   it('should not join a user in a private community that does not have an invite', async () => {
-    const subreddit = 'private community 3';
+    const subreddit = 'private community';
     const response = await request(app).post(`/api/v1/r/${subreddit}/subscribe`).send().set('Authorization', `Bearer ${membertoken}`);;
     expect(response.statusCode).toBe(404);
     expect(response.body).toHaveProperty('status', 'fail');

@@ -21,7 +21,7 @@ describe('POST /api/v1/chatrooms/', () => {
   it('should create a new chatroom', async () => {
     const chatroomContent={
           chatroomName: 'chatroom test',
-          chatroomMembers: ['theHazem','hussein']
+          chatroomMembers: ['mohamed','moashraf']
         }
     const res = await request(app)
         .post(`/api/v1/chatrooms/`)
@@ -110,7 +110,7 @@ describe('PATCH /api/v1/chatrooms/:chatroomid/rename', () => {
 
 describe('POST /api/v1/chatrooms/:chatroomid/addmember', () => {
   it('should add a member to a chatroom', async () => {
-    const chatroomContent= {member: 'se7sbond'}
+    const chatroomContent= {member: 'WorldEnder'}
     const res = await request(app)
         .post(`/api/v1/chatrooms/${chatroomid}/addmember`)
         .set('Authorization', `Bearer ${token}`)
@@ -185,7 +185,7 @@ describe('DELETE /api/v1/chatrooms/:chatroomid/leave', () => {
   it('should leave a chatroom', async () => {
     const chatroomContent={
           chatroomName: 'chatroom test',
-          chatroomMembers: ['theHazem','hussein']
+          chatroomMembers: ['WorldEnder','TarekEmad']
         }
     const createResponse = await request(app)
         .post(`/api/v1/chatrooms/`)

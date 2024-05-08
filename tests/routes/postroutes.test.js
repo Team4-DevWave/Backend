@@ -215,7 +215,7 @@ it('should not create a new post on a subreddit due to user is not authorized to
     content: postContent,
     locked: false
   };
-  const subreddit = 'private community 1';
+  const subreddit = 'private community';
   const response = await request(app)
                   .post(`/api/v1/posts/submit/r/${subreddit}`)
                   .send(post)

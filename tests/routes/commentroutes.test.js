@@ -2,7 +2,7 @@
 
 const request = require('supertest');
 const app = 'http://localhost:8000';
-const postid='661e8e281710154e42ea63be';
+const postid='663be27a635747d873c56df5';
 
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
@@ -46,7 +46,7 @@ describe('POST /api/v1/posts/:postid/comments/', () => {
           content: 'this is a comment test u/theHazem and u/ismail ',
         }
     const res = await request(app)
-        .post(`/api/v1/posts/661f29f7b62959359e555a62/comments/`)
+        .post(`/api/v1/posts/663bcc7485cc05b223d6ea54/comments/`)
         .set('Authorization', `Bearer ${token}`)
         .send(commentContent);
     expect(res.statusCode).toBe(400);
