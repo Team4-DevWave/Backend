@@ -42,7 +42,6 @@ exports.trending = catchAsync(async (req, res, next) => {
 
   async function getGoogleTrendsDailyResults() { // eslint-disable-line
     const browser = await puppeteer.launch({
-      executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1200,700'],
     });
