@@ -7,6 +7,7 @@ const postcontroller = require('../../controllers/postcontroller');
 const subredditcontroller = require('../../controllers/subredditcontroller');
 const notificationcontroller = require('../../controllers/notificationcontroller');
 const errorcontroller = require('../../controllers/errorcontroller');
+const homepageController = require('../../controllers/homepagecontroller');
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/signup', () => {

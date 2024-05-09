@@ -4,7 +4,12 @@ const request = require('supertest');
 const app = "http://localhost:8000";
 const postTitle = 'postTitle' + Math.floor(Math.random() * 10000);
 const postContent = 'postContent' + Math.floor(Math.random() * 10000);
-
+const userController = require('../../controllers/usercontroller');
+const commentcontroller = require('../../controllers/commentcontroller');
+const postcontroller = require('../../controllers/postcontroller');
+const subredditcontroller = require('../../controllers/subredditcontroller');
+const notificationcontroller = require('../../controllers/notificationcontroller');
+const errorcontroller = require('../../controllers/errorcontroller');
 describe('POST /api/v1/users/login', () => {
   it('should log in successfully', async () => {
     const userCredentials = {
