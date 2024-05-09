@@ -1,33 +1,116 @@
-const SubredditModel = require('../models/SubredditModel');
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const Subreddit = require('./models/subreddit');
 
-exports.getSavedCategories = async (req, res, next) => {
-    try {
-        const username = req.params.username;
-        const savedCategories = await SubredditModel.getSavedCategories(username);
-        res.status(200).json(savedCategories);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+const app = express();
+app.use(bodyParser.json());
 
-exports.setSendReplies = async (req, res, next) => {
-    try {
-        const username = req.params.username;
-        const enable = req.body.enable;
-        await SubredditModel.setSendReplies(username, enable);
-        res.status(200).json({ message: 'Send replies status set successfully.' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-exports.setSuggestedSort = async (req, res, next) => {
+
+  async function authenticateUser(req, res, next) {
     try {
-        const subredditName = req.params.subredditName;
-        const suggestedSort = req.body.suggestedSort;
-        await SubredditModel.setSuggestedSort(subredditName, suggestedSort);
-        res.status(200).json({ message: 'Suggested sort set successfully.' });
+      
+      const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+  
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized: No token provided' });
+      }
+  
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await userModel.findById(decoded.userID);
+      
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized: User not found' });
+      }
+
+      req.user = user;
+      next();
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      console.error('Authentication error:', error);
+      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
-};
+  }
+// Task: saved_categories
+app.post('/saved_categories', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId, categories } = req.body;
+    // Check if the request body contains required fields
+    if (!subredditId || !categories) {
+      return res.status(400).json({ error: 'Subreddit ID and categories are required' });
+    }
+    // Find the subreddit by ID
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    // Update the subreddit's saved categories
+    subreddit.savedCategories = categories;
+    await subreddit.save();
+    return res.status(200).json({ message: 'Saved categories updated successfully' });
+  } catch (error) {
+    console.error('Error saving categories:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: sendreplies
+app.post('/sendreplies', authenticateUser, async (req, res) => {
+  try {
+    const { postId, reply } = req.body;
+    // Check if the request body contains required fields
+    if (!postId || !reply) {
+      return res.status(400).json({ error: 'Post ID and reply content are required' });
+    }
+    // Find the post by ID
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    // Create a new reply document
+    const newReply = new Reply({
+      user: req.user._id,
+      post: postId,
+      content: reply,
+    });
+    // Save the new reply
+    await newReply.save();
+    // Add the reply to the post's replies array
+    post.replies.push(newReply._id);
+    await post.save();
+    // Return success message
+    return res.status(200).json({ message: 'Reply sent successfully' });
+  } catch (error) {
+    console.error('Error sending reply:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// Task: set_suggested_sort
+app.put('/set_suggested_sort', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId, suggestedSort } = req.body;
+    // Check if the request body contains required fields
+    if (!subredditId || !suggestedSort) {
+      return res.status(400).json({ error: 'Subreddit ID and suggested sort are required' });
+    }
+    // Find the subreddit by ID
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    // Update the subreddit's suggested sort
+    subreddit.suggestedSort = suggestedSort;
+    await subreddit.save();
+    return res.status(200).json({ message: 'Suggested sort updated successfully' });
+  } catch (error) {
+    console.error('Error setting suggested sort:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
