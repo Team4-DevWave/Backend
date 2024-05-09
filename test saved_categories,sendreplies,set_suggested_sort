@@ -1,83 +1,69 @@
-const { getSavedCategories, setSendReplies, setSuggestedSort } = require('./savedCategoriesController');
-const UserModel = require('../models/UserModel');
+const request = require('supertest');
+const app = require('./app'); 
+const Subreddit = require('./models/subreddit');
+const Post = require('./models/post');
+const Reply = require('./models/reply');
 
-describe('Saved Categories Controller', () => {
-    describe('getSavedCategories', () => {
-        it('should retrieve saved categories for a user', async () => {
-            const req = { params: { username: 'example_user' } };
-            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+describe('POST /saved_categories', () => {
+  it('should save categories to a subreddit', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
 
-            const savedCategories = ['category1', 'category2'];
-            jest.spyOn(UserModel, 'getSavedCategories').mockResolvedValue(savedCategories);
+    // Make a POST request to save categories
+    const response = await request(app)
+      .post('/saved_categories')
+      .send({ subredditId: subreddit._id, categories: ['category1', 'category2'] });
 
-            await getSavedCategories(req, res);
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Saved categories updated successfully');
 
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith(savedCategories);
-        });
+    // Fetch the subreddit from the database and check if categories are updated
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.savedCategories).toEqual(['category1', 'category2']);
+  });
+});
 
-        it('should handle errors gracefully', async () => {
-            const req = { params: { username: 'invalid_user' } };
-            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+describe('POST /sendreplies', () => {
+  it('should send a reply to a post', async () => {
+    // Create a test post
+    const post = new Post({ title: 'Test Post', content: 'This is a test post' });
+    await post.save();
 
-            jest.spyOn(UserModel, 'getSavedCategories').mockRejectedValue(new Error('User not found'));
+    // Make a POST request to send a reply
+    const response = await request(app)
+      .post('/sendreplies')
+      .send({ postId: post._id, reply: 'This is a test reply' });
 
-            await getSavedCategories(req, res);
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Reply sent successfully');
 
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ error: 'User not found' });
-        });
-    });
+    // Fetch the post from the database and check if the reply is added
+    const updatedPost = await Post.findById(post._id).populate('replies');
+    expect(updatedPost.replies.length).toBe(1);
+    expect(updatedPost.replies[0].content).toBe('This is a test reply');
+  });
+});
 
-    describe('setSendReplies', () => {
-        it('should set send replies status for a user', async () => {
-            const req = { params: { username: 'example_user' }, body: { enable: true } };
-            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+describe('PUT /set_suggested_sort', () => {
+  it('should set suggested sort for a subreddit', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
 
-            jest.spyOn(UserModel, 'setSendReplies').mockResolvedValue();
+    // Make a PUT request to set suggested sort
+    const response = await request(app)
+      .put('/set_suggested_sort')
+      .send({ subredditId: subreddit._id, suggestedSort: 'new' });
 
-            await setSendReplies(req, res);
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Suggested sort updated successfully');
 
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Send replies status set successfully.' });
-        });
-
-        it('should handle errors gracefully', async () => {
-            const req = { params: { username: 'invalid_user' }, body: { enable: true } };
-            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-
-            jest.spyOn(UserModel, 'setSendReplies').mockRejectedValue(new Error('User not found'));
-
-            await setSendReplies(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ error: 'User not found' });
-        });
-    });
-
-    describe('setSuggestedSort', () => {
-        it('should set suggested sort for a subreddit', async () => {
-            const req = { params: { subredditName: 'example_subreddit' }, body: { suggestedSort: 'new' } };
-            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-
-            jest.spyOn(UserModel, 'setSuggestedSort').mockResolvedValue();
-
-            await setSuggestedSort(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Suggested sort set successfully.' });
-        });
-
-        it('should handle errors gracefully', async () => {
-            const req = { params: { subredditName: 'invalid_subreddit' }, body: { suggestedSort: 'new' } };
-            const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-
-            jest.spyOn(UserModel, 'setSuggestedSort').mockRejectedValue(new Error('Subreddit not found'));
-
-            await setSuggestedSort(req, res);
-
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ error: 'Subreddit not found' });
-        });
-    });
+    // Fetch the subreddit from the database and check if suggested sort is updated
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.suggestedSort).toBe('new');
+  });
 });
