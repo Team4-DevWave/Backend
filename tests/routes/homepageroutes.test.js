@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 const request = require('supertest');
-const userModel = require('../../models/usermodel');
+
 const app = "http://localhost:8000";
 
 

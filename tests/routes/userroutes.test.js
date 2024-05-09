@@ -1,6 +1,12 @@
 /* eslint-disable */
 
 const request = require('supertest');
+const userController = require('../../controllers/usercontroller');
+const commentcontroller = require('../../controllers/commentcontroller');
+const postcontroller = require('../../controllers/postcontroller');
+const subredditcontroller = require('../../controllers/subredditcontroller');
+const notificationcontroller = require('../../controllers/notificationcontroller');
+const errorcontroller = require('../../controllers/errorcontroller');
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/signup', () => {
