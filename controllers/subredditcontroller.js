@@ -275,7 +275,7 @@ exports.searchSubreddit=catchAsync(async (req, res, next) => {
     return;
   }
   const subreddit=await subredditModel.find({name: subredditName});
-  if (!subreddit) {
+  if (!subreddit || subreddit.length===0) {
     next(new AppError('Subreddit does not exist', 404));
     return;
   }
