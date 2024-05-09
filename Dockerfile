@@ -13,6 +13,12 @@ RUN npm install
 # If Puppeteer doesn't get installed via package.json
 RUN npm install puppeteer
 
+# Download and install Chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable
+
 # Add user so we aren't running as root
 RUN adduser --disabled-password --gecos '' --shell /bin/bash user \
     && chown -R user:user /usr/src/app \
