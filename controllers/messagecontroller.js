@@ -62,20 +62,22 @@ exports.createMessage = catchAsync(async (req, res, next) => {
   const message= await messageModel.create(req.body);
   const user = await userModel.findById(req.body.to);
   const userSettings = await settingsModel.findById(user.settings);
-  if (userSettings.notificationSettings.privateMessages) {
-    const notificationParameters = {
-      recipient: req.body.to,
-      content: 'u/' + req.user.username + ' sent you a message',
-      sender: req.body.from,
-      type: 'message',
-      contentID: await messageModel.findById(message.id),
-      body: req.body.message,
-    };
-    notificationController.createNotification(notificationParameters);
-    await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
-    if (user.deviceToken !== 'NONE' && user.deviceToken) {
-      notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
-    } //eslint-disable-line
+  if (user.id !== req.user.id) {
+    if (userSettings.notificationSettings.privateMessages) {
+      const notificationParameters = {
+        recipient: req.body.to,
+        content: 'u/' + req.user.username + ' sent you a message',
+        sender: req.body.from,
+        type: 'message',
+        contentID: await messageModel.findById(message.id),
+        body: req.body.message,
+      };
+      notificationController.createNotification(notificationParameters);
+      await userModel.findByIdAndUpdate(req.body.to, {$inc: {notificationCount: 1}});
+      if (user.deviceToken !== 'NONE' && user.deviceToken) {
+        notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+      } //eslint-disable-line
+    }
   }
   res.status(201).json({
     status: 'success',

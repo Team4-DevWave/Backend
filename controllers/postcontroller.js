@@ -510,19 +510,22 @@ exports.createPost = catchAsync(async (req, res, next) => {
       for (let i = 0; i < mentioned.length; i++) {
         const settingsUser = await userModel.findById(mentioned[i]);
         const recipientSettings = await settingsModel.findById(settingsUser.settings);
-        if (recipientSettings.notificationSettings.mentionsOfUsername) {
-          const notificationParameters = {
-            recipient: mentioned[i],
-            content: 'u/' + req.user.username + ' mentioned you in a post',
-            sender: req.user._id,
-            type: 'post',
-            contentID: alteredPosts[0],
-            body: newPost.title,
-          };
-          notificationController.createNotification(notificationParameters);
-          await userModel.findByIdAndUpdate(settingsUser, {$inc: {notificationCount: 1}});
-          if (settingsUser.deviceToken !== 'NONE' && settingsUser.deviceToken) {
-            notificationController.sendNotification(settingsUser.id, notificationParameters.content, settingsUser.deviceToken);   //eslint-disable-line
+        if (mentioned[i] != req.user.id) {
+          if (recipientSettings.notificationSettings.mentionsOfUsername) {
+            const notificationParameters = {
+              recipient: mentioned[i],
+              content: 'u/' + req.user.username + ' mentioned you in a post',
+              sender: req.user._id,
+              type: 'post',
+              contentID: alteredPosts[0],
+              body: newPost.title,
+            };
+            notificationController.createNotification(notificationParameters);
+            await userModel.findByIdAndUpdate(settingsUser, {$inc: {notificationCount: 1}});
+            console.log(settingsUser.deviceToken);
+            if (settingsUser.deviceToken !== 'NONE' && settingsUser.deviceToken) {
+              notificationController.sendNotification(settingsUser.id, notificationParameters.content, settingsUser.deviceToken);   //eslint-disable-line
+            }
           }
         }
       }
@@ -546,24 +549,7 @@ exports.createPost = catchAsync(async (req, res, next) => {
     );
     for (let i = 0; i < filteredMembers.length; i++) {
       const user = await userModel.findById(filteredMembers[i]);
-      const notificationParameters = {
-        recipient: user.id,
-        content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
-        sender: subreddit.id,
-        type: 'post',
-        contentID: post,
-        body: post.title,
-      };
-      notificationController.createNotification(notificationParameters);
-      await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
-      if (user.deviceToken !== 'NONE' && user.deviceToken) {
-        notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
-      }
-    }
-    for (let i = 0; i < lowfilteredMembers.length; i++) {
-      const user = await userModel.findById(lowfilteredMembers[i]);
-      const number = Math.floor(Math.random() * (5 - 0 + 1)) + 0;
-      if (number === 4) {
+      if (user != req.user) {
         const notificationParameters = {
           recipient: user.id,
           content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
@@ -576,6 +562,27 @@ exports.createPost = catchAsync(async (req, res, next) => {
         await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
         if (user.deviceToken !== 'NONE' && user.deviceToken) {
           notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+        }
+      }
+    }
+    for (let i = 0; i < lowfilteredMembers.length; i++) {
+      const user = await userModel.findById(lowfilteredMembers[i]);
+      const number = Math.floor(Math.random() * (5 - 0 + 1)) + 0;
+      if (number === 4) {
+        if (user != req.user) {
+          const notificationParameters = {
+            recipient: user.id,
+            content: 'check out this post in r/' + subreddit.name + ' by u/' + req.user.username,
+            sender: subreddit.id,
+            type: 'post',
+            contentID: post,
+            body: post.title,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(user.id, {$inc: {notificationCount: 1}});
+          if (user.deviceToken !== 'NONE' && user.deviceToken) {
+            notificationController.sendNotification(user.id, notificationParameters.content, user.deviceToken);
+          }
         }
       }
     }

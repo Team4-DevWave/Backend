@@ -75,19 +75,21 @@ const createMessage = catchAsync(async (req, comment) => {
       });
       const recipientUser = await userModel.findById(userId);
       const recipientSettings = await settingsModel.findById(recipientUser.settings);
-      if (recipientSettings.notificationSettings.mentionsOfUsername) {
-        const notificationParameters = {
-          recipient: userId,
-          content: 'u/' + username + ' mentioned you in a comment',
-          sender: comment.user._id,
-          type: 'post',
-          contentID: alteredPosts[0],
-          body: comment.content,
-        };
-        notificationController.createNotification(notificationParameters);
-        await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
-        if (recipientUser.deviceToken !== 'NONE' && recipientUser.deviceToken) {
-          notificationController.sendNotification(recipientUser.id, notificationParameters.content, user.deviceToken);
+      if (recipientUser.id !== req.user.id) {
+        if (recipientSettings.notificationSettings.mentionsOfUsername) {
+          const notificationParameters = {
+            recipient: userId,
+            content: 'u/' + username + ' mentioned you in a comment',
+            sender: comment.user._id,
+            type: 'post',
+            contentID: alteredPosts[0],
+            body: comment.content,
+          };
+          notificationController.createNotification(notificationParameters);
+          await userModel.findByIdAndUpdate(userId, {$inc: {notificationCount: 1}});
+          if (recipientUser.deviceToken !== 'NONE' && recipientUser.deviceToken) {
+            notificationController.sendNotification(recipientUser.id, notificationParameters.content, user.deviceToken);
+          }
         }
       }
     });
