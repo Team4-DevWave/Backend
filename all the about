@@ -1,0 +1,147 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const Subreddit = require('./models/subreddit');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+async function authenticateUser(req, res, next) {
+  try {
+    
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.userID);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+
+// Task: about/Where
+app.post('/about/where', authenticateUser, async (req, res) => {
+    try {
+      
+      const location = req.user.location;
+      return res.status(200).json({ location });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Banned
+  app.post('/about/banned', authenticateUser, async (req, res) => {
+    try {
+      
+      const bannedUsers = await Ban.find();
+      return res.status(200).json({ bannedUsers });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Muted
+  app.post('/about/muted', authenticateUser, async (req, res) => {
+    try {
+  
+      const mutedUsers = await Mute.find();
+      return res.status(200).json({ mutedUsers });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Moderators
+  app.post('/about/moderators', authenticateUser, async (req, res) => {
+    try {
+      
+      const moderators = await Moderator.find({ subreddit: req.body.subredditId });
+      return res.status(200).json({ moderators });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Location
+  app.post('/about/location', authenticateUser, async (req, res) => {
+    try {
+      
+      const locationData = await Location.find({ coordinates: req.body.coordinates });
+      return res.status(200).json({ locationData });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Reports
+  app.post('/about/reports', authenticateUser, async (req, res) => {
+    try {
+     
+      const reports = await Report.find();
+      return res.status(200).json({ reports });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Spam
+  app.post('/about/spam', authenticateUser, async (req, res) => {
+    try {
+     
+      const spam = await Spam.find();
+      return res.status(200).json({ spam });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Modqueue
+  app.post('/about/modqueue', authenticateUser, async (req, res) => {
+    try {
+      
+      const modqueue = await Modqueue.find();
+      return res.status(200).json({ modqueue });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Task: about/Unmoderated
+  app.post('/about/unmoderated', authenticateUser, async (req, res) => {
+    try {
+     
+      const unmoderated = await Unmoderated.find();
+      return res.status(200).json({ unmoderated });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
