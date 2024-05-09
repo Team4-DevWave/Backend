@@ -12,6 +12,7 @@ RUN npm install
 
 # If Puppeteer doesn't get installed via package.json
 RUN npm install puppeteer
+RUN node node_modules/puppeteer/install.js
 
 # Add user so we aren't running as root
 RUN adduser --disabled-password --gecos '' --shell /bin/bash user \
