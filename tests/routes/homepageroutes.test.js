@@ -2,11 +2,17 @@
 
 const request = require('supertest');
 const userController = require('../../controllers/usercontroller');
-const commentcontroller = require('../../controllers/commentcontroller');
-const postcontroller = require('../../controllers/postcontroller');
-const subredditcontroller = require('../../controllers/subredditcontroller');
-const notificationcontroller = require('../../controllers/notificationcontroller');
-const errorcontroller = require('../../controllers/errorcontroller');
+const commentController = require('../../controllers/commentcontroller');
+const postController = require('../../controllers/postcontroller');
+const subredditController = require('../../controllers/subredditcontroller');
+const notificationController = require('../../controllers/notificationcontroller');
+const errorController = require('../../controllers/errorcontroller');
+const homepageController = require('../../controllers/homepagecontroller');
+const authController= require('../../controllers/authcontroller');
+const handlerFactory=require('../../controllers/handlerfactory');
+const messageController = require('../../controllers/messagecontroller');
+const chatroomController = require('../../controllers/chatroomcontroller');
+const chatmessageController = require('../../controllers/chatmessagecontroller');
 const app = "http://localhost:8000";
 
 
