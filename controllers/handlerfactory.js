@@ -109,7 +109,7 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
         if (settings.notificationSettings.upvotesOnYourPost) {
           const notificationParameters = {
             recipient: doc.userID,
-            content: 'u/' + user.username + ' upvoted your post',
+            content: 'u/' + req.user.username + ' upvoted your post',
             sender: req.user.id,
             type: 'post',
             contentID: alteredPosts[0],
@@ -125,10 +125,11 @@ exports.voteOne=(model, voteOn)=> catchAsync(async (req, res, next) => {
         const user = await userModel.findById(doc.user.id);
         const settings = await settingsmodel.findById(user.settings);
         const alteredPosts = await postutil.alterPosts(req, [await postModel.findById(doc.post)]);
+        console.log(user.username);
         if (settings.notificationSettings.upvotesOnYourComments) {
           const notificationParameters = {
             recipient: doc.user.id,
-            content: 'u/' + user.username + ' upvoted your comment',
+            content: 'u/' + req.user.username + ' upvoted your comment',
             sender: req.user.id,
             type: 'post',
             contentID: alteredPosts[0],
