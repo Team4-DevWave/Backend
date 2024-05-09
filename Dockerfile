@@ -7,13 +7,15 @@ WORKDIR /usr/src/app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
+# Set environment variable for Puppeteer
+ENV PUPPETEER_PRODUCT=chrome
 # Install the application dependencies inside the Docker container
 RUN npm install
 
 # If Puppeteer doesn't get installed via package.json
 RUN npm install puppeteer
 # Add this line to download the necessary browsers
-RUN npx puppeteer install
+RUN npx puppeteer install chrome
 # Add user so we aren't running as root
 RUN adduser --disabled-password --gecos '' --shell /bin/bash user \
     && chown -R user:user /usr/src/app \
