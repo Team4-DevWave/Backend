@@ -9,13 +9,22 @@ COPY package*.json ./
 
 # Set environment variable for Puppeteer
 ENV PUPPETEER_PRODUCT=chrome
+ENV PUPPETEER_CACHE_PATH=/usr/src/app/.cache/puppeteer
+
 # Install the application dependencies inside the Docker container
 RUN npm install
 
 # If Puppeteer doesn't get installed via package.json
 RUN npm install puppeteer
+
 # Add this line to download the necessary browsers
 RUN npx puppeteer install chrome
+
+# Create the Puppeteer cache directory and set the correct permissions
+RUN mkdir -p /usr/src/app/.cache/puppeteer \
+    && chown -R user:user /usr/src/app/.cache/puppeteer \
+    && chmod 755 /usr/src/app/.cache/puppeteer
+
 # Add user so we aren't running as root
 RUN adduser --disabled-password --gecos '' --shell /bin/bash user \
     && chown -R user:user /usr/src/app \
