@@ -1,35 +1,48 @@
-const {
-    site_admin,
-    edit_about
-} = require('./subredditFunctions');
+const request = require('supertest');
+const app = require('./app'); 
+const UserModel = require('./models/user'); 
+const AboutModel = require('./models/about'); 
 
-describe('Subreddit Functions', () => {
-    describe('site_admin', () => {
-        it('should retrieve site admin information', async () => {
-            const adminInfo = await site_admin();
-            expect(adminInfo).toBeDefined();
-            
-        });
-
-        it('should handle errors gracefully', async () => {
-            await expect(site_admin()).rejects.toThrow();
-            
-        });
+describe('POST /site_admin', () => {
+    it('should perform site admin tasks', async () => {
+      
+      const user = new UserModel({ username: 'admin', isAdmin: true });
+      await user.save();
+  
+      // Authenticate the user and get the JWT token
+      const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET);
+  
+      // Make a POST request to perform site admin tasks
+      const response = await request(app)
+        .post('/site_admin')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ userId: 'user_id_here', role: 'admin' }); // Example request body
+  
+      // Expect response status to be 200 and check the message
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Site admin task completed successfully');
+  
+      
     });
-
-    describe('edit_about', () => {
-        it('should edit the about section of a subreddit', async () => {
-            const subredditName = 'example_subreddit';
-            const aboutText = 'New about text for the subreddit.';
-            const result = await edit_about(subredditName, aboutText);
-            expect(result).toEqual({ message: 'About section edited successfully.' });
-        });
-
-        it('should handle errors gracefully', async () => {
-            const subredditName = 'invalid_subreddit';
-            const aboutText = 'New about text for the subreddit.';
-            await expect(edit_about(subredditName, aboutText)).rejects.toThrow();
-            
-        });
+  });
+  
+  describe('PUT /about/edit', () => {
+    it('should edit the about page', async () => {
+      
+      const aboutContent = 'This is the updated about page content';
+  
+      // Make a PUT request to edit the about page
+      const response = await request(app)
+        .put('/about/edit')
+        .send({ content: aboutContent }); // Example request body
+  
+      // Expect response status to be 200 and check the message
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('About page updated successfully');
+  
+      // Fetch the about page content from the database and check if it's updated
+      const updatedAbout = await AboutModel.findOne();
+      expect(updatedAbout.content).toBe(aboutContent);
     });
-});
+  });
+  
