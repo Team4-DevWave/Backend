@@ -8,6 +8,7 @@ const subredditcontroller = require('../../controllers/subredditcontroller');
 const notificationcontroller = require('../../controllers/notificationcontroller');
 const errorcontroller = require('../../controllers/errorcontroller');
 const homepageController = require('../../controllers/homepagecontroller');
+
 const app = "http://localhost:8000";
 
 describe('POST /api/v1/users/signup', () => {
@@ -225,7 +226,7 @@ describe('GET /api/v1/users/checkEmail/:email', () => {
   });
     it('should check email unavailability', async () => {
     // Assuming the user is already logged in and you have their token
-    const newEmail = 'mariamgamal70.backup@gmail.com';
+    const newEmail = 'mimi123@yopmail.com';
     const response = await request(app)
       .get(`/api/v1/users/checkEmail/${newEmail}`)
       .set('Authorization', `Bearer ${token}`);
@@ -556,7 +557,7 @@ describe('DELETE /api/v1/users/me/settings/removesociallink/:sociallinkid', () =
 
 describe('PATCH /api/v1/users/me/settings/changeemail', () => {
   it('should update a user email', async () => {
-    const newEmail = 'mimi123@yopmail.com';
+    const newEmail = 'mariamgamal70.backup@yopmail.com';
     const response = await request(app)
       .patch(`/api/v1/users/me/settings/changeemail`)
       .send({ email: newEmail })

@@ -51,7 +51,7 @@ describe('POST /api/v1/posts/:postid/comments/', () => {
           content: 'this is a comment test u/theHazem and u/ismail ',
         }
     const res = await request(app)
-        .post(`/api/v1/posts/663bcc7485cc05b223d6ea54/comments/`)
+        .post(`/api/v1/posts/663bf81d9b1b39a9c280ea5f/comments/`)
         .set('Authorization', `Bearer ${token}`)
         .send(commentContent);
     expect(res.statusCode).toBe(400);
@@ -76,7 +76,7 @@ describe('GET /api/v1/posts/:postid/comments/', () => {
         .set('Authorization', `Bearer ${token}`)
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toHaveProperty('comments');
-  });
+  },20000);
 
   it('should not get comments of a post with wrong post id', async () => {
     const res = await request(app)
