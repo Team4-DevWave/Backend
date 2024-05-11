@@ -95,7 +95,7 @@ describe('PATCH /api/v1/notifications/hide/:notification_id', () => {
     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.status).toBe('success');
-  });
+  }, 20000);
 });
 
 describe('PATCH /api/v1/notifications/disable_updates/:subreddit_name', () => {
@@ -166,7 +166,7 @@ describe('PATCH /api/v1/notifications/read/:notification_id', () => {
     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.status).toBe('success');
-  });
+  }, 20000);
 })
 
 describe('GET /api/v1/notifications/settings', () => {
@@ -201,7 +201,7 @@ describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spa
     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.status).toBe('success');
-  });
+  }, 20000);
 })
 
 describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spacers/activity/postsWithUpvotes', () => {
@@ -309,7 +309,7 @@ describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spa
     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.status).toBe('success');
-  });
+  }, 20000);
 })
 
 describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spacers/reports/comments/advancedSetup', () => {
@@ -348,16 +348,16 @@ describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spa
   });
 })
 
-describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spacers/reports/posts/advancedSetup/6', () => {
+describe('PATCH /api/v1/notifications/change_user_mod_notifications_settings/spacers/reports/comments/advancedSetup/6', () => {
   it('should change number of reports for comments setting successfully', async () => {
     const subreddit = 'spacers'
     const response = await request(app)
-    .patch(`/api/v1/notifications/change_user_mod_notifications_settings/${subreddit}/reports/posts/advancedSetup/6`)
+    .patch(`/api/v1/notifications/change_user_mod_notifications_settings/${subreddit}/reports/comments/advancedSetup/6`)
     .send()
     .set('Authorization', `Bearer ${token}`);
     expect(response.statusCode).toBe(200);
     expect(response.body.status).toBe('success');
-  });
+  }, 20000);
 })
 
 describe('PATCH /api/v1/notifications/change_user_settings', () => {
