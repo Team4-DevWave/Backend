@@ -147,3 +147,24 @@ describe('DELETE /api/v1/r/:subreddit/delete', () => {
     expect(response.statusCode).toBe(404);
   });
 });
+
+describe('GET /api/v1/r/user_subreddits', () => {
+  it('should get user communities successfully', async () => {
+    const response = await request(app)
+                    .get('/api/v1/r/user_subreddits')
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data).toHaveProperty('userSubreddits');
+  });
+});
+
+describe('GET /api/v1/r/:subreddit', () => {
+  it('should get subreddit successfully', async () => {
+    const subreddit = 'Flutter Community';
+    const response = await request(app)
+                    .get(`/api/v1/r/${subreddit}`)
+                    .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data).toHaveProperty('subreddit');
+  });
+});
