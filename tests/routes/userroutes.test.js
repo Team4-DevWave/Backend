@@ -8,6 +8,15 @@ const subredditcontroller = require('../../controllers/subredditcontroller');
 const notificationcontroller = require('../../controllers/notificationcontroller');
 const errorcontroller = require('../../controllers/errorcontroller');
 const homepageController = require('../../controllers/homepagecontroller');
+const userRoutes = require('../../routes/userroutes');
+const postRoutes = require('../../routes/postroutes');
+const commentRoutes = require('../../routes/commentroutes');
+const subredditRoutes = require('../../routes/subredditroutes');
+const notificationRoutes = require('../../routes/notificationsroutes');
+const homepageRoutes = require('../../routes/homepageroutes');
+const chatroomRoutes = require('../../routes/chatroomroutes');
+const chatmessageRoutes= require('../../routes/chatmessageroutes');
+const messageRoutes = require('../../routes/messageroutes');
 
 const app = "http://localhost:8000";
 
