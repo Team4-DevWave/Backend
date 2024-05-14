@@ -1,0 +1,85 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const Subreddit = require('./models/subreddit');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+
+async function authenticateUser(req, res, next) {
+  try {
+    
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.userID);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+
+// Task: mine/where
+app.post('/mine/where', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId, filter } = req.body;
+    // Check if the request body contains required fields
+    if (!subredditId || !filter) {
+      return res.status(400).json({ error: 'Subreddit ID and filter are required' });
+    }
+    // Find the subreddit by ID
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    
+    let filteredPosts;
+    if (filter === 'new') {
+      filteredPosts = await Post.find({ subreddit: subredditId }).sort({ createdAt: -1 });
+    } else if (filter === 'top') {
+      filteredPosts = await Post.find({ subreddit: subredditId }).sort({ upvotes: -1 });
+    } else {
+      return res.status(400).json({ error: 'Invalid filter criteria' });
+    }
+    return res.status(200).json({ posts: filteredPosts });
+  } catch (error) {
+    console.error('Error in mine/where:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: mine/moderator
+app.get('/mine/moderator', authenticateUser, async (req, res) => {
+  try {
+    // Find subreddits where the current user is a moderator
+    const moderatorSubreddits = await Subreddit.find({ moderators: req.user._id });
+    return res.status(200).json({ subreddits: moderatorSubreddits });
+  } catch (error) {
+    console.error('Error in mine/moderator:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});

@@ -1,0 +1,47 @@
+//test
+const request = require('supertest');
+const app = require('./app'); 
+const Subreddit = require('./models/subreddit');
+const Post = require('./models/post');
+
+describe('POST /mine/where', () => {
+  it('should filter posts based on the provided criteria', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
+
+    // Create test posts for the subreddit
+    const post1 = new Post({ title: 'Post 1', subreddit: subreddit._id });
+    const post2 = new Post({ title: 'Post 2', subreddit: subreddit._id });
+    await post1.save();
+    await post2.save();
+
+    // Make a POST request to filter posts
+    const response = await request(app)
+      .post('/mine/where')
+      .send({ subredditId: subreddit._id, filter: 'new' });
+
+    // Expect response status to be 200 and check the number of returned posts
+    expect(response.status).toBe(200);
+    expect(response.body.posts.length).toBe(2);
+  });
+});
+
+describe('GET /mine/moderator', () => {
+  it('should return subreddits where the user is a moderator', async () => {
+    // Create test subreddits
+    const subreddit1 = new Subreddit({ name: 'subreddit1', moderators: ['user1'] });
+    const subreddit2 = new Subreddit({ name: 'subreddit2', moderators: ['user2'] });
+    await subreddit1.save();
+    await subreddit2.save();
+
+    // Make a GET request to fetch moderator subreddits
+    const response = await request(app)
+      .get('/mine/moderator')
+      .set('Authorization', 'Bearer <token>'); 
+
+    // Expect response status to be 200 and check the number of returned subreddits
+    expect(response.status).toBe(200);
+    expect(response.body.subreddits.length).toBe(1); 
+  });
+});

@@ -1,0 +1,69 @@
+const request = require('supertest');
+const app = require('./app'); 
+const Subreddit = require('./models/subreddit');
+const Post = require('./models/post');
+const Reply = require('./models/reply');
+
+describe('POST /saved_categories', () => {
+  it('should save categories to a subreddit', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
+
+    // Make a POST request to save categories
+    const response = await request(app)
+      .post('/saved_categories')
+      .send({ subredditId: subreddit._id, categories: ['category1', 'category2'] });
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Saved categories updated successfully');
+
+    // Fetch the subreddit from the database and check if categories are updated
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.savedCategories).toEqual(['category1', 'category2']);
+  });
+});
+
+describe('POST /sendreplies', () => {
+  it('should send a reply to a post', async () => {
+    // Create a test post
+    const post = new Post({ title: 'Test Post', content: 'This is a test post' });
+    await post.save();
+
+    // Make a POST request to send a reply
+    const response = await request(app)
+      .post('/sendreplies')
+      .send({ postId: post._id, reply: 'This is a test reply' });
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Reply sent successfully');
+
+    // Fetch the post from the database and check if the reply is added
+    const updatedPost = await Post.findById(post._id).populate('replies');
+    expect(updatedPost.replies.length).toBe(1);
+    expect(updatedPost.replies[0].content).toBe('This is a test reply');
+  });
+});
+
+describe('PUT /set_suggested_sort', () => {
+  it('should set suggested sort for a subreddit', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
+
+    // Make a PUT request to set suggested sort
+    const response = await request(app)
+      .put('/set_suggested_sort')
+      .send({ subredditId: subreddit._id, suggestedSort: 'new' });
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Suggested sort updated successfully');
+
+    // Fetch the subreddit from the database and check if suggested sort is updated
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.suggestedSort).toBe('new');
+  });
+});

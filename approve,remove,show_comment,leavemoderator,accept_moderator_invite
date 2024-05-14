@@ -1,0 +1,108 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const User = require('./models/user'); 
+const Item = require('./models/item'); 
+const Comment = require('./models/comment'); 
+const Moderator = require('./models/moderator'); 
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+async function authenticateUser(req, res, next) {
+  try {
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userID); 
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+
+// Task: approve
+app.put('/approve', authenticateUser, async (req, res) => {
+  try {
+    const { itemId } = req.body;
+
+    await Item.findByIdAndUpdate(itemId, { approved: true });
+    return res.status(200).json({ message: 'Approved successfully' });
+  } catch (error) {
+    console.error('Error approving:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: remove
+app.put('/remove', authenticateUser, async (req, res) => {
+  try {
+    const { itemId } = req.body;
+    
+    await Item.findByIdAndDelete(itemId);
+    return res.status(200).json({ message: 'Removed successfully' });
+  } catch (error) {
+    console.error('Error removing:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: show_comment
+app.get('/show_comment', authenticateUser, async (req, res) => {
+  try {
+    const { commentId } = req.query;
+    
+    const comment = await Comment.findById(commentId);
+    return res.status(200).json({ message: 'Comment shown successfully', comment });
+  } catch (error) {
+    console.error('Error showing comment:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: leavemoderator
+app.post('/leavemoderator', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId } = req.body;
+    
+    await Moderator.findOneAndRemove({ user: req.user._id, subreddit: subredditId });
+    return res.status(200).json({ message: 'Moderator left successfully' });
+  } catch (error) {
+    console.error('Error leaving moderator:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: accept_moderator_invite
+app.post('/accept_moderator_invite', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId } = req.body;
+    
+    const moderator = new Moderator({ user: req.user._id, subreddit: subredditId });
+    await moderator.save();
+    return res.status(200).json({ message: 'Moderator invitation accepted successfully' });
+  } catch (error) {
+    console.error('Error accepting moderator invitation:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+module.exports = app;
