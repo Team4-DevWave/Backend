@@ -1,0 +1,70 @@
+const request = require('supertest');
+const app = require('./app'); 
+const Subreddit = require('./models/subreddit');
+
+describe('DELETE /delete_sr_banner', () => {
+  it('should delete the subreddit banner', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
+
+    // Make a DELETE request to delete the subreddit banner
+    const response = await request(app)
+      .delete('/delete_sr_banner')
+      .send({ subredditId: subreddit._id });
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Subreddit banner deleted successfully');
+
+    // Fetch the subreddit from the database and check if the banner is deleted
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.banner).toBeNull();
+  });
+});
+
+describe('DELETE /delete_sr_icon', () => {
+  it('should delete the subreddit icon', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
+
+    // Make a DELETE request to delete the subreddit icon
+    const response = await request(app)
+      .delete('/delete_sr_icon')
+      .send({ subredditId: subreddit._id });
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Subreddit icon deleted successfully');
+
+    // Fetch the subreddit from the database and check if the icon is deleted
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.icon).toBeNull();
+  });
+});
+
+describe('POST /upload_sr_icon', () => {
+  it('should upload the subreddit icon', async () => {
+    // Create a test subreddit
+    const subreddit = new Subreddit({ name: 'test_subreddit' });
+    await subreddit.save();
+
+    // Icon data to be sent in the request
+    const iconData = 'icon_data_here';
+
+    // Make a POST request to upload the subreddit icon
+    const response = await request(app)
+      .post('/upload_sr_icon')
+      .send({ subredditId: subreddit._id, icon: iconData });
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Subreddit icon uploaded successfully');
+
+    // Fetch the subreddit from the database and check if the icon is uploaded
+    const updatedSubreddit = await Subreddit.findById(subreddit._id);
+    expect(updatedSubreddit.icon).toBe(iconData);
+  });
+});
+

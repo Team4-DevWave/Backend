@@ -1,0 +1,78 @@
+const request = require('supertest');
+const app = require('./app'); 
+const Subreddit = require('./models/subreddit');
+
+describe('POST /approve', () => {
+  it('should approve something', async () => {
+    // Make a POST request to approve something
+    const response = await request(app)
+      .post('/approve')
+      .send({ itemId: 'ITEM_ID_TO_APPROVE' }); 
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Approved successfully');
+
+    
+  });
+});
+
+describe('POST /remove', () => {
+  it('should remove something', async () => {
+    // Make a POST request to remove something
+    const response = await request(app)
+      .post('/remove')
+      .send({ itemId: 'ITEM_ID_TO_REMOVE' }); 
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Removed successfully');
+
+    
+  });
+});
+
+describe('GET /show_comment', () => {
+  it('should show a comment', async () => {
+    // Make a GET request to show a comment
+    const response = await request(app)
+      .get('/show_comment')
+      .query({ commentId: 'COMMENT_ID_TO_SHOW' }); 
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Comment shown successfully');
+
+    
+  });
+});
+
+describe('POST /leavemoderator', () => {
+  it('should leave moderator role', async () => {
+    // Make a POST request to leave moderator role
+    const response = await request(app)
+      .post('/leavemoderator')
+      .send({ subredditId: 'SUBREDDIT_ID_TO_LEAVE_MODERATOR' }); 
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Moderator left successfully');
+
+    
+  });
+});
+
+describe('POST /accept_moderator_invite', () => {
+  it('should accept moderator invitation', async () => {
+    // Make a POST request to accept moderator invitation
+    const response = await request(app)
+      .post('/accept_moderator_invite')
+      .send({ subredditId: 'SUBREDDIT_ID_TO_ACCEPT_INVITE' }); 
+
+    // Expect response status to be 200 and check the message
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Moderator invitation accepted successfully');
+
+    
+  });
+});

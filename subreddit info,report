@@ -1,0 +1,64 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const Subreddit = require('./models/subreddit');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+async function authenticateUser(req, res, next) {
+  try {
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await userModel.findById(decoded.userID);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+// Task:subreddit_info 
+app.get('/subreddit_info/:id', authenticateUser, async (req, res) => {
+  try {
+    const subredditId = req.params.id;
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    return res.status(200).json(subreddit);
+  } catch (error) {
+    console.error('Error fetching subreddit information:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task:report
+app.post('/report', authenticateUser, async (req, res) => {
+  try {
+    const { postId, reason } = req.body;
+    if (!postId || !reason) {
+      return res.status(400).json({ error: 'Post ID and reason are required' });
+    }
+    
+    return res.status(200).json({ message: 'Post reported successfully' });
+  } catch (error) {
+    console.error('Error reporting post:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Export the app for testing
+module.exports = app;

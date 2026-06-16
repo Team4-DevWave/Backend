@@ -1,0 +1,76 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const Subreddit = require('./models/subreddit');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+async function authenticateUser(req, res, next) {
+  try {
+    
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    
+    const user = await userModel.findById(decoded.userID);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
+    }
+
+    
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+
+// Task: site_admin
+app.post('/site_admin', authenticateUser, async (req, res) => {
+  try {
+    
+    if (req.user.isAdmin) {
+      return res.status(200).json({ message: 'Site admin task completed successfully' });
+    } else {
+      return res.status(403).json({ error: 'Forbidden: User is not a site admin' });
+    }
+  } catch (error) {
+    console.error('Error in site_admin task:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: /about/edit
+app.put('/about/edit', authenticateUser, async (req, res) => {
+  try {
+    
+    const { subredditId, aboutText } = req.body;
+    const subreddit = await Subreddit.findByIdAndUpdate(subredditId, { about: aboutText });
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    return res.status(200).json({ message: 'About section updated successfully' });
+  } catch (error) {
+    console.error('Error in /about/edit task:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+module.exports = app;
+

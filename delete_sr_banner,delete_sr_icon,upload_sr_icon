@@ -1,0 +1,110 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const Subreddit = require('./models/subreddit');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/myapp', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+async function authenticateUser(req, res, next) {
+  try {
+
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : req.cookies.jwt;
+ 
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.userID);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
+    }
+
+    req.user = user;
+
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+
+// Task: delete_sr_banner
+app.delete('/delete_sr_banner', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId } = req.body;
+    // Check if the request body contains required fields
+    if (!subredditId) {
+      return res.status(400).json({ error: 'Subreddit ID is required' });
+    }
+    // Find the subreddit by ID
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    // Delete the subreddit's banner
+    subreddit.banner = null;
+    await subreddit.save();
+    return res.status(200).json({ message: 'Subreddit banner deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting subreddit banner:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: delete_sr_icon
+app.delete('/delete_sr_icon', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId } = req.body;
+    // Check if the request body contains required fields
+    if (!subredditId) {
+      return res.status(400).json({ error: 'Subreddit ID is required' });
+    }
+    // Find the subreddit by ID
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    // Delete the subreddit's icon
+    subreddit.icon = null;
+    await subreddit.save();
+    return res.status(200).json({ message: 'Subreddit icon deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting subreddit icon:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Task: upload_sr_icon
+app.post('/upload_sr_icon', authenticateUser, async (req, res) => {
+  try {
+    const { subredditId, icon } = req.body;
+    // Check if the request body contains required fields
+    if (!subredditId || !icon) {
+      return res.status(400).json({ error: 'Subreddit ID and icon data are required' });
+    }
+    // Find the subreddit by ID
+    const subreddit = await Subreddit.findById(subredditId);
+    if (!subreddit) {
+      return res.status(404).json({ error: 'Subreddit not found' });
+    }
+    // Update the subreddit's icon
+    subreddit.icon = icon;
+    await subreddit.save();
+    return res.status(200).json({ message: 'Subreddit icon uploaded successfully' });
+  } catch (error) {
+    console.error('Error uploading subreddit icon:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+module.exports = app;

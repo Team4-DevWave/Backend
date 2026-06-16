@@ -1,0 +1,138 @@
+const request = require('supertest');
+const app = require('./app'); 
+const Ban = require('./models/ban');
+const Mute = require('./models/mute');
+const Moderator = require('./models/moderator');
+const LocationData = require('./models/locationData');
+const Report = require('./models/report');
+const Spam = require('./models/spam');
+const Modqueue = require('./models/modqueue');
+const Unmoderated = require('./models/unmoderated');
+
+describe('POST /about/where', () => {
+  it('should return user location', async () => {
+    // Make a POST request to get user location
+    const response = await request(app)
+      .post('/about/where')
+      .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+
+    // Expect response status to be 200 and check the location
+    expect(response.status).toBe(200);
+    expect(response.body.location).toBeDefined();
+
+  });
+});
+
+describe('GET /about/banned', () => {
+  it('should return list of banned users', async () => {
+    // Make a GET request to get list of banned users
+    const response = await request(app)
+      .get('/about/banned')
+      .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+
+    // Expect response status to be 200 and check the list of banned users
+    expect(response.status).toBe(200);
+    expect(response.body.bannedUsers).toBeDefined();
+    
+  });
+});
+
+describe('GET /about/muted', () => {
+    it('should return list of muted users', async () => {
+      // Make a GET request to get list of muted users
+      const response = await request(app)
+        .get('/about/muted')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the list of muted users
+      expect(response.status).toBe(200);
+      expect(response.body.mutedUsers).toBeDefined();
+      
+    });
+});
+
+describe('GET /about/moderators', () => {
+    it('should return list of moderators', async () => {
+      // Make a GET request to get list of moderators
+      const response = await request(app)
+        .get('/about/moderators')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the list of moderators
+      expect(response.status).toBe(200);
+      expect(response.body.moderators).toBeDefined();
+
+    });
+});
+  
+describe('GET /about/location', () => {
+    it('should return location details', async () => {
+      // Make a GET request to get location details
+      const response = await request(app)
+        .get('/about/location')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the location details
+      expect(response.status).toBe(200);
+      expect(response.body.locationDetails).toBeDefined();
+      
+    });
+});
+  
+describe('GET /about/reports', () => {
+    it('should return list of reports', async () => {
+      // Make a GET request to get list of reports
+      const response = await request(app)
+        .get('/about/reports')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the list of reports
+      expect(response.status).toBe(200);
+      expect(response.body.reports).toBeDefined();
+      
+    });
+});
+  
+describe('GET /about/spam', () => {
+    it('should return list of spam posts', async () => {
+      // Make a GET request to get list of spam posts
+      const response = await request(app)
+        .get('/about/spam')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the list of spam posts
+      expect(response.status).toBe(200);
+      expect(response.body.spamPosts).toBeDefined();
+      
+    });
+});
+  
+describe('GET /about/modqueue', () => {
+    it('should return list of posts in moderation queue', async () => {
+      // Make a GET request to get list of posts in moderation queue
+      const response = await request(app)
+        .get('/about/modqueue')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the list of posts in modqueue
+      expect(response.status).toBe(200);
+      expect(response.body.modqueuePosts).toBeDefined();
+      
+    });
+});
+  
+describe('GET /about/unmoderated', () => {
+    it('should return list of unmoderated posts', async () => {
+      // Make a GET request to get list of unmoderated posts
+      const response = await request(app)
+        .get('/about/unmoderated')
+        .set('Authorization', 'Bearer YOUR_TOKEN_HERE');
+  
+      // Expect response status to be 200 and check the list of unmoderated posts
+      expect(response.status).toBe(200);
+      expect(response.body.unmoderatedPosts).toBeDefined();
+      
+    });
+});
+  
+

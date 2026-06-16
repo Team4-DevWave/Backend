@@ -1,0 +1,48 @@
+const request = require('supertest');
+const app = require('./app'); 
+const UserModel = require('./models/user'); 
+const AboutModel = require('./models/about'); 
+
+describe('POST /site_admin', () => {
+    it('should perform site admin tasks', async () => {
+      
+      const user = new UserModel({ username: 'admin', isAdmin: true });
+      await user.save();
+  
+      // Authenticate the user and get the JWT token
+      const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET);
+  
+      // Make a POST request to perform site admin tasks
+      const response = await request(app)
+        .post('/site_admin')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ userId: 'user_id_here', role: 'admin' }); // Example request body
+  
+      // Expect response status to be 200 and check the message
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Site admin task completed successfully');
+  
+      
+    });
+  });
+  
+  describe('PUT /about/edit', () => {
+    it('should edit the about page', async () => {
+      
+      const aboutContent = 'This is the updated about page content';
+  
+      // Make a PUT request to edit the about page
+      const response = await request(app)
+        .put('/about/edit')
+        .send({ content: aboutContent }); // Example request body
+  
+      // Expect response status to be 200 and check the message
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('About page updated successfully');
+  
+      // Fetch the about page content from the database and check if it's updated
+      const updatedAbout = await AboutModel.findOne();
+      expect(updatedAbout.content).toBe(aboutContent);
+    });
+  });
+  
